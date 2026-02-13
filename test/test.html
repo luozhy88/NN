@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>简易邮件发送工具 - 自动版</title>
+    <title>简易邮件发送工具 - 自动续传版</title>
     <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入 EmailJS SDK -->
@@ -27,9 +27,12 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                自动循环发送工具
+                自动循环发送工具 (续传版)
             </h1>
-            <p class="text-indigo-100 text-xs mt-1">当前设定：每 2 分钟发送一次</p>
+            <p class="text-indigo-100 text-xs mt-1">
+                特性：刷新或重开页面可自动恢复进度<br>
+                <span class="opacity-75">(注意：网页彻底关闭期间无法发送)</span>
+            </p>
         </div>
 
         <div class="p-6 overflow-y-auto">
@@ -72,6 +75,9 @@
                             停止
                         </button>
                     </div>
+                    <div class="text-[10px] text-gray-500 mt-2 text-center">
+                        * 刷新或重开页面会自动恢复任务
+                    </div>
                 </div>
             </form>
 
@@ -79,7 +85,10 @@
             <div class="mt-6">
                 <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex justify-between items-center">
                     发送日志
-                    <button onclick="clearLog()" class="text-indigo-600 hover:text-indigo-800 text-[10px] underline">清空日志</button>
+                    <div>
+                        <button onclick="resetCounter()" class="text-red-600 hover:text-red-800 text-[10px] underline mr-3">重置计数</button>
+                        <button onclick="clearLog()" class="text-indigo-600 hover:text-indigo-800 text-[10px] underline">清空日志</button>
+                    </div>
                 </h3>
                 <div id="log-container" class="bg-gray-900 text-green-400 font-mono text-xs p-3 rounded-lg h-40 overflow-y-auto border border-gray-700 shadow-inner">
                     <div class="opacity-50 italic">-- 等待开始 --</div>
@@ -89,7 +98,7 @@
         
         <!-- 底部说明 -->
         <div class="bg-gray-50 px-6 py-3 text-[10px] text-gray-400 border-t border-gray-200 text-center">
-            页面关闭或刷新后自动发送将停止
+            提示：为了保证持续发送，请不要关闭浏览器窗口
         </div>
     </div>
 
@@ -99,7 +108,8 @@
             serviceID: "service_j2ak28v",
             templateID: "template_ol3ws9o",
             publicKey: "bGbqCw1wlTrkCwfFo",
-            intervalMinutes: 2 // 发送间隔（分钟）
+            intervalMinutes: 2, // 发送间隔（分钟）
+            storageKey: "email_auto_sender_state_v1"
         };
 
         // 2. 状态变量
@@ -107,18 +117,37 @@
         let countdownId = null;
         let nextSendTime = null;
         let sendCount = 0;
+        let isRunning = false;
 
-        // 3. 获取 DOM 元素 (必须最先执行，否则后续函数无法找到元素)
+        // 3. 获取 DOM 元素
         const startBtn = document.getElementById('start-btn');
         const stopBtn = document.getElementById('stop-btn');
         const timerDisplay = document.getElementById('timer-display');
         const logContainer = document.getElementById('log-container');
         const form = document.getElementById('email-form');
 
-        // 4. 定义辅助函数 (必须在调用前定义)
+        // 4. 定义辅助函数
+        
+        // 保存状态到 LocalStorage
+        function saveState() {
+            const state = {
+                isRunning: isRunning,
+                nextSendTime: nextSendTime,
+                sendCount: sendCount
+            };
+            localStorage.setItem(CONFIG.storageKey, JSON.stringify(state));
+        }
+
+        // 重置计数
+        window.resetCounter = function() {
+            sendCount = 0;
+            saveState();
+            addLog('系统', '计数器已重置为 0');
+        }
+
         // 日志记录
         function addLog(type, msg) {
-            if (!logContainer) return; // 安全检查
+            if (!logContainer) return;
 
             const now = new Date();
             const timeStr = now.toLocaleTimeString('zh-CN', { hour12: false });
@@ -131,6 +160,7 @@
             if (type === '系统') colorClass = 'text-blue-300';
             if (type === '发送') colorClass = 'text-yellow-300';
             if (type === '错误') colorClass = 'text-red-500 font-bold';
+            if (type === '恢复') colorClass = 'text-purple-400 font-bold';
 
             div.innerHTML = `<span class="opacity-50">[${timeStr}]</span> <span class="${colorClass} font-bold">${type}:</span> ${msg}`;
             
@@ -140,7 +170,7 @@
             }
 
             logContainer.appendChild(div);
-            logContainer.scrollTop = logContainer.scrollHeight; // 自动滚动到底部
+            logContainer.scrollTop = logContainer.scrollHeight; 
         }
 
         // 清空日志
@@ -151,15 +181,35 @@
             }
         }
 
-        // 更新下一次发送时间
-        function updateNextSendTime(ms) {
-            nextSendTime = new Date().getTime() + ms;
-            updateCountdownDisplay();
+        // 更新 UI 状态
+        function updateUIState(running) {
+            if (running) {
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                startBtn.innerHTML = '<span class="animate-pulse">运行中...</span>';
+                
+                stopBtn.disabled = false;
+                stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                startBtn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
+                    </svg>
+                    启动自动发送
+                `;
+                
+                stopBtn.disabled = true;
+                stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                timerDisplay.textContent = "已停止";
+                timerDisplay.classList.remove('bg-green-100', 'text-green-800');
+            }
         }
 
         // 更新倒计时 UI
         function updateCountdownDisplay() {
-            if (!nextSendTime) return;
+            if (!isRunning || !nextSendTime) return;
             
             const now = new Date().getTime();
             const distance = nextSendTime - now;
@@ -176,103 +226,149 @@
             timerDisplay.classList.add('bg-green-100', 'text-green-800');
         }
 
+        // 启动定时器
+        function startTimerLogic(delay) {
+            // 清除旧的
+            if (timerId) clearInterval(timerId);
+            if (countdownId) clearInterval(countdownId);
+
+            // 启动倒计时 UI 更新
+            countdownId = setInterval(updateCountdownDisplay, 1000);
+
+            // 设置首次触发（可能是恢复后的剩余时间，也可能是完整的2分钟）
+            // 注意：setTimeout 用于处理"剩余时间"，setInterval 用于后续循环
+            setTimeout(() => {
+                if (!isRunning) return; // 二次检查
+                
+                sendEmail(); // 发送
+
+                // 首次发送后，进入正常的循环间隔
+                const intervalMs = CONFIG.intervalMinutes * 60 * 1000;
+                
+                // 设置下一次时间
+                nextSendTime = new Date().getTime() + intervalMs;
+                saveState(); // 保存新时间
+
+                timerId = setInterval(() => {
+                    if (!isRunning) {
+                        clearInterval(timerId);
+                        return;
+                    }
+                    sendEmail();
+                    nextSendTime = new Date().getTime() + intervalMs;
+                    saveState();
+                }, intervalMs);
+
+            }, delay);
+        }
+
         // 发送邮件核心逻辑
         function sendEmail() {
             sendCount++;
-            const currentCount = sendCount;
-            addLog('发送', `正在发送第 ${currentCount} 封邮件...`);
-            
-            // 更新 UI 状态
+            saveState(); // 立即保存计数增加
+
+            addLog('发送', `正在发送第 ${sendCount} 封邮件...`);
             timerDisplay.textContent = "正在发送...";
             timerDisplay.classList.add('bg-yellow-100', 'text-yellow-800');
 
             emailjs.sendForm(CONFIG.serviceID, CONFIG.templateID, form)
                 .then(function() {
-                    addLog('成功', `✅ 第 ${currentCount} 封邮件发送成功`);
-                    timerDisplay.classList.remove('bg-yellow-100', 'text-yellow-800');
+                    addLog('成功', `✅ 第 ${sendCount} 封邮件发送成功`);
                 }, function(error) {
                     console.error('FAILED...', error);
                     let errMsg = error.text || error.status || '未知错误';
-                    addLog('失败', `❌ 第 ${currentCount} 封失败: ${errMsg}`);
+                    addLog('失败', `❌ 第 ${sendCount} 封失败: ${errMsg}`);
+                }).finally(() => {
                     timerDisplay.classList.remove('bg-yellow-100', 'text-yellow-800');
                 });
         }
 
-        // 5. 初始化逻辑 (在 DOM 和函数准备好后执行)
+        // 5. 事件监听
+        startBtn.addEventListener('click', function() {
+            if (isRunning) return;
+
+            isRunning = true;
+            updateUIState(true);
+            addLog('系统', `🚀 启动发送 (每${CONFIG.intervalMinutes}分钟)`);
+
+            // 立即发送第一封
+            sendEmail();
+
+            // 计算下一次时间
+            const intervalMs = CONFIG.intervalMinutes * 60 * 1000;
+            nextSendTime = new Date().getTime() + intervalMs;
+            saveState();
+
+            // 启动循环逻辑（延迟一个间隔后触发第二次）
+            startTimerLogic(intervalMs);
+        });
+
+        stopBtn.addEventListener('click', function() {
+            isRunning = false;
+            nextSendTime = null;
+            saveState(); // 保存停止状态
+
+            // 清理定时器
+            if (timerId) clearInterval(timerId);
+            if (countdownId) clearInterval(countdownId);
+            
+            updateUIState(false);
+            addLog('系统', '🛑 已手动停止发送');
+        });
+
+        // 6. 初始化逻辑 (恢复状态)
         (function init() {
             try {
                 if (typeof emailjs === 'undefined') {
-                    throw new Error("EmailJS SDK 未加载，请检查网络");
+                    throw new Error("EmailJS SDK 未加载");
                 }
                 emailjs.init(CONFIG.publicKey);
                 addLog('系统', 'EmailJS SDK 已就绪');
-                addLog('系统', `点击"启动"开始每 ${CONFIG.intervalMinutes} 分钟发送一次`);
+
+                // --- 恢复逻辑 ---
+                const savedStateStr = localStorage.getItem(CONFIG.storageKey);
+                if (savedStateStr) {
+                    const savedState = JSON.parse(savedStateStr);
+                    sendCount = savedState.sendCount || 0;
+                    
+                    if (savedState.isRunning) {
+                        addLog('恢复', `检测到上次未停止的任务，正在恢复...`);
+                        addLog('恢复', `已发送总数: ${sendCount}`);
+                        
+                        isRunning = true;
+                        updateUIState(true);
+
+                        const now = new Date().getTime();
+                        const next = savedState.nextSendTime;
+                        
+                        if (next && next > now) {
+                            // 情况1：还没到下一次发送时间
+                            const remaining = next - now;
+                            nextSendTime = next;
+                            addLog('恢复', `将在 ${Math.round(remaining/1000)} 秒后继续发送`);
+                            startTimerLogic(remaining);
+                        } else {
+                            // 情况2：关闭网页期间错过了发送时间
+                            addLog('恢复', `检测到错过的发送任务，立即补发...`);
+                            // 立即发送补发，然后重置计时
+                            sendEmail();
+                            const intervalMs = CONFIG.intervalMinutes * 60 * 1000;
+                            nextSendTime = new Date().getTime() + intervalMs;
+                            saveState();
+                            startTimerLogic(intervalMs);
+                        }
+                    }
+                } else {
+                    addLog('系统', `点击"启动"开始任务`);
+                }
+
             } catch (error) {
                 console.error(error);
                 addLog('错误', error.message || '初始化失败');
                 startBtn.disabled = true;
-                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                startBtn.textContent = "SDK加载失败";
+                startBtn.innerText = "系统错误";
             }
         })();
-
-        // 6. 事件监听
-        startBtn.addEventListener('click', function() {
-            if (timerId) return; // 防止重复点击
-
-            // UI 状态更新
-            startBtn.disabled = true;
-            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            startBtn.innerHTML = '<span class="animate-pulse">运行中...</span>';
-            
-            stopBtn.disabled = false;
-            stopBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-
-            addLog('系统', `🚀 自动发送已启动，间隔 ${CONFIG.intervalMinutes} 分钟`);
-
-            // 立即执行一次发送
-            sendEmail();
-
-            // 设置定时器
-            const intervalMs = CONFIG.intervalMinutes * 60 * 1000;
-            
-            // 设定下一次发送时间用于倒计时
-            updateNextSendTime(intervalMs);
-
-            timerId = setInterval(() => {
-                sendEmail();
-                updateNextSendTime(intervalMs);
-            }, intervalMs);
-
-            // 启动倒计时显示更新
-            countdownId = setInterval(updateCountdownDisplay, 1000);
-        });
-
-        stopBtn.addEventListener('click', function() {
-            clearInterval(timerId);
-            clearInterval(countdownId);
-            timerId = null;
-            countdownId = null;
-            nextSendTime = null;
-
-            // UI 恢复
-            startBtn.disabled = false;
-            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            startBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd" />
-                </svg>
-                启动自动发送
-            `;
-            
-            stopBtn.disabled = true;
-            stopBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            
-            timerDisplay.textContent = "已停止";
-            timerDisplay.classList.remove('bg-green-100', 'text-green-800');
-            
-            addLog('系统', '🛑 自动发送已手动停止');
-        });
 
     </script>
 </body>
