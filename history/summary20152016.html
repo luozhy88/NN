@@ -1,401 +1,444 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: "SimSun", "宋体", serif;
-    font-size: 10.5px;
-    line-height: 1.45;
-    background: #fff;
-    color: #111;
-    width: 210mm;
-    min-height: 297mm;
-    padding: 8mm 10mm;
-  }
-  h1 {
-    text-align: center;
-    font-size: 14px;
-    letter-spacing: 2px;
-    border-bottom: 2px solid #333;
-    padding-bottom: 3px;
-    margin-bottom: 5px;
-  }
-  .meta { text-align: center; font-size: 9.5px; color: #555; margin-bottom: 5px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .card {
-    border: 1px solid #888;
-    border-radius: 3px;
-    padding: 4px 6px;
-  }
-  .card.full { grid-column: 1 / -1; }
-  .card-title {
-    font-weight: bold;
-    font-size: 10.5px;
-    background: #222;
-    color: #fff;
-    padding: 1px 5px;
-    margin: -4px -6px 4px -6px;
-    border-radius: 3px 3px 0 0;
-    letter-spacing: 1px;
-  }
-  .card-title.blue { background: #1a4f8a; }
-  .card-title.green { background: #2a6934; }
-  .card-title.red { background: #7a1a1a; }
-  .card-title.purple { background: #4a1a7a; }
-  .card-title.teal { background: #1a6060; }
-  .card-title.brown { background: #6a3a10; }
-  .section { margin-bottom: 3px; }
-  .section-label {
-    font-weight: bold;
-    font-size: 9.5px;
-    color: #333;
-    border-left: 3px solid #aaa;
-    padding-left: 3px;
-    margin-bottom: 1px;
-  }
-  ul { padding-left: 12px; }
-  li { margin-bottom: 1px; }
-  .key { color: #c00; font-weight: bold; }
-  .warn { 
-    background: #fff8e1; 
-    border-left: 3px solid #f9a825; 
-    padding: 2px 5px; 
-    margin-top: 3px;
-    font-size: 9.5px;
-  }
-  .tip { 
-    background: #e8f5e9; 
-    border-left: 3px solid #388e3c; 
-    padding: 2px 5px; 
-    margin-top: 3px;
-    font-size: 9.5px;
-  }
-  .divider { border-top: 1px dashed #ccc; margin: 3px 0; }
-  .tag { display: inline-block; background:#eee; border-radius:2px; padding:0 3px; font-size:9px; margin-right:2px; }
-  .skills {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    margin-top: 3px;
-  }
-  .skill-box {
-    border: 1px solid #ccc;
-    border-radius: 2px;
-    padding: 3px 5px;
-    font-size: 9.5px;
-  }
-  .skill-title { font-weight: bold; font-size: 9px; color: #555; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2015–2016 高考历史 · 核心知识速查表</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #2980b9;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-size: 14px; /* 调小默认字号 */
+        }
+
+        body {
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: #222;
+            line-height: 1.4; /* 紧凑行高 */
+            margin: 0;
+            padding: 15px;
+            font-size: var(--text-size);
+        }
+
+        .container {
+            max-width: 1200px; /* 变宽以容纳双栏 */
+            margin: 0 auto;
+            /* 瀑布流布局关键属性 */
+            column-count: 2; 
+            column-gap: 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #2c3e50;
+            color: white;
+            border-radius: 6px;
+            /* 标题跨栏显示 */
+            column-span: all; 
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.4rem;
+        }
+
+        .tag-group {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .tag {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px; /* 卡片间距 */
+            border-top: 3px solid var(--accent-color);
+            /* 防止卡片在列之间断开 */
+            break-inside: avoid; 
+            page-break-inside: avoid;
+            display: inline-block; /* 修复部分浏览器列布局bug */
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .card-number {
+            background: var(--primary-color);
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #000;
+        }
+
+        h3 {
+            font-size: 0.95rem;
+            color: #444;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            font-weight: bold;
+            background: #f0f0f0;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        ul, ol {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        li {
+            margin-bottom: 2px;
+        }
+
+        p {
+            margin: 4px 0;
+        }
+
+        .highlight-box {
+            background-color: #fff8e1;
+            border: 1px dashed #e6dbb9;
+            color: #5d4037;
+            padding: 6px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-size: 0.85rem;
+        }
+
+        .summary-section {
+            background: #2c3e50;
+            color: white;
+            border-top: 3px solid #f1c40f;
+        }
+        
+        .summary-section h2 { color: white; }
+        .summary-section h3 { background: rgba(255,255,255,0.2); color: white; }
+        .summary-section .card-number { background: #f1c40f; color: black; }
+        .summary-section .highlight-box { background: rgba(0,0,0,0.2); border: 1px solid #555; color: #ddd; }
+
+        /* 打印专用样式 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                font-size: 12px; /* 打印字号再小一点 */
+            }
+            .container {
+                width: 100%;
+                max-width: none;
+                column-count: 2; /* 强制两栏 */
+                column-gap: 10px;
+            }
+            .card {
+                border: 1px solid #000;
+                box-shadow: none;
+                margin-bottom: 10px;
+                padding: 8px;
+            }
+            header {
+                background: none;
+                color: black;
+                border-bottom: 2px solid black;
+                padding: 10px 0;
+                margin-bottom: 10px;
+            }
+            h1 { font-size: 16px; }
+            .tag { border: 1px solid #333; color: black; background: none; }
+            .summary-section {
+                background: white;
+                color: black;
+                border: 2px solid black;
+            }
+            .summary-section h2, .summary-section h3 { color: black; }
+            .summary-section h3 { background: #eee; }
+            .summary-section .card-number { background: black; color: white; }
+            .summary-section .highlight-box { color: black; background: #eee; border: 1px solid #ccc; }
+        }
+        
+        /* 针对大屏幕的三栏布局，更省空间 */
+        @media (min-width: 1000px) {
+            .container { column-count: 3; }
+        }
+        @media (max-width: 600px) {
+            .container { column-count: 1; }
+        }
+    </style>
 </head>
 <body>
-<h1>📚 2015–2016 高考历史 · 核心知识复习卡</h1>
-<div class="meta">涵盖：儒学演变 · 科技生产力 · 唐代币制 · 抗战党派 · 戴高乐 · 清代人口 · 卢梭民主 · 谱牒改革 · 英国质询制度 · 越战</div>
 
-<div class="grid">
+<div class="container">
+    <header>
+        <h1>2015–2016 高考历史 · 核心复习卡 (A4速查版)</h1>
+        <div class="tag-group">
+            <span class="tag">儒学</span>
+            <span class="tag">科技</span>
+            <span class="tag">币制</span>
+            <span class="tag">抗战</span>
+            <span class="tag">戴高乐</span>
+            <span class="tag">清人口</span>
+            <span class="tag">卢梭</span>
+            <span class="tag">谱牒</span>
+            <span class="tag">议会</span>
+            <span class="tag">越战</span>
+        </div>
+    </header>
 
-  <!-- 儒学演变 -->
-  <div class="card">
-    <div class="card-title blue">① 儒学演变（2015-13题，25分）</div>
-    <div class="section">
-      <div class="section-label">孔孟 vs 汉儒 差异</div>
-      <ul>
-        <li>孔孟：仁、礼；以德治国；<span class="key">民贵君轻</span></li>
-        <li>汉儒：吸收法/道/阴阳家；<span class="key">天人感应、君权神授、大一统</span></li>
-      </ul>
+    <!-- 卡片 1 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">1</div>
+            <h2>儒学演变 (2015-13)</h2>
+        </div>
+        <h3>孔孟 vs 汉儒</h3>
+        <ul>
+            <li><strong>孔孟：</strong>仁、礼；德治；民贵君轻</li>
+            <li><strong>汉儒：</strong>法/道/阴阳；天人感应、大一统</li>
+        </ul>
+        <h3>宋代理学 (4点)</h3>
+        <ul>
+            <li>吸收佛、道</li>
+            <li>思辨化、哲学化 (理)</li>
+            <li>强化伦理纲常</li>
+            <li>存天理，灭人欲</li>
+        </ul>
+        <h3>韩愈&康有为共通</h3>
+        <ul>
+            <li>回归原典 (否定流变)</li>
+            <li>托古改制/借古论今</li>
+            <li>服务现实政治</li>
+        </ul>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">宋代理学发展（4点必背）</div>
-      <ul>
-        <li>吸收佛、道思想</li>
-        <li><span class="key">思辨化、哲学化</span>（上升到"理"的高度）</li>
-        <li>强化伦理纲常</li>
-        <li>提出"<span class="key">存天理，灭人欲</span>"</li>
-      </ul>
-    </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">韩愈&康有为共通（3点）</div>
-      <ul>
-        <li>回归孔孟原典（否定后世流变）</li>
-        <li>托古改制 / 借古论今</li>
-        <li>服务现实政治</li>
-      </ul>
-    </div>
-    <div class="warn">❗ 常漏：宋儒"思辨化"是核心，≠"重视经典"</div>
-  </div>
 
-  <!-- 科技生产力 -->
-  <div class="card">
-    <div class="card-title green">② 科技与生产力（2015-14题，12分）</div>
-    <div class="section">
-      <div class="section-label">答题结构：观点→论证→结论</div>
-      <ul>
-        <li><b>观点：</b>科技是第一生产力，对各要素有乘数效应</li>
-      </ul>
+    <!-- 卡片 2 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">2</div>
+            <h2>科技生产力 (2015-14)</h2>
+        </div>
+        <p><strong>结构：</strong>观点 → 论证 → 结论</p>
+        <h3>三次革命对应要素</h3>
+        <ul>
+            <li><strong>工具：</strong>蒸汽→机器；电力→电气化</li>
+            <li><strong>管理：</strong>工厂→垄断→现代企业</li>
+            <li><strong>劳动力：</strong>体力→脑力</li>
+            <li><strong>对象：</strong>煤铁→石油→信息</li>
+        </ul>
+        <div class="highlight-box">
+            ❗ 紧扣公式各项，结尾写总结句
+        </div>
     </div>
-    <div class="section">
-      <div class="section-label">三次科技革命与公式要素对应</div>
-      <ul>
-        <li><b>劳动工具：</b>蒸汽机→机器；电力→电气化</li>
-        <li><b>生产管理：</b>工厂制→垄断组织→现代企业管理</li>
-        <li><b>劳动力：</b>体力→脑力，素质要求提升</li>
-        <li><b>劳动对象：</b>煤铁→石油→信息/新材料</li>
-      </ul>
-    </div>
-    <div class="warn">❗ 答案要紧扣公式各项，≠ 罗列三次革命后果</div>
-    <div class="tip">✅ 结尾必须写总结句</div>
-  </div>
 
-  <!-- 唐代币制 -->
-  <div class="card">
-    <div class="card-title red">③ 唐代币制改革（2015-15题，15分）</div>
-    <div class="section">
-      <div class="section-label">改革内容（3点）</div>
-      <ul>
-        <li>钱币不再以重量命名 → "<span class="key">通宝/元宝</span>"体制</li>
-        <li>确立<span class="key">十进位制</span>衡法（一文一钱，十钱一两）</li>
-        <li>统一币制，规范形制（仿汉五铢）</li>
-      </ul>
+    <!-- 卡片 3 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">3</div>
+            <h2>唐代币制 (2015-15)</h2>
+        </div>
+        <h3>内容</h3>
+        <ul>
+            <li>不再以重量命名 → "通宝"</li>
+            <li>十进位 (一文一钱，十钱一两)</li>
+            <li>统一形制 (仿五铢)</li>
+        </ul>
+        <h3>意义</h3>
+        <ul>
+            <li>利于商品经济发展</li>
+            <li>确立铸币范式 (影响深远)</li>
+            <li>方便商业计算</li>
+        </ul>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">意义（3点）</div>
-      <ul>
-        <li>结束币制混乱，利于<span class="key">商品经济</span>发展</li>
-        <li>确立后世铸币<span class="key">范式</span>（影响深远）</li>
-        <li>衡法改革，方便商业计算</li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- 抗战党派 -->
-  <div class="card">
-    <div class="card-title purple">④ 抗战前后党派变化（2015-16题，15分）</div>
-    <div class="section">
-      <div class="section-label">变化</div>
-      <ul>
-        <li>前：国民党<span class="key">一党专政</span>，他党受排斥</li>
-        <li>后：各党派在法律上<span class="key">平等合法</span></li>
-      </ul>
+    <!-- 卡片 4 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">4</div>
+            <h2>党派变化 (2015-16)</h2>
+        </div>
+        <h3>变化</h3>
+        <ul>
+            <li><strong>前：</strong>国民党一党专政</li>
+            <li><strong>后：</strong>各党派法律上平等</li>
+        </ul>
+        <h3>原因 & 影响</h3>
+        <ul>
+            <li><strong>因：</strong>抗战贡献/中共壮大/国际制约</li>
+            <li><strong>果：</strong>重庆谈判/政协; 打破一党专政; 新中国基础</li>
+        </ul>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">原因</div>
-      <ul>
-        <li>各党抗战贡献，中共力量壮大</li>
-        <li>和平民主成为人心所向</li>
-        <li>美苏国际制约</li>
-      </ul>
-    </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">影响（<span class="key">常漏！</span>）</div>
-      <ul>
-        <li>促成<span class="key">重庆谈判、政协会议</span></li>
-        <li>打破国民党一党专政</li>
-        <li>为新中国建立积累政治基础</li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- 戴高乐 -->
-  <div class="card">
-    <div class="card-title teal">⑤ 戴高乐与法国复兴（2015-17题，15分）</div>
-    <div class="section">
-      <div class="section-label">抵抗理由（材料题！答案在材料里）</div>
-      <ul>
-        <li>输掉战役 ≠ 输掉战争（胜负未定）</li>
-        <li>拥有广大<span class="key">殖民地（法兰西帝国）</span>作后盾</li>
-        <li>有英美<span class="key">强大盟友</span>支持</li>
-        <li>正义战争必胜</li>
-      </ul>
+    <!-- 卡片 5 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">5</div>
+            <h2>戴高乐/法国 (2015-17)</h2>
+        </div>
+        <h3>抵抗理由 (源于材料)</h3>
+        <ul>
+            <li>输战役 ≠ 输战争</li>
+            <li>殖民地后盾 + 英美盟友</li>
+            <li>正义必胜</li>
+        </ul>
+        <h3>复兴经验</h3>
+        <ul>
+            <li>独立自主</li>
+            <li>依靠人民</li>
+            <li>国际同盟</li>
+            <li>调整策略</li>
+        </ul>
+        <div class="highlight-box">
+            ❗ 警示：读懂题目背景(二战)
+        </div>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">法国复兴经验</div>
-      <ul>
-        <li>坚持民族独立与主权</li>
-        <li>依靠人民群众抵抗</li>
-        <li>建立广泛<span class="key">国际反法西斯同盟</span></li>
-        <li>根据形势调整策略</li>
-      </ul>
-    </div>
-    <div class="warn">❗ 此题严重跑题警示：必须读懂题目时代背景（二战/法国投降）</div>
-  </div>
 
-  <!-- 清代人口 -->
-  <div class="card">
-    <div class="card-title blue">⑥ 清代人口膨胀（2016-13题，25分）</div>
-    <div class="section">
-      <div class="section-label">人口增长原因（5点）</div>
-      <ul>
-        <li>社会总体稳定（康雍乾盛世）</li>
-        <li><span class="key">摊丁入亩</span>，减轻下层负担</li>
-        <li>农作制改进（<span class="key">轮作、复种、多熟</span>）</li>
-        <li>高产作物推广（<span class="key">玉米、甘薯</span>）</li>
-        <li>耕地扩大（山地、草原开垦）</li>
-      </ul>
+    <!-- 卡片 6 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">6</div>
+            <h2>清代人口 (2016-13)</h2>
+        </div>
+        <h3>原因 (5点)</h3>
+        <ul>
+            <li>康雍乾盛世/稳定</li>
+            <li>摊丁入亩 (减负)</li>
+            <li>农作制 (多熟)</li>
+            <li>高产作物 (玉米)</li>
+            <li>耕地扩大</li>
+        </ul>
+        <h3>影响 (负面为主)</h3>
+        <ul>
+            <li>人地紧张/地价涨</li>
+            <li>游手好闲者多</li>
+            <li>生态恶化</li>
+            <li>人均收入降/民变</li>
+        </ul>
+        <h3>对策</h3>
+        <p>康有为移民；严复办实业(根本)；民国节育。</p>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">人口膨胀影响（5点，常漏多！）</div>
-      <ul>
-        <li>土地日益紧张，<span class="key">地价上涨</span></li>
-        <li>游手好闲者增多</li>
-        <li><span class="key">生态恶化</span>（水土流失、草原沙化）</li>
-        <li>人均收入下降</li>
-        <li>社会矛盾激化，<span class="key">民变频发</span></li>
-      </ul>
-    </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">缓解主张与评价</div>
-      <ul>
-        <li>康有为：移民西北/东北（可行但生态脆弱地区不宜）</li>
-        <li>严复：<span class="key">兴办实业</span>（根本之策，需时间资本）</li>
-        <li>民国：<span class="key">迟婚节育</span>（治本但传统观念阻碍）</li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- 卢梭+论述题 -->
-  <div class="card">
-    <div class="card-title green">⑦ 卢梭民主与论述题（2016-14题，12分）</div>
-    <div class="section">
-      <div class="section-label">论述题答题三步法</div>
-      <ul>
-        <li>①<span class="key">明确论题</span>（一句话，如："卢梭人民主权的理想性与代议制的现实性"）</li>
-        <li>②<span class="key">史实论证</span>（英国君主立宪→间接民主；美国三权分立；法国大革命）</li>
-        <li>③<span class="key">总结结论</span>（直接民主难行于大国，代议制是现实选择）</li>
-      </ul>
+    <!-- 卡片 7 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">7</div>
+            <h2>卢梭/论述题 (2016-14)</h2>
+        </div>
+        <h3>三步法</h3>
+        <ol>
+            <li><strong>论题：</strong>理想性 vs 现实性</li>
+            <li><strong>论证：</strong>英(代议) 美(三权) 法(革命)</li>
+            <li><strong>结论：</strong>代议制是大国现实选择</li>
+        </ol>
+        <div class="highlight-box">
+            ✅ 卢梭：主权不可转让/代表/分割
+        </div>
     </div>
-    <div class="warn">❗ 忘写论题 = 严重扣分；论题≠描述史实</div>
-    <div class="tip">✅ 卢梭主张：人民主权不可转让、不可代表、不可分割</div>
-  </div>
 
-  <!-- 谱牒改革 -->
-  <div class="card">
-    <div class="card-title red">⑧ 唐太宗谱牒改革（2016-15题，15分）</div>
-    <div class="section">
-      <div class="section-label">改革内容（5点）</div>
-      <ul>
-        <li>编撰《<span class="key">氏族志</span>》</li>
-        <li>不限地域，<span class="key">不分民族</span>渊源</li>
-        <li>不作为选官依据</li>
-        <li>以<span class="key">今日官爵高下</span>定等级</li>
-        <li>皇族第一，外戚次之，打压旧士族</li>
-      </ul>
+    <!-- 卡片 8 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">8</div>
+            <h2>唐太宗谱牒 (2016-15)</h2>
+        </div>
+        <h3>内容</h3>
+        <ul>
+            <li>《氏族志》/不限地域民族</li>
+            <li>不作选官依据</li>
+            <li><strong>标准：</strong>今日官爵高下</li>
+            <li>皇族第一，打压旧士族</li>
+        </ul>
+        <h3>作用</h3>
+        <ul>
+            <li>打击旧士族/提升新贵</li>
+            <li>加强皇权</li>
+            <li>民族融合/巩固统治</li>
+        </ul>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">作用（5点）</div>
-      <ul>
-        <li>打击旧士族特权</li>
-        <li>提升新贵族（含少数民族贵族）地位</li>
-        <li>加强皇权</li>
-        <li>促进<span class="key">民族融合</span></li>
-        <li>有利于选拔人才，巩固统治</li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- 英国质询制度 -->
-  <div class="card">
-    <div class="card-title purple">⑨ 英国议会质询制度（2016-16题，12分）</div>
-    <div class="section">
-      <div class="section-label">发展变化（4阶段）</div>
-      <ul>
-        <li>非正式 → <span class="key">正式制度化</span>（1835年列入议事程序）</li>
-        <li>可拒绝 → <span class="key">必须答复</span></li>
-        <li>时间日益<span class="key">明确具体</span>（固定每天1小时）</li>
-        <li>设专门委员会 → <span class="key">专业化、系统化</span></li>
-      </ul>
+    <!-- 卡片 9 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">9</div>
+            <h2>议会质询 (2016-16)</h2>
+        </div>
+        <h3>变化趋势</h3>
+        <p>非正式→制度化；可拒绝→必须答；时间明确；专业化(委员会)。</p>
+        <h3>实质</h3>
+        <p>立法监督行政；防权力滥用；提高透明度；权力制衡。</p>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">实质 & 积极作用</div>
-      <ul>
-        <li>实质：立法机构<span class="key">监督行政</span>的民主制度</li>
-        <li>监督政府，<span class="key">防止权力滥用</span></li>
-        <li>提高政府透明度</li>
-        <li>完善<span class="key">权力制衡</span>机制</li>
-        <li>保障公民权利</li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- 越战 -->
-  <div class="card">
-    <div class="card-title teal">⑩ 越南战争（2016-17题，15分）</div>
-    <div class="section">
-      <div class="section-label">中美未发生直接冲突的原因</div>
-      <ul>
-        <li>中国传递<span class="key">警示信息</span>，明确底线</li>
-        <li>中美双方加强信息沟通</li>
-        <li>美国吸取<span class="key">朝鲜战争教训</span></li>
-        <li>美国表现谨慎克制</li>
-      </ul>
+    <!-- 卡片 10 -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-number">10</div>
+            <h2>越南战争 (2016-17)</h2>
+        </div>
+        <h3>中美无冲突原因</h3>
+        <p>中国示警底线；双方沟通；美吸取朝鲜教训；美谨慎。</p>
+        <h3>美结束原因</h3>
+        <p>深陷泥潭；经济负担；国内反战；中苏挺越；亚洲收缩战略。</p>
     </div>
-    <div class="divider"></div>
-    <div class="section">
-      <div class="section-label">美国结束越战原因（6点）</div>
-      <ul>
-        <li>深陷泥潭，<span class="key">难以取胜</span></li>
-        <li>战争消耗巨大，经济负担沉重</li>
-        <li><span class="key">国内反战</span>情绪高涨</li>
-        <li>中苏支持越南</li>
-        <li>需从亚洲<span class="key">战略收缩</span></li>
-        <li>美国霸权主义受挫</li>
-      </ul>
-    </div>
-  </div>
 
-  <!-- 答题方法论 -->
-  <div class="card full">
-    <div class="card-title brown">📝 高频失分规律 & 答题方法论（必看）</div>
-    <div class="skills">
-      <div class="skill-box">
-        <div class="skill-title">🔴 审题三问</div>
-        时间/地点/范围对了吗？<br>
-        问"原因"还是"影响"？还是两个都问？<br>
-        分值对应要点数（≈分值÷3）
-      </div>
-      <div class="skill-box">
-        <div class="skill-title">🟡 材料题要领</div>
-        先划材料关键词<br>
-        材料信息 + 所学知识双结合<br>
-        戴高乐题教训：答案就在材料里！
-      </div>
-      <div class="skill-box">
-        <div class="skill-title">🟢 论述题格式</div>
-        ①论题（明确一句话）<br>
-        ②史实（2-3个具体例证）<br>
-        ③结论（升华观点）
-      </div>
-      <div class="skill-box">
-        <div class="skill-title">⚠️ 高频漏点</div>
-        影响类：经济/政治/文化/生态分角度<br>
-        原因类：内因+外因；主观+客观<br>
-        评价类：正面+局限性（辩证）
-      </div>
-      <div class="skill-box">
-        <div class="skill-title">📌 术语规范</div>
-        ❌"没有权利" → ✅"统而不治"<br>
-        ❌"经济交流" → ✅"民族融合"<br>
-        ❌"提高效率" → ✅"监督权力"
-      </div>
-      <div class="skill-box">
-        <div class="skill-title">🏆 得分策略</div>
-        分点作答，层次清晰<br>
-        每点开头用"①②③"或关键词<br>
-        宁多勿少，每分值约1-2个要点
-      </div>
+    <!-- 总结卡片 -->
+    <div class="card summary-section">
+        <div class="card-header">
+            <div class="card-number">📝</div>
+            <h2>高频失分 & 方法</h2>
+        </div>
+        
+        <h3>🔴 审题三问</h3>
+        <ul style="list-style: none; padding: 0;">
+            <li>1. 时间/地点/范围？</li>
+            <li>2. 原因 or 影响 or 评价？</li>
+            <li>3. 分值 ÷ 3 = 要点数</li>
+        </ul>
+
+        <h3>🟡 答题模板</h3>
+        <ul>
+            <li><strong>影响：</strong>政治/经济/文化/生态</li>
+            <li><strong>评价：</strong>积极 + 局限 (辩证)</li>
+            <li><strong>论述：</strong>论题 + 史实(2个) + 结论</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>术语纠错：</strong><br>
+            "没有权利" ❌ → "统而不治" ✅<br>
+            "经济交流" ❌ → "民族融合" ✅
+        </div>
     </div>
-  </div>
 
 </div>
+
 </body>
 </html>
