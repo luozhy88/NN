@@ -1,5 +1,1 @@
-数学错题：https://luozhy88.github.io/NN/mathematics/index.html
-政治错题：https://luozhy88.github.io/NN/politics/index.html
-政治错题总结：https://luozhy88.github.io/NN/politics/summary20122025.html
-历史错题：https://luozhy88.github.io/NN/history/index.html
-历史错题总结：https://github.com/luozhy88/NN/blob/main/history/summary20152016.html
+📚 错题集归档 (Review Notes)这里汇总是数学、政治和历史科目的错题回顾与总结。点击表格中的链接即可跳转。科目 (Subject)内容链接 (Link)说明 (Description)📐 数学数学错题首页针对数学科目的错题整理与解析🚩 政治政治错题首页政治科目错题总览🚩 政治政治错题总结 (2012-2025)包含多年的政治考点与错题复盘📜 历史历史错题首页历史科目错题总览📜 历史历史错题总结 (2015-2016)2015-2016 年度历史错题专项汇总提示：如果链接无法打开，请检查网络连接或确认 GitHub Pages 服务状态。
