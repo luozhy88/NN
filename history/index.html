@@ -381,14 +381,30 @@
             border-radius: 8px;
             margin: 1rem 0;
             border: 1px solid #e5e7eb;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .summary-item {
-            padding: 8px 0;
+            padding: 10px;
             border-bottom: 1px solid #f3f4f6;
             font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .summary-header {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .summary-answer {
+            background-color: #f9fafb;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            color: #4b5563;
         }
 
         .email-status {
@@ -870,10 +886,14 @@
             const status = isMastered ? 'mastered' : 'review';
             const statusText = isMastered ? '✅ 已掌握' : '🔴 需复习';
             
+            // 获取用户的回答内容 (在复盘界面显示的那个)
+            const userAnswer = document.getElementById('new-answer-display').innerText || "（未记录回答）";
+            
             // 记录本次会话数据，用于发邮件
             sessionRecords.push({
                 title: q.title,
                 status: statusText,
+                userAnswer: userAnswer,
                 questionId: q.id
             });
             sessionCount++;
@@ -893,6 +913,7 @@
                         questionId: q.id,
                         questionTitle: q.title,
                         status: status, // mastered or review
+                        userAnswer: userAnswer, // 同时也存到云端
                         timestamp: serverTimestamp(),
                         dateStr: new Date().toLocaleString()
                     });
@@ -936,13 +957,25 @@
             let emailContentText = ""; // 纯文本内容用于邮件
 
             sessionRecords.forEach((record, index) => {
+                // UI 展示摘要
                 summaryHTML += `
                     <div class="summary-item">
-                        <span>${index + 1}. ${record.title}</span>
-                        <strong>${record.status}</strong>
+                        <div class="summary-header">
+                            <span>${index + 1}. ${record.title}</span>
+                            <strong>${record.status}</strong>
+                        </div>
+                        <div class="summary-answer">
+                            我的回答：${record.userAnswer.substring(0, 40)}${record.userAnswer.length > 40 ? '...' : ''}
+                        </div>
                     </div>
                 `;
-                emailContentText += `${index + 1}. ${record.title} - [${record.status}]\n`;
+                
+                // 邮件文本内容
+                emailContentText += `----------------------------------------\n`;
+                emailContentText += `题目 ${index + 1}: ${record.title}\n`;
+                emailContentText += `状态: ${record.status}\n`;
+                emailContentText += `你的回答:\n${record.userAnswer}\n`;
+                emailContentText += `----------------------------------------\n\n`;
             });
             summaryContainer.innerHTML = summaryHTML;
 
@@ -966,12 +999,11 @@
             const reportData = {
                 to_name: "用户", // 如果有用户名可替换
                 message: `
-[历史特训报告]
-日期: ${todayStr}
+[历史特训报告 - ${todayStr}]
 今日目标: ${dailyGoal}题
 实际完成: ${sessionRecords.length}题
 
-详情:
+=== 详细复盘 ===
 ${content}
                 `
             };
@@ -979,7 +1011,7 @@ ${content}
             emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, reportData)
                 .then(function(response) {
                     console.log('SUCCESS!', response.status, response.text);
-                    statusDiv.innerHTML = "✅ 邮件报告已发送成功！<br>请查收包含今日题目和掌握情况的邮件。";
+                    statusDiv.innerHTML = "✅ 邮件报告已发送成功！<br>包含每道题的详细回答和掌握情况。";
                     statusDiv.style.background = "#dcfce7";
                     statusDiv.style.color = "#166534";
                 }, function(error) {
