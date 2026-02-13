@@ -1,10 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高考政治特训（手机专用版）</title>
+    <title>高考政治特训（自动汇报版）</title>
+    <!-- 引入 EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -90,7 +91,7 @@
             padding: 1rem;
             max-width: 800px;
             margin: 0 auto;
-            padding-bottom: 80px; /* 为底部按钮留空间 */
+            padding-bottom: 80px;
         }
 
         /* 卡片样式 */
@@ -197,21 +198,36 @@
             font-weight: 600;
             cursor: pointer;
             text-align: center;
-            transition: opacity 0.2s;
+            transition: all 0.2s;
         }
 
         .btn:active {
             opacity: 0.8;
+            transform: scale(0.98);
         }
 
         .btn-primary {
             background-color: var(--primary);
             color: white;
         }
+        
+        /* 评价按钮组 */
+        .evaluation-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.5rem;
+        }
 
-        .btn-next {
-            background-color: var(--gray-800);
+        .btn-success {
+            background-color: var(--success);
             color: white;
+            flex: 1;
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+            flex: 1;
         }
 
         .btn-outline {
@@ -299,8 +315,8 @@
             top: -5px;
         }
 
-        /* 欢迎页 */
-        #welcome-screen {
+        /* 欢迎页与加载遮罩 */
+        #welcome-screen, #completion-screen {
             text-align: center;
             padding: 2rem 1rem;
         }
@@ -313,10 +329,35 @@
         .hidden {
             display: none !important;
         }
+
+        /* 发送邮件时的加载动画 */
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #fff;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
     </style>
 </head>
 <body>
 
+    <!-- 顶部导航 -->
     <header>
         <div class="header-content">
             <h1>⚖️ 政治特训</h1>
@@ -338,7 +379,7 @@
             <p style="color: var(--text-sub); margin-bottom: 2rem;">
                 专为手机优化。<br>
                 包含政治(2012-25)真题。<br>
-                重点在于<strong style="color:var(--danger)">修正答题逻辑</strong>。
+                <strong>做完后自动发送学习报告。</strong>
             </p>
             <button onclick="startPractice()" class="btn btn-primary">开始特训</button>
         </div>
@@ -368,7 +409,7 @@
                 <label style="display:block; font-weight:bold; margin-bottom:0.5rem;">你的新回答：</label>
                 <textarea id="user-input" placeholder="请输入你的答案..."></textarea>
                 <div style="display: flex; gap: 12px;">
-                    <button onclick="skipQuestion()" class="btn" style="background: white; border: 1px solid #e5e7eb; color: #6b7280; flex: 1;">跳过 ↷</button>
+                    <button onclick="markAsSkipped()" class="btn" style="background: white; border: 1px solid #e5e7eb; color: #6b7280; flex: 1;">跳过 ↷</button>
                     <button onclick="submitAnswer()" class="btn btn-primary" style="flex: 2;">提交并对比 ➔</button>
                 </div>
             </div>
@@ -410,10 +451,12 @@
                     </div>
                 </div>
 
-                <div style="margin-top: 1.5rem;">
-                    <button onclick="nextQuestion()" class="btn btn-next">下一题 ➔</button>
-                    <button onclick="resetQuestion()" class="btn btn-outline">↺ 重做本题</button>
+                <!-- 评价按钮组 (修改处：收集掌握情况) -->
+                <div class="evaluation-group">
+                    <button onclick="handleResult('review')" class="btn btn-warning">⚠️ 需复习/模糊</button>
+                    <button onclick="handleResult('mastered')" class="btn btn-success">✅ 已掌握</button>
                 </div>
+                <button onclick="resetQuestion()" class="btn btn-outline">↺ 重做本题</button>
 
             </div>
 
@@ -421,7 +464,29 @@
 
     </div>
 
+    <!-- 加载中遮罩 -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p>正在生成学习报告并发送邮件...</p>
+        <p style="font-size: 0.8rem; opacity: 0.8;">请勿关闭页面</p>
+    </div>
+
     <script>
+        // --- 1. 配置与初始化 ---
+        const EMAIL_CONFIG = {
+            serviceID: "service_j2ak28v",
+            templateID: "template_ol3ws9o",
+            publicKey: "bGbqCw1wlTrkCwfFo"
+        };
+
+        (function() {
+            emailjs.init(EMAIL_CONFIG.publicKey);
+        })();
+
+        // --- 2. 状态管理 ---
+        let currentIndex = 0;
+        let sessionLogs = []; // 用于存储本次做题记录：{title, result, answer}
+
         // 题目数据
         const questions = [
             // --- 政治部分 (2025 错题) ---
@@ -524,141 +589,16 @@
                 takeaways: [
                     "逻辑与思维新题型：问“方法”时，必须列举思维工具（推理、想象、矛盾分析）。"
                 ]
-            },
-            // --- 政治部分 (2012-2022 经典真题 - 无旧记录模式) ---
-            {
-                id: 12,
-                subject: "politics",
-                year: "2012 高考政治",
-                title: "经典：国民收入分配与政府职能",
-                content: `<strong>(1) 《经济生活》：</strong>针对“最低工资占比低、居民收入比重下降”等问题，提出政策建议。<br>
-                          <strong>(2) 《政治生活》：</strong>说明政府为什么提高民生支出在财政预算中的比例。<br>
-                          <strong>(3) 《文化生活》：</strong>说明现代科技对中医文化的作用。`,
-                oldAnswer: `（无旧记录）\n这是经典真题练习，请直接在下方作答。`,
-                scoreInfo: "经典真题练习",
-                diagnosis: `此题用于巩固基础。请重点关注：<br>
-                            1. 分配政策的“两个比重”。<br>
-                            2. 政府职能与以人为本。<br>
-                            3. 科技与文化的传承创新。`,
-                examinerNotes: [
-                    "分配对策：提高居民收入比重、提高劳动报酬比重、再分配公平。",
-                    "政府：宗旨、原则、职能（公共服务）。",
-                    "科技与文化：传承（基因库）、创新（新产品）、传播（网络）。"
-                ],
-                stdAnswer: `<strong>(1) 分配对策：</strong> 提高居民收入在国民收入分配中比重；提高劳动报酬在初次分配中比重；提高最低工资；完善社保。<br>
-                            <strong>(2) 政府原因：</strong> 以人为本（宗旨原则）；履行公共服务职能；维护社会稳定公平。<br>
-                            <strong>(3) 科技作用：</strong> 促进创新（开发新产品）；利于传承（基因库）；利于传播（网络）。`,
-                takeaways: ["收入分配问题核心：初次分配重效率兼顾公平，再分配重公平。"]
-            },
-            {
-                id: 13,
-                subject: "politics",
-                year: "2015 高考政治",
-                title: "经典：预算管理与财政赤字",
-                content: `<strong>(1) 《政治》：</strong>说明政府应如何强化预算管理。<br>
-                          <strong>(2) 《经济》：</strong>分析增加财政赤字的合理性及如何用好资金。`,
-                oldAnswer: `（无旧记录）`,
-                scoreInfo: "经典真题练习",
-                diagnosis: `重点：预算法、行政监督、财政政策。`,
-                examinerNotes: [
-                    "预算管理：依法（人大批准）、制度、监管（审计）、公开（透明）。",
-                    "赤字合理性：经济下行需刺激需求；赤字率安全。"
-                ],
-                stdAnswer: `<strong>(1) 预算管理：</strong> 严格执行人大预算；完善制度；运用审计监管；公开预算（透明度）。<br>
-                            <strong>(2) 赤字：</strong> <br>
-                            合理性：积极财政政策，刺激总需求；赤字率安全。<br>
-                            怎么用：优化结构（转型升级）；提高效率；维护公平。`,
-                takeaways: ["财政赤字是逆周期调节的重要工具。"]
-            },
-            {
-                id: 14,
-                subject: "politics",
-                year: "2017 高考政治",
-                title: "经典：供给侧与文化传承",
-                content: `<strong>(1) 《经济》：</strong>反映出我国消费品供给存在什么突出问题？<br>
-                          <strong>(2) 《文化》：</strong>《中国诗词大会》成功的原因。`,
-                oldAnswer: `（无旧记录）`,
-                scoreInfo: "经典真题练习",
-                diagnosis: `重点：供给侧结构性改革、文化创新。`,
-                examinerNotes: [
-                    "供给问题：中低端过剩，高端不足（供需矛盾）。",
-                    "诗词大会：继承发展、人民主体、科技手段、核心价值观。"
-                ],
-                stdAnswer: `<strong>(1) 供给问题：</strong> 基础品供给为主，高端供给不足，供需矛盾。<br>
-                            <strong>(2) 成功原因：</strong> 继承与发展统一；立足实践（人民主体）；科技传媒手段；弘扬核心价值观。`,
-                takeaways: ["文化创新的三要素：继承传统、立足实践、博采众长（+科技手段）。"]
-            },
-            {
-                id: 15,
-                subject: "politics",
-                year: "2018 高考政治",
-                title: "经典：先进文化与农村改革",
-                content: `<strong>运用文化生活知识，分析先进文化在推动我国农村改革发展中的作用。</strong>`,
-                oldAnswer: `（无旧记录）`,
-                scoreInfo: "经典真题练习",
-                diagnosis: `重点：文化的作用（精神力量转化为物质力量）。`,
-                examinerNotes: [
-                    "文化作为精神力量 -> 物质力量。",
-                    "文化与政治经济交融。",
-                    "综合国力。",
-                    "个人素养。"
-                ],
-                stdAnswer: `① <strong>精神力量：</strong> 转化为物质力量，推动农村改革。<br>
-                            ② <strong>相互交融：</strong> 推动农村经济政治发展。<br>
-                            ③ <strong>综合国力：</strong> 解决三农问题增强国力。<br>
-                            ④ <strong>个人素养：</strong> 增强农民精神力量，满足美好生活需要。`,
-                takeaways: ["答“文化的作用”时，通常从四个层面展开：社会（精神力量）、经济政治（交融）、国力、个人。"]
-            },
-            {
-                id: 16,
-                subject: "politics",
-                year: "2020 高考政治",
-                title: "经典：消费对生产的影响",
-                content: `<strong>(1) 解读消费贡献率上升和恩格尔系数下降的经济信息。<br>
-                          (2) 说明消费变化对我国生产将产生的重要影响。</strong>`,
-                oldAnswer: `（无旧记录）`,
-                scoreInfo: "经典真题练习",
-                diagnosis: `重点：消费反作用于生产。`,
-                examinerNotes: [
-                    "信息：消费是动力，结构优化。",
-                    "影响：拉动增长、带动升级、激发创新（新产业）。"
-                ],
-                stdAnswer: `<strong>(1) 信息：</strong> 消费是增长重要动力；结构优化。<br>
-                            <strong>(2) 影响：</strong> <br>
-                            ① 拉动经济增长。<br>
-                            ② 消费结构优化 -> 带动产业升级。<br>
-                            ③ 新热点 -> 激发新产业/新业态。`,
-                takeaways: ["消费对生产的反作用：动力、导向（升级）、新热点（新产业）、劳动力。"]
-            },
-            {
-                id: 17,
-                subject: "politics",
-                year: "2022 高考政治",
-                title: "经典：对外开放与劳动教育",
-                content: `<strong>(1) 《国际》：</strong>说明我国扩大高水平对外开放的重要性。<br>
-                          <strong>(2) 《哲学》：</strong>运用物质与意识辩证关系，分析小学劳动教育成效的原因。`,
-                oldAnswer: `（无旧记录）`,
-                scoreInfo: "经典真题练习",
-                diagnosis: `重点：对外开放意义、物质意识辩证关系。`,
-                examinerNotes: [
-                    "开放：利益、时代主题、国力、命运共同体。",
-                    "哲学：物质决定意识（从实际出发）、意识反作用（正确意识促进）。"
-                ],
-                stdAnswer: `<strong>(1) 开放重要性：</strong> 利用两个市场（共同利益）；顺应时代主题；增强综合国力；推动命运共同体/全球化。<br>
-                            <strong>(2) 哲学原因：</strong> <br>
-                            ① 物质决定意识：根据学生特点/民俗开设课程。<br>
-                            ② 意识反作用：正确教育理念促进全面发展。<br>
-                            ③ 尊重规律与发挥主观能动性结合。`,
-                takeaways: ["看到“成效原因”，哲学上常找：从实际出发、发挥主观能动性、正确意识的指导。"]
             }
         ];
 
-        let currentIndex = 0;
+        // --- 3. 核心逻辑函数 ---
 
         function startPractice() {
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('practice-screen').classList.remove('hidden');
             document.getElementById('practice-screen').style.animation = 'fadeIn 0.5s';
+            sessionLogs = []; // 重置日志
             updateTotalCount();
             loadQuestion(0);
         }
@@ -671,14 +611,13 @@
             currentIndex = index;
             const q = questions[index];
 
-            // Update Progress
+            // 进度更新
             document.getElementById('progress-text').innerText = `${index + 1}/${questions.length}`;
             document.getElementById('progress-bar').style.width = `${((index + 1) / questions.length) * 100}%`;
 
-            // Render Header Tags
+            // 渲染 Header
             const yearTag = document.getElementById('q-year');
             yearTag.innerText = q.year;
-            // 颜色区分科目
             if (q.subject === 'politics') {
                 yearTag.classList.add('tag-pol');
             } else {
@@ -689,17 +628,15 @@
             document.getElementById('q-title').innerText = q.title;
             document.getElementById('q-content').innerHTML = q.content;
             
-            // Render Diagnosis
-            const diagBox = document.getElementById('q-diagnosis');
-            diagBox.innerHTML = q.diagnosis;
+            // 渲染诊断信息
+            document.getElementById('q-diagnosis').innerHTML = q.diagnosis;
 
-            // Reset Input
+            // 重置输入区
             document.getElementById('user-input').value = '';
             document.getElementById('input-section').style.display = 'block';
             document.getElementById('review-section').style.display = 'none';
 
-            // Pre-fill hidden data
-            // 如果是经典真题（无旧回答），则隐藏“旧回答”区域
+            // 处理旧回答显示
             if (q.scoreInfo === "经典真题练习") {
                 document.getElementById('old-answer-container').style.display = 'none';
             } else {
@@ -709,18 +646,17 @@
             
             document.getElementById('std-answer-display').innerHTML = q.stdAnswer;
             
-            // Render Lists
+            // 渲染列表
             document.getElementById('examiner-notes').innerHTML = q.examinerNotes.map(n => `<div>• ${n}</div>`).join('');
             document.getElementById('key-takeaways').innerHTML = q.takeaways.map(t => `<li>${t}</li>`).join('');
 
-            // Scroll to top
             window.scrollTo(0, 0);
         }
 
         function submitAnswer() {
             const val = document.getElementById('user-input').value;
             if (!val.trim()) {
-                alert("请先输入一些关键词");
+                alert("请先输入一些关键词，或者选择‘跳过’");
                 return;
             }
 
@@ -728,12 +664,45 @@
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('review-section').style.display = 'block';
             
-            // Scroll to review
+            // 滚动到对比区
             document.getElementById('review-section').scrollIntoView({ behavior: 'smooth' });
         }
 
-        function skipQuestion() {
-            nextQuestion();
+        // 标记为跳过
+        function markAsSkipped() {
+            recordAndNext("已跳过", "无回答");
+        }
+
+        // 处理复盘结果（掌握或需复习）
+        function handleResult(status) {
+            const currentQ = questions[currentIndex];
+            const userAns = document.getElementById('user-input').value;
+            
+            let statusText = "";
+            if(status === 'mastered') statusText = "✅ 已掌握";
+            if(status === 'review') statusText = "⚠️ 需复习";
+
+            recordAndNext(statusText, userAns);
+        }
+
+        // 记录数据并决定下一步
+        function recordAndNext(statusText, userAnswer) {
+            const currentQ = questions[currentIndex];
+            
+            // 1. 记录日志
+            sessionLogs.push({
+                title: currentQ.title,
+                year: currentQ.year,
+                status: statusText,
+                userAnswer: userAnswer.substring(0, 100) + (userAnswer.length > 100 ? "..." : "") // 截断过长文本
+            });
+
+            // 2. 判断是否结束
+            if (currentIndex < questions.length - 1) {
+                loadQuestion(currentIndex + 1);
+            } else {
+                sendEmailReport();
+            }
         }
 
         function resetQuestion() {
@@ -743,12 +712,40 @@
             document.getElementById('user-input').focus();
         }
 
-        function nextQuestion() {
-            if (currentIndex < questions.length - 1) {
-                loadQuestion(currentIndex + 1);
-            } else {
-                alert("特训完成！休息一下吧。");
-            }
+        // --- 4. 邮件发送逻辑 ---
+        function sendEmailReport() {
+            // 显示加载遮罩
+            document.getElementById('loading-overlay').style.display = 'flex';
+
+            // 格式化邮件内容
+            let emailBody = "【高考政治特训报告】\n\n";
+            emailBody += `完成时间: ${new Date().toLocaleString()}\n`;
+            emailBody += `共完成题目: ${sessionLogs.length} 道\n\n`;
+            emailBody += "----------------------------------------\n";
+
+            sessionLogs.forEach((log, index) => {
+                emailBody += `题 ${index + 1}: ${log.title} (${log.year})\n`;
+                emailBody += `掌握情况: ${log.status}\n`;
+                emailBody += `我的回答: ${log.userAnswer}\n`;
+                emailBody += "----------------------------------------\n";
+            });
+
+            const templateParams = {
+                message: emailBody,
+                // 这里假设模板里有个 {{message}} 变量
+            };
+
+            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, templateParams)
+                .then(function(response) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    alert(`🎉 特训完成！\n邮件发送成功 (Status: ${response.status})\n好好休息！`);
+                    // 可以在这里重定向或者显示完成页
+                    location.reload(); // 简单重置
+                }, function(error) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    alert('特训完成，但邮件发送失败。\n错误信息: ' + JSON.stringify(error));
+                    console.log("Email Failed:", error);
+                });
         }
     </script>
 </body>
