@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>高考历史特训（手机专用版）</title>
+    <!-- 引入 EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         :root {
             --primary: #2563eb;
@@ -340,6 +342,63 @@
             margin-bottom: 1rem;
         }
 
+        /* 设置框 */
+        .setting-box {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e5e7eb;
+            text-align: left;
+        }
+
+        .setting-label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .input-num {
+            width: 100%;
+            padding: 10px;
+            font-size: 1.1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        /* 结算页 */
+        #completion-screen {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        .summary-list {
+            text-align: left;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid #e5e7eb;
+        }
+
+        .summary-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .email-status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            background: #f3f4f6;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -377,6 +436,13 @@
                 本地自动记录做题进度。<br>
                 <span id="cloud-indicator">☁️ 数据将同步到云端</span>
             </p>
+
+            <div class="setting-box">
+                <label class="setting-label">📅 今日计划刷题数：</label>
+                <input type="number" id="daily-goal-input" class="input-num" value="5" min="1" max="50">
+                <div style="font-size:0.8rem; color:#6b7280; margin-top:5px;">完成后将自动发送报告到邮箱</div>
+            </div>
+
             <button onclick="window.startPractice()" class="btn btn-primary">开始特训</button>
             <p style="margin-top:1rem; font-size:0.8rem; color:#9ca3af; cursor:pointer;" onclick="window.clearData()">[重置所有记录]</p>
         </div>
@@ -469,20 +535,48 @@
 
         </div>
 
+        <!-- 结算页 -->
+        <div id="completion-screen" class="hidden">
+            <div class="welcome-icon">🎉</div>
+            <h2>今日特训完成！</h2>
+            <p>已完成今日设定的目标。</p>
+            
+            <div class="summary-list" id="session-summary-list">
+                <!-- JS 会填充这里 -->
+            </div>
+
+            <div id="email-report-status" class="email-status">
+                📨 正在生成邮件报告...
+            </div>
+
+            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">返回首页</button>
+        </div>
+
     </div>
 
     <script type="module">
         // ----------------------------------------------------
         // FIREBASE 配置区域
-        // 请前往 https://console.firebase.google.com/ 创建项目
-        // 并将 Web App 的配置复制到下方
         // ----------------------------------------------------
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 【重要：这里需要填入你的 Firebase 配置】
-        // 如果这里是空的，云同步功能将不会生效，但本地功能依然可用
+        // 邮件配置
+        const EMAIL_CONFIG = {
+            serviceID: "service_j2ak28v",
+            templateID: "template_ol3ws9o",
+            publicKey: "bGbqCw1wlTrkCwfFo"
+        };
+
+        // 初始化 EmailJS
+        (function() {
+            if(window.emailjs) {
+                emailjs.init(EMAIL_CONFIG.publicKey);
+            } else {
+                console.error("EmailJS SDK failed to load");
+            }
+        })();
 
         const firebaseConfig = {
           apiKey: "AIzaSyCb3qEBV8BYmkP3qjEAqlpGkM0kz-Lr7PE",
@@ -500,14 +594,12 @@
         let userId = "guest";
         let isCloudEnabled = false;
 
-        // 检查用户是否填入了配置
         if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
             try {
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
                 
-                // 匿名登录，获取用户ID
                 signInAnonymously(auth).then((userCredential) => {
                     userId = userCredential.user.uid;
                     isCloudEnabled = true;
@@ -688,12 +780,24 @@
         let currentIndex = 0;
         const STORAGE_KEY = 'history_training_progress';
         let progressData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        
+        // 每日计划功能变量
+        let dailyGoal = 5;
+        let sessionCount = 0; // 本次会话已做题数
+        let sessionRecords = []; // 记录本次会话的题目和结果
 
         // 将函数挂载到 window 对象上，以便 HTML 按钮调用
         window.startPractice = function() {
+            // 获取用户设定的每日题量
+            const inputVal = document.getElementById('daily-goal-input').value;
+            dailyGoal = parseInt(inputVal) || 5;
+            sessionCount = 0;
+            sessionRecords = [];
+
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('practice-screen').classList.remove('hidden');
             document.getElementById('practice-screen').style.animation = 'fadeIn 0.5s';
+            
             updateStats();
             loadQuestion(0);
         }
@@ -701,7 +805,8 @@
         function updateStats() {
             const masteredCount = Object.values(progressData).filter(status => status === 'mastered').length;
             document.getElementById('master-count').innerText = `已掌握: ${masteredCount}`;
-            document.getElementById('progress-text').innerText = `${currentIndex + 1}/${questions.length}`;
+            // 显示格式：当前第几题 / 总数 (今日目标: X)
+            document.getElementById('progress-text').innerText = `${currentIndex + 1}/${questions.length} (今日目标:${dailyGoal})`;
         }
 
         function loadQuestion(index) {
@@ -763,7 +868,16 @@
         window.markResult = async function(isMastered) {
             const q = questions[currentIndex];
             const status = isMastered ? 'mastered' : 'review';
+            const statusText = isMastered ? '✅ 已掌握' : '🔴 需复习';
             
+            // 记录本次会话数据，用于发邮件
+            sessionRecords.push({
+                title: q.title,
+                status: statusText,
+                questionId: q.id
+            });
+            sessionCount++;
+
             // 1. 本地保存
             progressData[q.id] = status;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
@@ -787,17 +901,15 @@
                     console.error("上传失败", e);
                     statusDiv.innerText = "⚠️ 上传失败，请检查网络";
                 }
-            } else {
-                console.log("云端未配置，仅保存本地");
             }
             
-            // 简单的视觉反馈
-            if(isMastered) {
-                // alert("太棒了！已标记为【已掌握】"); // 体验优化：去掉弹窗，直接下一题
-            }
-            
+            // 检查是否达到今日目标或题目做完
             setTimeout(() => {
-                window.nextQuestion();
+                if (sessionCount >= dailyGoal || currentIndex >= questions.length - 1) {
+                    finishSession();
+                } else {
+                    window.nextQuestion();
+                }
             }, 800);
         }
 
@@ -805,21 +917,79 @@
             window.nextQuestion();
         }
 
-        window.resetQuestion = function() {
-            document.getElementById('review-section').style.display = 'none';
-            document.getElementById('input-section').style.display = 'block';
-            document.getElementById('input-section').style.animation = 'fadeIn 0.3s';
-            document.getElementById('user-input').focus();
-        }
-
         window.nextQuestion = function() {
             if (currentIndex < questions.length - 1) {
                 loadQuestion(currentIndex + 1);
             } else {
-                alert("本轮特训完成！\n建议明天再次复习【需复习】的题目。");
+                finishSession();
             }
         }
         
+        // 结束本次特训，展示结算页并发送邮件
+        function finishSession() {
+            document.getElementById('practice-screen').classList.add('hidden');
+            document.getElementById('completion-screen').classList.remove('hidden');
+            
+            // 生成摘要HTML
+            const summaryContainer = document.getElementById('session-summary-list');
+            let summaryHTML = "";
+            let emailContentText = ""; // 纯文本内容用于邮件
+
+            sessionRecords.forEach((record, index) => {
+                summaryHTML += `
+                    <div class="summary-item">
+                        <span>${index + 1}. ${record.title}</span>
+                        <strong>${record.status}</strong>
+                    </div>
+                `;
+                emailContentText += `${index + 1}. ${record.title} - [${record.status}]\n`;
+            });
+            summaryContainer.innerHTML = summaryHTML;
+
+            // 调用发送邮件功能
+            sendEmailReport(emailContentText);
+        }
+
+        // 发送邮件功能
+        function sendEmailReport(content) {
+            const statusDiv = document.getElementById('email-report-status');
+            
+            if (!sessionRecords.length) {
+                statusDiv.innerText = "⚠️ 本次未做题，无报告发送。";
+                return;
+            }
+
+            // 准备模板参数
+            // 这里假设模板里有一个 {{message}} 或类似的变量来接收主要内容
+            // 我们构造一个包含日期和详情的字符串
+            const todayStr = new Date().toLocaleString();
+            const reportData = {
+                to_name: "用户", // 如果有用户名可替换
+                message: `
+[历史特训报告]
+日期: ${todayStr}
+今日目标: ${dailyGoal}题
+实际完成: ${sessionRecords.length}题
+
+详情:
+${content}
+                `
+            };
+
+            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, reportData)
+                .then(function(response) {
+                    console.log('SUCCESS!', response.status, response.text);
+                    statusDiv.innerHTML = "✅ 邮件报告已发送成功！<br>请查收包含今日题目和掌握情况的邮件。";
+                    statusDiv.style.background = "#dcfce7";
+                    statusDiv.style.color = "#166534";
+                }, function(error) {
+                    console.log('FAILED...', error);
+                    statusDiv.innerHTML = "❌ 邮件发送失败。<br>请检查网络或配置。";
+                    statusDiv.style.background = "#fee2e2";
+                    statusDiv.style.color = "#991b1b";
+                });
+        }
+
         window.clearData = function() {
             if(confirm('确定要清除所有做题记录吗？')) {
                 localStorage.removeItem(STORAGE_KEY);
