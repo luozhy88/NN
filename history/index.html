@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>高考历史特训（手机专用版）</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #16a34a;
+            --success-bg: #dcfce7;
+            --danger: #dc2626;
+            --danger-bg: #fee2e2;
+            --warning: #ca8a04;
+            --warning-bg: #fef9c3;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--gray-100);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        header {
+            background-color: var(--gray-800);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .progress-container {
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .progress-bar-bg {
+            width: 60px;
+            height: 6px;
+            background-color: #4b5563;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #facc15;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 主容器 */
+        .container {
+            padding: 1rem;
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 80px; /* 为底部按钮留空间 */
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
+        }
+
+        .card-header {
+            background-color: var(--gray-50);
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tag {
+            background-color: #dbeafe;
+            color: #1e40af;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .score-tag {
+            font-family: monospace;
+            color: var(--text-sub);
+            font-size: 0.85rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        .q-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+
+        .q-content {
+            background-color: var(--gray-50);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 1rem;
+        }
+
+        /* 诊断框 */
+        .diagnosis-box {
+            background-color: var(--danger-bg);
+            border-left: 4px solid var(--danger);
+            padding: 1rem;
+            border-radius: 0 4px 4px 0;
+            margin-top: 1rem;
+        }
+
+        .diagnosis-title {
+            color: #991b1b;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 输入区 */
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 1rem;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            margin-bottom: 1rem;
+            -webkit-appearance: none;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* 按钮 */
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-next {
+            background-color: var(--gray-800);
+            color: white;
+        }
+
+        .btn-outline {
+            background-color: white;
+            border: 1px solid var(--gray-200);
+            color: var(--gray-700);
+            margin-top: 1rem;
+        }
+
+        /* 对比区域 */
+        .review-section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .comparison-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .answer-box {
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            white-space: pre-line;
+        }
+
+        .old-answer {
+            background-color: var(--danger-bg);
+            border: 1px solid #fecaca;
+            color: #7f1d1d;
+        }
+
+        .new-answer {
+            background-color: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e3a8a;
+        }
+
+        .std-box {
+            background-color: white;
+            border: 1px solid var(--success);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .std-header {
+            background-color: var(--success);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+        }
+
+        .std-body {
+            padding: 1.25rem;
+        }
+
+        .highlight-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .highlight-list li {
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+        }
+
+        .highlight-list li::before {
+            content: "•";
+            color: var(--warning);
+            font-weight: bold;
+            font-size: 1.5rem;
+            position: absolute;
+            left: 0;
+            top: -5px;
+        }
+
+        /* 欢迎页 */
+        #welcome-screen {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-content">
+            <h1>📜 历史特训</h1>
+            <div class="progress-container">
+                <span id="progress-text">1/--</span>
+                <div class="progress-bar-bg">
+                    <div id="progress-bar" class="progress-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- 欢迎页 -->
+        <div id="welcome-screen">
+            <div class="welcome-icon">🎯</div>
+            <h2 style="margin-bottom: 0.5rem;">高考历史 · 弱项定向诊疗</h2>
+            <p style="color: var(--text-sub); margin-bottom: 2rem;">
+                专为手机优化。<br>
+                包含2015-2016典型错题，<br>
+                重点在于<strong style="color:var(--danger)">修正答题逻辑</strong>。
+            </p>
+            <button onclick="startPractice()" class="btn btn-primary">开始特训</button>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="practice-screen" class="hidden">
+            
+            <!-- 题目卡片 -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="tag" id="q-year">年份</span>
+                    <span class="score-tag" id="q-score-info">得分信息</span>
+                </div>
+                <div class="card-body">
+                    <h3 class="q-title" id="q-title">题目</h3>
+                    <div class="q-content" id="q-content">内容</div>
+                    
+                    <div class="diagnosis-box">
+                        <div class="diagnosis-title">⚠️ 上次的致命伤</div>
+                        <div style="font-size: 0.9rem;" id="q-diagnosis"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区 -->
+            <div id="input-section" class="card" style="padding: 1rem;">
+                <label style="display:block; font-weight:bold; margin-bottom:0.5rem;">你的新回答：</label>
+                <textarea id="user-input" placeholder="请输入你的答案..."></textarea>
+                <div style="display: flex; gap: 12px;">
+                    <button onclick="skipQuestion()" class="btn" style="background: white; border: 1px solid #e5e7eb; color: #6b7280; flex: 1;">跳过 ↷</button>
+                    <button onclick="submitAnswer()" class="btn btn-primary" style="flex: 2;">提交并对比 ➔</button>
+                </div>
+            </div>
+
+            <!-- 复盘区 -->
+            <div id="review-section" class="review-section">
+                
+                <div class="comparison-grid">
+                    <div>
+                        <div style="font-weight:bold; color:#991b1b; margin-bottom:5px;">❌ 你的旧回答</div>
+                        <div class="answer-box old-answer" id="old-answer-display"></div>
+                    </div>
+                    <div>
+                        <div style="font-weight:bold; color:#1e40af; margin-bottom:5px;">✍️ 你的新回答</div>
+                        <div class="answer-box new-answer" id="new-answer-display"></div>
+                    </div>
+                </div>
+
+                <!-- 标准答案 -->
+                <div class="std-box">
+                    <div class="std-header">★ 标准答案 & 逻辑</div>
+                    <div class="std-body">
+                        <div style="background:#fef9c3; padding:10px; border-radius:4px; margin-bottom:1rem;">
+                            <strong style="color:#854d0e; font-size:0.8rem; display:block; margin-bottom:4px;">阅卷人视角</strong>
+                            <div id="examiner-notes" style="font-size:0.9rem;"></div>
+                        </div>
+
+                        <div style="margin-bottom:1rem;">
+                            <strong style="color:#166534; font-size:0.8rem; display:block; margin-bottom:4px;">参考答案</strong>
+                            <div id="std-answer-display" style="font-size:0.95rem; color:#1f2937;"></div>
+                        </div>
+
+                        <hr style="border:0; border-top:1px solid #e5e7eb; margin:1rem 0;">
+
+                        <div>
+                            <strong style="color:#4338ca; font-size:0.8rem; display:block; margin-bottom:4px;">🚀 提分关键</strong>
+                            <ul id="key-takeaways" class="highlight-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1.5rem;">
+                    <button onclick="nextQuestion()" class="btn btn-next">下一题 ➔</button>
+                    <button onclick="resetQuestion()" class="btn btn-outline">↺ 重做本题</button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // 题目数据
+        const questions = [
+            {
+                id: 1,
+                year: "2015 高考历史",
+                title: "第13题：儒学的发展（汉代 vs 宋代）",
+                content: `<strong>（1）指出汉代儒学与孔孟儒学的不同之处，并概括宋代理学在哪些方面对儒学有所发展。</strong><br><br>
+                          <strong>（2）指出韩愈、康有为关于儒学认识的共通之处。</strong><br><br>
+                          <strong>（3）我们应当以什么样的态度对待孔子与儒学？</strong>`,
+                oldAnswer: `（1）孔孟是仁政，民本教化；汉儒是皇权神授。发展：重视儒家经典\n（2）借儒家影响为现实服务；重视孔孟经典\n（3）态度：取其精华，去其糟粕；要用理性的眼光看待前人`,
+                scoreInfo: "旧得分：失分严重",
+                diagnosis: `1. <strong>词汇匮乏：</strong> 宋代理学核心在于<span style="color:red">思辨化、哲学化</span>。<br>
+                            2. <strong>漏点：</strong> 汉代儒学吸收了法家、道家思想（大一统）。<br>
+                            3. <strong>概念缺失：</strong> 未提及“存天理，灭人欲”。`,
+                examinerNotes: [
+                    "汉代儒学：大一统、天人感应。",
+                    "宋代理学：思辨化、哲学化、伦理纲常。",
+                    "你的旧回答第2问抓得准，但第1问太笼统。"
+                ],
+                stdAnswer: `<strong>（1）不同：</strong> 孔孟讲“仁/礼/民本”；汉儒讲“大一统/天人感应/君权神授”（吸纳法道阴阳）。<br>
+                            <strong>发展：</strong> 吸收佛道思想；使儒学<strong>思辨化、哲学化</strong>；提出“存天理，灭人欲”。<br><br>
+                            <strong>（2）共通：</strong> 回归原典（否定后世流变）；托古改制；服务于现实政治。<br><br>
+                            <strong>（3）态度：</strong> 批判继承；结合时代创新。`,
+                takeaways: [
+                    "提到宋明理学，必须反射出关键词：<strong>思辨化、哲学化、存天理灭人欲</strong>。",
+                    "对比题注意：A有B无，B有A无。"
+                ]
+            },
+            {
+                id: 2,
+                year: "2015 高考历史",
+                title: "第14题：科学技术与生产力公式（论述题）",
+                content: `<strong>运用世界近现代史的史实，对公式（生产力=科学技术×（劳动力+劳动工具+劳动对象+生产管理））进行探讨。</strong>`,
+                oldAnswer: `（1）1第一次工业革命提高社会生产力，建设工业制度\n（2）2第二次工业革命出现垄断组织跨国公司，提高生产水平\n（3）3第三次科技革命，提高生产效率，社会进入信息时代`,
+                scoreInfo: "旧得分：逻辑脱节",
+                diagnosis: `1. <strong>逻辑断层：</strong> 未扣住公式里的具体项（劳动力、工具、管理）。<br>
+                            2. <strong>缺少结构：</strong> 缺少明确的观点句和总结句。`,
+                examinerNotes: [
+                    "论据选择正确（三次革命）。",
+                    "缺乏与公式要素（工具、管理）的对应分析。",
+                    "缺观点句。"
+                ],
+                stdAnswer: `<strong>观点：</strong> 科技是第一生产力，对各要素有放大效应。<br>
+                            <strong>论证：</strong><br>
+                            1. <strong>工具：</strong> 蒸汽机→电气化→自动化。<br>
+                            2. <strong>管理：</strong> 工厂制度→垄断组织→现代企业管理。<br>
+                            3. <strong>劳动力：</strong> 体力→脑力。<br>
+                            <strong>总结：</strong> 科技推动要素重组，促进发展。`,
+                takeaways: [
+                    "论述题公式：<strong>观点 + 分论点（紧扣题目关键词） + 史实支撑 + 总结</strong>。"
+                ]
+            },
+            {
+                id: 3,
+                year: "2015 高考历史",
+                title: "第15题：唐代币制改革",
+                content: `<strong>（1）指出唐代币制改革的主要内容。</strong><br>
+                          <strong>（2）说明唐代币制改革的意义。</strong>`,
+                oldAnswer: `（1）内容：推进十进位制的转变，不用钱币重量体现钱币价值\n（2）意义：开启新的货币体系，有利于经济的发展，方便日常货币的使用`,
+                scoreInfo: "旧得分：良好",
+                diagnosis: `1. <strong>术语不准：</strong> 应为“通宝/元宝体制”（不再以重量命名）。<br>
+                            2. <strong>深度不够：</strong> 应拔高到“确立了历代铸币范式”。`,
+                examinerNotes: [
+                    "抓住了十进位制，方向正确。",
+                    "补充“范式”和“商品经济发展”会更好。"
+                ],
+                stdAnswer: `<strong>（1）内容：</strong> 开创“通宝/元宝”体制；确立十进位制；统一币制。<br>
+                            <strong>（2）意义：</strong> 结束混乱，利于商品经济；确立后世范式；方便计算。`,
+                takeaways: [
+                    "经济史意义：对当时（经济发展）、对后世（制度范式）、对操作（便利）。"
+                ]
+            },
+            {
+                id: 4,
+                year: "2015 高考历史",
+                title: "第16题：抗战前后党派地位变化",
+                content: `<strong>（1）概括指出抗战胜利前后各党派地位发生的变化。</strong><br>
+                          <strong>（2）分析各党派地位变化的原因及影响。</strong>`,
+                oldAnswer: `（1）变化：抗日战争时期，各党派于国民党领导下，抗日胜利，多数党派在宪法下一律地位平等\n（2）原因：国共两党实力发生巨大变化，美国和苏联在背后的影响`,
+                scoreInfo: "旧得分：严重漏答",
+                diagnosis: `1. <strong>审题大忌：</strong> 题目问“原因及<strong style='color:red'>影响</strong>”，你完全漏掉了“影响”！<br>
+                            2. <strong>原因不全：</strong> 忽视了内因（抗战贡献、民心）。`,
+                examinerNotes: [
+                    "严重漏点，完全未回答“影响”。",
+                    "原因部分忽视了内部因素。"
+                ],
+                stdAnswer: `<strong>（1）变化：</strong> 国民党一党专政 → 各党派法律上平等。<br>
+                            <strong>（2）原因：</strong> 团结抗战力量壮大；中共增强；民心所向；国际制约。<br>
+                            <strong>影响：</strong> 促成政协会议；利于民主政治；为新中国奠基；打破专政。`,
+                takeaways: [
+                    "看到“原因及影响”，必须在草稿纸上圈出来，强制分段。"
+                ]
+            },
+            {
+                id: 5,
+                year: "2015 高考历史",
+                title: "第17题：戴高乐与法国复兴",
+                content: `<strong>（1）概括戴高乐号召抵抗的理由。</strong><br>
+                          <strong>（2）总结法国复兴的历史经验。</strong><br>
+                          <small style='color:#666'>材料提示：“没有输掉战争”、“庞大帝国”、“盟友”。</small>`,
+                oldAnswer: `（1）原因：统治者需要治理庞大的帝国，善于劝诫\n（2）意义：维护国家安定，为后代提供参考价值，有重要的文献价值`,
+                scoreInfo: "旧得分：0分 (跑题)",
+                diagnosis: `1. <strong>幻视：</strong> 答成了古代史或史书评价。<br>
+                            2. <strong>脱离材料：</strong> 必须依据材料里的“盟友”、“殖民地”作答。`,
+                examinerNotes: [
+                    "严重审题/知识点错误。",
+                    "必须依据材料：戴高乐演讲内容。"
+                ],
+                stdAnswer: `<strong>（1）理由：</strong> 胜败未定；有殖民地后盾；有盟友支持；正义必胜。<br>
+                            <strong>（2）经验：</strong> 坚持独立主权；依靠人民；国际合作；调整策略。`,
+                takeaways: [
+                    "不懂背景不要编，答案全在材料里。"
+                ]
+            },
+            {
+                id: 6,
+                year: "2016 高考历史",
+                title: "第13题：清中期人口与近代主张",
+                content: `<strong>（1）说明清中期人口膨胀的原因及影响。</strong><br>
+                          <strong>（2）概括近代学者主张并评价。</strong>`,
+                oldAnswer: `原因：政治稳定，高产作物。影响：土地紧张。\n主张：计生，改良农业。评价：借鉴，移民不可行。`,
+                scoreInfo: "旧得分：18/25",
+                diagnosis: `1. <strong>细节丢失：</strong> 漏掉“生态破坏”、“人均收入下降”。<br>
+                            2. <strong>评价空泛：</strong> “提供借鉴”是废话。要具体评析实业、移民的优劣。`,
+                examinerNotes: [
+                    "漏掉农作制改进、生态恶化。",
+                    "评价过于笼统。"
+                ],
+                stdAnswer: `<strong>（1）原因：</strong> 稳定；税改；复种；高产作物；耕地扩大。<br>
+                            <strong>影响：</strong> 人地矛盾；生态恶化；收入下降；游手好闲；民变。<br>
+                            <strong>（2）评价：</strong> 移民缓解但破环生态；实业治本但需资金；节育根本但受观念制约。`,
+                takeaways: [
+                    "概括题要像剥洋葱，每一句话都是得分点。"
+                ]
+            },
+            {
+                id: 7,
+                year: "2016 高考历史",
+                title: "第14题：卢梭思想与制度（小论文）",
+                content: `<strong>围绕“制度构想与实践”拟定论题并阐述。</strong><br>
+                          <small>卢梭反对代议制，认为英国人选出议员后就是奴隶。</small>`,
+                oldAnswer: `英国君主立宪，国王世袭无权...`,
+                scoreInfo: "旧得分：4/12",
+                diagnosis: `1. <strong>格式错误：</strong> 未写“论题：xxxx”。<br>
+                            2. <strong>缺乏思辨：</strong> 只写了英国制度，未结合卢梭观点的“理想vs现实”冲突。`,
+                examinerNotes: [
+                    "未拟定论题。",
+                    "未分析卢梭思想与代议制的矛盾。"
+                ],
+                stdAnswer: `<strong>论题：</strong> 卢梭人民主权理论的理想性与代议制实践的现实性。<br>
+                            <strong>阐述：</strong> 卢梭主张直接民主（理想性）在大国难实现；代议制（现实性）虽有缺陷但通过分权制衡防止暴政。<br>
+                            <strong>结论：</strong> 代议制是现代政治的现实选择。`,
+                takeaways: [
+                    "小论文必写标题。",
+                    "体现“理想 vs 现实”的张力。"
+                ]
+            }
+        ];
+
+        let currentIndex = 0;
+
+        function startPractice() {
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('practice-screen').classList.remove('hidden');
+            document.getElementById('practice-screen').style.animation = 'fadeIn 0.5s';
+            updateTotalCount();
+            loadQuestion(0);
+        }
+
+        function updateTotalCount() {
+            document.getElementById('progress-text').innerText = `1/${questions.length}`;
+        }
+
+        function loadQuestion(index) {
+            currentIndex = index;
+            const q = questions[index];
+
+            // Update Progress
+            document.getElementById('progress-text').innerText = `${index + 1}/${questions.length}`;
+            document.getElementById('progress-bar').style.width = `${((index + 1) / questions.length) * 100}%`;
+
+            // Render Content
+            document.getElementById('q-year').innerText = q.year;
+            document.getElementById('q-score-info').innerText = q.scoreInfo;
+            document.getElementById('q-title').innerText = q.title;
+            document.getElementById('q-content').innerHTML = q.content;
+            document.getElementById('q-diagnosis').innerHTML = q.diagnosis;
+
+            // Reset Input
+            document.getElementById('user-input').value = '';
+            document.getElementById('input-section').style.display = 'block';
+            document.getElementById('review-section').style.display = 'none';
+
+            // Pre-fill hidden data
+            document.getElementById('old-answer-display').innerText = q.oldAnswer;
+            document.getElementById('std-answer-display').innerHTML = q.stdAnswer;
+            
+            // Render Lists
+            document.getElementById('examiner-notes').innerHTML = q.examinerNotes.map(n => `<div>• ${n}</div>`).join('');
+            document.getElementById('key-takeaways').innerHTML = q.takeaways.map(t => `<li>${t}</li>`).join('');
+
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function submitAnswer() {
+            const val = document.getElementById('user-input').value;
+            if (!val.trim()) {
+                alert("请先输入一些关键词");
+                return;
+            }
+
+            document.getElementById('new-answer-display').innerText = val;
+            document.getElementById('input-section').style.display = 'none';
+            document.getElementById('review-section').style.display = 'block';
+            
+            // Scroll to review
+            document.getElementById('review-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function skipQuestion() {
+            nextQuestion();
+        }
+
+        function resetQuestion() {
+            document.getElementById('review-section').style.display = 'none';
+            document.getElementById('input-section').style.display = 'block';
+            document.getElementById('input-section').style.animation = 'fadeIn 0.3s';
+            document.getElementById('user-input').focus();
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) {
+                loadQuestion(currentIndex + 1);
+            } else {
+                alert("特训完成！建议明天再次复习。");
+            }
+        }
+    </script>
+</body>
+</html>
