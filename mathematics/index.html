@@ -1,0 +1,655 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高中数学核心公式汇总 & 每日测验</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        // MathJax Configuration
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+
+        // EmailJS Configuration
+        const EMAIL_CONFIG = {
+            serviceID: "service_j2ak28v",
+            templateID: "template_ol3ws9o",
+            publicKey: "bGbqCw1wlTrkCwfFo"
+        };
+
+        (function() {
+            emailjs.init(EMAIL_CONFIG.publicKey);
+        })();
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        .math-card {
+            transition: all 0.3s ease;
+        }
+        .math-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .parabola-table th, .parabola-table td {
+            border: 1px solid #e5e7eb;
+            padding: 0.75rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .parabola-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        /* Quiz Styles */
+        .option-btn {
+            transition: all 0.2s;
+        }
+        .option-btn:hover {
+            background-color: #f3f4f6;
+        }
+        .option-btn.selected {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white py-6 shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-3xl font-bold">高中数学核心公式汇总</h1>
+                <p class="text-blue-100 mt-1 text-xs md:text-sm">解析几何 · 空间向量 · 三角函数 · 数列 · 立体几何</p>
+            </div>
+            <button onclick="toggleQuizMode()" id="toggleBtn" class="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-semibold shadow transition text-sm md:text-base">
+                进入每日测验
+            </button>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 flex-grow">
+
+        <!-- Formula Content View (Default) -->
+        <div id="formulaView" class="space-y-8">
+            <!-- 1. 抛物线 -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden math-card">
+                <div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
+                    <h2 class="text-xl font-bold text-blue-800">1. 抛物线的标准方程与几何性质</h2>
+                </div>
+                <div class="p-6 overflow-x-auto">
+                    <p class="text-sm text-gray-500 mb-4">对于抛物线 $y^2=2px (p \neq 0)$ 上的点 $(x_0, y_0)$，其坐标可设为 $(\frac{y_0^2}{2p}, y_0)$ 以简化运算。</p>
+                    <table class="w-full parabola-table text-sm md:text-base min-w-[800px]">
+                        <thead>
+                            <tr>
+                                <th class="w-24">标准方程</th>
+                                <th>$y^2 = 2px \ (p>0)$</th>
+                                <th>$y^2 = -2px \ (p>0)$</th>
+                                <th>$x^2 = 2py \ (p>0)$</th>
+                                <th>$x^2 = -2py \ (p>0)$</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 示意图 Row -->
+                            <tr>
+                                <td class="bg-gray-50 text-gray-700 font-semibold">示意图</td>
+                                <td class="p-4">
+                                    <svg width="100" height="100" viewBox="0 0 100 100" class="mx-auto">
+                                        <line x1="10" y1="50" x2="90" y2="50" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <line x1="50" y1="10" x2="50" y2="90" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <path d="M 85 20 Q 15 50 85 80" fill="none" stroke="#2563EB" stroke-width="2.5" />
+                                        <circle cx="65" cy="50" r="2" fill="#DC2626" />
+                                        <text x="68" y="48" font-size="10" fill="#DC2626">F</text>
+                                    </svg>
+                                </td>
+                                <td class="p-4">
+                                    <svg width="100" height="100" viewBox="0 0 100 100" class="mx-auto">
+                                        <line x1="10" y1="50" x2="90" y2="50" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <line x1="50" y1="10" x2="50" y2="90" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <path d="M 15 20 Q 85 50 15 80" fill="none" stroke="#2563EB" stroke-width="2.5" />
+                                        <circle cx="35" cy="50" r="2" fill="#DC2626" />
+                                        <text x="25" y="48" font-size="10" fill="#DC2626">F</text>
+                                    </svg>
+                                </td>
+                                <td class="p-4">
+                                    <svg width="100" height="100" viewBox="0 0 100 100" class="mx-auto">
+                                        <line x1="10" y1="50" x2="90" y2="50" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <line x1="50" y1="10" x2="50" y2="90" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <path d="M 20 20 Q 50 90 80 20" fill="none" stroke="#2563EB" stroke-width="2.5" />
+                                        <circle cx="50" cy="35" r="2" fill="#DC2626" />
+                                        <text x="54" y="35" font-size="10" fill="#DC2626">F</text>
+                                    </svg>
+                                </td>
+                                <td class="p-4">
+                                    <svg width="100" height="100" viewBox="0 0 100 100" class="mx-auto">
+                                        <line x1="10" y1="50" x2="90" y2="50" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <line x1="50" y1="10" x2="50" y2="90" stroke="#9CA3AF" stroke-width="1.5" />
+                                        <path d="M 20 80 Q 50 10 80 80" fill="none" stroke="#2563EB" stroke-width="2.5" />
+                                        <circle cx="50" cy="65" r="2" fill="#DC2626" />
+                                        <text x="54" y="65" font-size="10" fill="#DC2626">F</text>
+                                    </svg>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>图形特征</strong></td>
+                                <td>开口向右</td>
+                                <td>开口向左</td>
+                                <td>开口向上</td>
+                                <td>开口向下</td>
+                            </tr>
+                            <tr>
+                                <td><strong>焦点坐标</strong></td>
+                                <td>$(\frac{p}{2}, 0)$</td>
+                                <td>$(-\frac{p}{2}, 0)$</td>
+                                <td>$(0, \frac{p}{2})$</td>
+                                <td>$(0, -\frac{p}{2})$</td>
+                            </tr>
+                            <tr>
+                                <td><strong>准线方程</strong></td>
+                                <td>$x = -\frac{p}{2}$</td>
+                                <td>$x = \frac{p}{2}$</td>
+                                <td>$y = -\frac{p}{2}$</td>
+                                <td>$y = \frac{p}{2}$</td>
+                            </tr>
+                            <tr>
+                                <td><strong>焦半径 $|PF|$</strong></td>
+                                <td>$x_0 + \frac{p}{2}$</td>
+                                <td>$-x_0 + \frac{p}{2}$</td>
+                                <td>$y_0 + \frac{p}{2}$</td>
+                                <td>$-y_0 + \frac{p}{2}$</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 2. 椭圆与双曲线基础 -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- 椭圆定义 -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-100 math-card h-full">
+                    <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+                        <h2 class="text-xl font-bold text-indigo-800">2. 椭圆定义解析</h2>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <p>椭圆是平面内到两个固定点 $F_1, F_2$（焦点）的距离之和等于常数 $2a$ 的点 $P$ 的轨迹。</p>
+                        <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 text-center">
+                            $$|PF_1| + |PF_2| = 2a$$
+                            <p class="text-xs text-gray-500 mt-2">注：需满足 $2a > |F_1F_2|$（焦距）</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 弦长公式 -->
+                <section class="bg-white rounded-xl shadow-sm border border-gray-100 math-card h-full">
+                    <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+                        <h2 class="text-xl font-bold text-indigo-800">3. 弦长公式</h2>
+                    </div>
+                    <div class="p-6 flex flex-col justify-center h-full">
+                        <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200 overflow-x-auto text-center">
+                            $$|P_1P_2| = \sqrt{1+k^2} \cdot |x_1 - x_2|$$
+                        </div>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- 其他公式摘要 -->
+            <section class="bg-white rounded-xl shadow-sm border border-gray-100 math-card">
+                 <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                    <h2 class="text-xl font-bold text-gray-800">4. 常用核心公式速查</h2>
+                </div>
+                <div class="p-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div class="p-4 border rounded bg-white">
+                        <h4 class="font-bold text-sm text-gray-500 mb-2">焦点三角形面积</h4>
+                        $$S = b^2 \tan\frac{\theta}{2}$$
+                    </div>
+                    <div class="p-4 border rounded bg-white">
+                        <h4 class="font-bold text-sm text-gray-500 mb-2">空间向量线面角</h4>
+                        $$\sin\theta = \frac{|\mathbf{u} \cdot \mathbf{n}|}{|\mathbf{u}||\mathbf{n}|}$$
+                    </div>
+                    <div class="p-4 border rounded bg-white">
+                        <h4 class="font-bold text-sm text-gray-500 mb-2">二倍角正弦</h4>
+                        $$\sin 2\alpha = 2\sin\alpha\cos\alpha$$
+                    </div>
+                    <div class="p-4 border rounded bg-white">
+                        <h4 class="font-bold text-sm text-gray-500 mb-2">裂项相消</h4>
+                        $$\frac{1}{n(n+1)} = \frac{1}{n} - \frac{1}{n+1}$$
+                    </div>
+                    <div class="p-4 border rounded bg-white">
+                        <h4 class="font-bold text-sm text-gray-500 mb-2">锥体体积</h4>
+                        $$V = \frac{1}{3}Sh$$
+                    </div>
+                    <div class="p-4 border rounded bg-white">
+                        <h4 class="font-bold text-sm text-gray-500 mb-2">辅助角公式</h4>
+                        $$a\sin x + b\cos x = \sqrt{a^2+b^2}\sin(x+\varphi)$$
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Quiz View (Hidden by default) -->
+        <div id="quizView" class="hidden max-w-2xl mx-auto">
+            
+            <!-- Quiz Setup Screen -->
+            <div id="quizSetup" class="bg-white rounded-xl shadow-lg p-8 text-center fade-in">
+                <div class="text-6xl mb-4">📝</div>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">准备好开始每日测验了吗？</h2>
+                <p class="text-gray-600 mb-2">我们将从当前公式库中随机抽取题目，检测您的掌握情况。</p>
+                <p class="text-sm text-gray-500 mb-8 bg-gray-50 py-2 rounded-full inline-block px-4">
+                    📚 当前题库共收录 <span id="totalQuestionCount" class="font-bold text-blue-600">--</span> 道精选题目
+                </p>
+                
+                <div class="mb-8">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">设置今日题目数量：</label>
+                    <div class="flex items-center justify-center space-x-4">
+                        <button onclick="adjustCount(-1)" class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 font-bold">-</button>
+                        <input type="number" id="questionCount" value="5" min="1" max="20" class="w-16 text-center text-xl font-bold border-b-2 border-blue-500 focus:outline-none bg-transparent">
+                        <button onclick="adjustCount(1)" class="w-10 h-10 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 font-bold">+</button>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold text-lg hover:bg-blue-700 shadow-lg transition transform hover:-translate-y-1">
+                    开始挑战
+                </button>
+            </div>
+
+            <!-- Quiz Question Screen -->
+            <div id="quizQuestion" class="hidden fade-in">
+                <div class="flex justify-between items-center mb-4 text-sm font-medium text-gray-500">
+                    <span id="questionProgress">Question 1/5</span>
+                    <span id="currentScore" class="text-blue-600">Score: 0</span>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
+                    <div id="progressBar" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+                    <div id="questionText" class="text-lg md:text-xl font-medium text-gray-800 mb-6 min-h-[60px]">
+                        <!-- Question goes here -->
+                    </div>
+                    
+                    <div id="optionsContainer" class="space-y-3">
+                        <!-- Options go here -->
+                    </div>
+
+                    <div id="feedbackArea" class="mt-6 hidden p-4 rounded-lg bg-gray-50 text-sm">
+                        <!-- Feedback text -->
+                    </div>
+
+                    <button id="nextBtn" onclick="nextQuestion()" class="mt-6 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hidden">
+                        下一题
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quiz Results Screen -->
+            <div id="quizResults" class="hidden bg-white rounded-xl shadow-lg p-8 fade-in text-center">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">测验完成！</h2>
+                <p class="text-gray-500 mb-6">今日学习任务达成</p>
+                
+                <div class="flex justify-center items-center mb-8">
+                    <div class="text-center px-6 border-r border-gray-100">
+                        <div class="text-4xl font-bold text-blue-600" id="finalScore">0</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wide">得分</div>
+                    </div>
+                    <div class="text-center px-6">
+                        <div class="text-4xl font-bold text-gray-800" id="finalTotal">5</div>
+                        <div class="text-xs text-gray-400 uppercase tracking-wide">总题数</div>
+                    </div>
+                </div>
+
+                <!-- Auto Email Status -->
+                <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 mb-6">
+                    <div id="emailStatus" class="flex items-center justify-center space-x-2 text-blue-700 font-medium">
+                        <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>正在自动发送报告至 479321347@qq.com ...</span>
+                    </div>
+                </div>
+
+                <div class="text-left mt-8 border-t pt-6">
+                    <h3 class="font-bold text-gray-800 mb-4">详细回顾</h3>
+                    <div id="reviewList" class="space-y-4 text-sm">
+                        <!-- Review items -->
+                    </div>
+                </div>
+                
+                <button onclick="resetQuiz()" class="mt-8 text-gray-500 hover:text-gray-700 underline">
+                    返回主页
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- DATA ---
+        // Simple Question Bank generated from the content
+        const QUESTION_BANK = [
+            {
+                q: "抛物线 $y^2 = 8x$ 的焦点坐标是？",
+                options: ["$(2, 0)$", "$(-2, 0)$", "$(0, 2)$", "$(4, 0)$"],
+                correct: 0
+            },
+            {
+                q: "抛物线 $x^2 = -4y$ 的开口方向是？",
+                options: ["向右", "向左", "向上", "向下"],
+                correct: 3
+            },
+            {
+                q: "椭圆定义中，动点到两焦点的距离之和 $2a$ 必须满足什么条件？",
+                options: ["$2a = |F_1F_2|$", "$2a > |F_1F_2|$", "$2a < |F_1F_2|$", "$2a = 0$"],
+                correct: 1
+            },
+            {
+                q: "直线与圆锥曲线的弦长公式中，需要用到的关键代数结构是？",
+                options: ["$x_1 - x_2$", "$x_1 + x_2$", "$\sqrt{(x_1+x_2)^2 - 4x_1x_2}$", "以上都对"],
+                correct: 2
+            },
+            {
+                q: "焦点在椭圆上的三角形面积公式 $S_{\\triangle PF_1F_2}$ 是？",
+                options: ["$b^2 \\tan\\frac{\\theta}{2}$", "$a^2 \\tan\\theta$", "$c^2 \\sin\\theta$", "$\\frac{1}{2}ab \\sin\\theta$"],
+                correct: 0
+            },
+            {
+                q: "计算异面直线夹角 $\\theta$ 的向量公式是？",
+                options: ["$\\cos\\theta = \\frac{\\mathbf{u} \\cdot \\mathbf{v}}{|\\mathbf{u}||\\mathbf{v}|}$", "$\\cos\\theta = \\frac{|\\mathbf{u} \\cdot \\mathbf{v}|}{|\\mathbf{u}||\\mathbf{v}|}$", "$\\sin\\theta = \\frac{\\mathbf{u} \\cdot \\mathbf{v}}{|\\mathbf{u}||\\mathbf{v}|}$", "$\\cos\\theta = \\mathbf{u} \\cdot \\mathbf{v}$"],
+                correct: 1 // Must be absolute value for lines
+            },
+            {
+                q: "利用向量法求直线与平面的夹角 $\\theta$ (法向量为 $\\mathbf{n}$) 时，公式是？",
+                options: ["$\\sin\\theta = |\\cos<\\mathbf{u}, \\mathbf{n}>|$", "$\\cos\\theta = |\\cos<\\mathbf{u}, \\mathbf{n}>|$", "$\\sin\\theta = \\mathbf{u} \\cdot \\mathbf{n}$", "$\\tan\\theta = \\frac{\\mathbf{u}}{\\mathbf{n}}$"],
+                correct: 0
+            },
+            {
+                q: "二倍角公式 $\\cos 2\\alpha$ 等于？",
+                options: ["$2\\sin\\alpha\\cos\\alpha$", "$1 - 2\\sin^2\\alpha$", "$2\\cos^2\\alpha + 1$", "$\\sin^2\\alpha - \\cos^2\\alpha$"],
+                correct: 1
+            },
+            {
+                q: "数列求和裂项公式 $\\frac{1}{n(n+1)}$ 等于？",
+                options: ["$\\frac{1}{n} + \\frac{1}{n+1}$", "$\\frac{1}{n} - \\frac{1}{n+1}$", "$\\frac{1}{n+1} - \\frac{1}{n}$", "$1$"],
+                correct: 1
+            },
+            {
+                q: "锥体的体积公式是？",
+                options: ["$V = Sh$", "$V = \\frac{1}{2}Sh$", "$V = \\frac{1}{3}Sh$", "$V = \\frac{4}{3}\\pi R^3$"],
+                correct: 2
+            },
+            {
+                q: "辅助角公式中 $\\tan\\varphi$ 等于？",
+                options: ["$a/b$", "$b/a$", "$\\sqrt{a^2+b^2}$", "$1$"],
+                correct: 1
+            },
+            {
+                q: "抛物线 $y^2 = -2px (p>0)$ 的准线方程是？",
+                options: ["$x = -p/2$", "$x = p/2$", "$y = p/2$", "$y = -p/2$"],
+                correct: 1
+            }
+        ];
+
+        // --- STATE ---
+        let state = {
+            quizMode: false,
+            questions: [],
+            currentIdx: 0,
+            score: 0,
+            history: [] // Stores { q: string, userAnswer: string, correct: boolean, rightAnswer: string }
+        };
+
+        // --- FUNCTIONS ---
+
+        function toggleQuizMode() {
+            const formulaView = document.getElementById('formulaView');
+            const quizView = document.getElementById('quizView');
+            const btn = document.getElementById('toggleBtn');
+            
+            state.quizMode = !state.quizMode;
+            
+            if (state.quizMode) {
+                formulaView.classList.add('hidden');
+                quizView.classList.remove('hidden');
+                document.getElementById('quizSetup').classList.remove('hidden');
+                document.getElementById('quizQuestion').classList.add('hidden');
+                document.getElementById('quizResults').classList.add('hidden');
+                btn.innerText = "返回公式表";
+                
+                // Update total count display
+                document.getElementById('totalQuestionCount').innerText = QUESTION_BANK.length;
+            } else {
+                formulaView.classList.remove('hidden');
+                quizView.classList.add('hidden');
+                btn.innerText = "进入每日测验";
+            }
+        }
+
+        function adjustCount(delta) {
+            const input = document.getElementById('questionCount');
+            let val = parseInt(input.value) + delta;
+            if (val < 1) val = 1;
+            if (val > QUESTION_BANK.length) val = QUESTION_BANK.length;
+            input.value = val;
+        }
+
+        function startQuiz() {
+            const count = parseInt(document.getElementById('questionCount').value);
+            
+            // Randomly select questions
+            const shuffled = [...QUESTION_BANK].sort(() => 0.5 - Math.random());
+            state.questions = shuffled.slice(0, count);
+            state.currentIdx = 0;
+            state.score = 0;
+            state.history = [];
+            
+            // UI Update
+            document.getElementById('quizSetup').classList.add('hidden');
+            document.getElementById('quizQuestion').classList.remove('hidden');
+            
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const qData = state.questions[state.currentIdx];
+            
+            // Update Progress
+            document.getElementById('questionProgress').innerText = `Question ${state.currentIdx + 1}/${state.questions.length}`;
+            document.getElementById('currentScore').innerText = `Score: ${state.score}`;
+            const pct = ((state.currentIdx) / state.questions.length) * 100;
+            document.getElementById('progressBar').style.width = `${pct}%`;
+
+            // Render Text
+            document.getElementById('questionText').innerHTML = qData.q;
+            
+            // Render Options
+            const optsContainer = document.getElementById('optionsContainer');
+            optsContainer.innerHTML = '';
+            
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-btn w-full text-left p-4 rounded-lg border border-gray-200 text-gray-700 font-medium";
+                btn.innerHTML = opt;
+                btn.onclick = () => checkAnswer(idx, btn);
+                optsContainer.appendChild(btn);
+            });
+
+            // Hide Next/Feedback
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('feedbackArea').classList.add('hidden');
+            
+            // Re-render MathJax
+            MathJax.typesetPromise();
+        }
+
+        function checkAnswer(selectedIdx, btnElement) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+            
+            const qData = state.questions[state.currentIdx];
+            const isCorrect = selectedIdx === qData.correct;
+            
+            // Style selection
+            if (isCorrect) {
+                btnElement.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                state.score++;
+                document.getElementById('feedbackArea').innerHTML = `<span class="text-green-600 font-bold">✓ 回答正确!</span>`;
+            } else {
+                btnElement.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                // Highlight correct one
+                buttons[qData.correct].classList.add('bg-green-50', 'border-green-300', 'text-green-700');
+                document.getElementById('feedbackArea').innerHTML = `<span class="text-red-600 font-bold">✗ 回答错误.</span> 正确答案是: ${qData.options[qData.correct]}`;
+            }
+
+            // Record History
+            state.history.push({
+                q: qData.q,
+                userAnswer: qData.options[selectedIdx],
+                rightAnswer: qData.options[qData.correct],
+                isCorrect: isCorrect
+            });
+
+            // Show feedback & next
+            const feedback = document.getElementById('feedbackArea');
+            feedback.classList.remove('hidden');
+            
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.classList.remove('hidden');
+            
+            if (state.currentIdx === state.questions.length - 1) {
+                nextBtn.innerText = "查看结果";
+            } else {
+                nextBtn.innerText = "下一题";
+            }
+            
+            MathJax.typesetPromise([feedback]);
+        }
+
+        function nextQuestion() {
+            state.currentIdx++;
+            if (state.currentIdx < state.questions.length) {
+                renderQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quizQuestion').classList.add('hidden');
+            document.getElementById('quizResults').classList.remove('hidden');
+            
+            document.getElementById('finalScore').innerText = state.score;
+            document.getElementById('finalTotal').innerText = state.questions.length;
+            
+            // Build Review List
+            const reviewContainer = document.getElementById('reviewList');
+            reviewContainer.innerHTML = '';
+            
+            state.history.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "p-3 rounded border " + (item.isCorrect ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50");
+                div.innerHTML = `
+                    <div class="font-bold mb-1 text-gray-700">Q${index+1}: ${item.q}</div>
+                    <div class="flex justify-between">
+                        <span class="${item.isCorrect ? 'text-green-600' : 'text-red-600'}">你的答案: ${item.userAnswer}</span>
+                        ${!item.isCorrect ? `<span class="text-green-600">正确答案: ${item.rightAnswer}</span>` : ''}
+                    </div>
+                `;
+                reviewContainer.appendChild(div);
+            });
+            
+            MathJax.typesetPromise();
+
+            // Auto Send Report
+            sendReport('479321347@qq.com');
+        }
+
+        function sendReport(targetEmail) {
+            const statusDiv = document.getElementById('emailStatus');
+            
+            // Prepare content strictly as "doing questions content" and "mastery situation"
+            let reportContent = "【今日数学测验报告】\n\n";
+            reportContent += `得分: ${state.score} / ${state.questions.length}\n`;
+            reportContent += `日期: ${new Date().toLocaleDateString()}\n\n`;
+            reportContent += "--- 做题详情 ---\n\n";
+
+            state.history.forEach((h, i) => {
+                reportContent += `题目 ${i+1}: ${h.q.replace(/\$/g, '')}\n`; // Remove LaTeX $ for email readability
+                reportContent += `状态: ${h.isCorrect ? "【掌握】" : "【需复习】"}\n`;
+                if (!h.isCorrect) {
+                    reportContent += `正确答案: ${h.rightAnswer.replace(/\$/g, '')}\n`;
+                }
+                reportContent += "\n";
+            });
+
+            const templateParams = {
+                to_email: targetEmail,
+                message: reportContent, // Mapping to a generic message field in template
+                score: state.score,
+                total: state.questions.length
+            };
+
+            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, templateParams)
+                .then(function(response) {
+                    statusDiv.innerHTML = `
+                        <span class="text-green-600 font-bold flex items-center">
+                            <span class="text-xl mr-2">✅</span> 报告已成功发送至 ${targetEmail}
+                        </span>`;
+                    statusDiv.parentElement.classList.replace('bg-blue-50', 'bg-green-50');
+                    statusDiv.parentElement.classList.replace('border-blue-100', 'border-green-100');
+                }, function(error) {
+                    console.error('FAILED...', error);
+                    statusDiv.innerHTML = `
+                        <span class="text-red-600 font-bold">
+                            ⚠️ 发送失败: ${JSON.stringify(error).substring(0, 50)}...
+                        </span>`;
+                    statusDiv.parentElement.classList.replace('bg-blue-50', 'bg-red-50');
+                    statusDiv.parentElement.classList.replace('border-blue-100', 'border-red-100');
+                });
+        }
+
+        function resetQuiz() {
+            document.getElementById('quizResults').classList.add('hidden');
+            document.getElementById('quizSetup').classList.remove('hidden');
+            document.getElementById('questionCount').value = 5;
+            
+            // Reset status UI for next time
+            const statusContainer = document.getElementById('emailStatus').parentElement;
+            statusContainer.classList.replace('bg-green-50', 'bg-blue-50');
+            statusContainer.classList.replace('bg-red-50', 'bg-blue-50');
+            statusContainer.classList.replace('border-green-100', 'border-blue-100');
+            statusContainer.classList.replace('border-red-100', 'border-blue-100');
+            
+            document.getElementById('emailStatus').innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>正在自动发送报告至 479321347@qq.com ...</span>
+            `;
+        }
+    </script>
+</body>
+</html>
