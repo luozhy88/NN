@@ -67,6 +67,13 @@
             gap: 10px;
         }
 
+        .master-count {
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+        }
+
         .progress-bar-bg {
             width: 60px;
             height: 6px;
@@ -118,10 +125,21 @@
             border-radius: 4px;
         }
 
-        .score-tag {
-            font-family: monospace;
-            color: var(--text-sub);
-            font-size: 0.85rem;
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: none; /* 默认隐藏，有状态才显示 */
+        }
+        .status-mastered {
+            background-color: var(--success-bg);
+            color: var(--success);
+            display: inline-block;
+        }
+        .status-review {
+            background-color: var(--danger-bg);
+            color: var(--danger);
+            display: inline-block;
         }
 
         .card-body {
@@ -211,6 +229,26 @@
             border: 1px solid var(--gray-200);
             color: var(--gray-700);
             margin-top: 1rem;
+        }
+
+        /* 评价按钮组 */
+        .eval-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed var(--gray-200);
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
         }
 
         /* 对比区域 */
@@ -305,6 +343,12 @@
         .hidden {
             display: none !important;
         }
+        
+        .cloud-status {
+            font-size: 0.7rem;
+            color: #9ca3af;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -313,6 +357,7 @@
         <div class="header-content">
             <h1>📜 历史特训</h1>
             <div class="progress-container">
+                <span class="master-count" id="master-count">已掌握: 0</span>
                 <span id="progress-text">1/--</span>
                 <div class="progress-bar-bg">
                     <div id="progress-bar" class="progress-bar-fill"></div>
@@ -329,10 +374,11 @@
             <h2 style="margin-bottom: 0.5rem;">高考历史 · 弱项定向诊疗</h2>
             <p style="color: var(--text-sub); margin-bottom: 2rem;">
                 专为手机优化。<br>
-                包含2015-2016典型错题，<br>
-                重点在于<strong style="color:var(--danger)">修正答题逻辑</strong>。
+                本地自动记录做题进度。<br>
+                <span id="cloud-indicator">☁️ 数据将同步到云端</span>
             </p>
-            <button onclick="startPractice()" class="btn btn-primary">开始特训</button>
+            <button onclick="window.startPractice()" class="btn btn-primary">开始特训</button>
+            <p style="margin-top:1rem; font-size:0.8rem; color:#9ca3af; cursor:pointer;" onclick="window.clearData()">[重置所有记录]</p>
         </div>
 
         <!-- 答题页 -->
@@ -341,7 +387,10 @@
             <!-- 题目卡片 -->
             <div class="card">
                 <div class="card-header">
-                    <span class="tag" id="q-year">年份</span>
+                    <div>
+                        <span class="tag" id="q-year">年份</span>
+                        <span id="status-badge" class="status-badge"></span>
+                    </div>
                     <span class="score-tag" id="q-score-info">得分信息</span>
                 </div>
                 <div class="card-body">
@@ -360,8 +409,8 @@
                 <label style="display:block; font-weight:bold; margin-bottom:0.5rem;">你的新回答：</label>
                 <textarea id="user-input" placeholder="请输入你的答案..."></textarea>
                 <div style="display: flex; gap: 12px;">
-                    <button onclick="skipQuestion()" class="btn" style="background: white; border: 1px solid #e5e7eb; color: #6b7280; flex: 1;">跳过 ↷</button>
-                    <button onclick="submitAnswer()" class="btn btn-primary" style="flex: 2;">提交并对比 ➔</button>
+                    <button onclick="window.skipQuestion()" class="btn" style="background: white; border: 1px solid #e5e7eb; color: #6b7280; flex: 1;">跳过 ↷</button>
+                    <button onclick="window.submitAnswer()" class="btn btn-primary" style="flex: 2;">提交并对比 ➔</button>
                 </div>
             </div>
 
@@ -401,10 +450,19 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- 自评区域 -->
+                <div class="card" style="margin-top: 1.5rem; padding: 1.25rem;">
+                    <div style="text-align: center; font-weight: bold; margin-bottom: 1rem;">自我评价：这道题现在掌握了吗？</div>
+                    <div class="eval-grid" style="margin-top: 0; border: none; padding-top: 0;">
+                        <button onclick="window.markResult(false)" class="btn btn-danger">🔴 需复习</button>
+                        <button onclick="window.markResult(true)" class="btn btn-success">✅ 已掌握</button>
+                    </div>
+                    <div id="upload-status" class="cloud-status" style="text-align:center;"></div>
+                </div>
 
                 <div style="margin-top: 1.5rem;">
-                    <button onclick="nextQuestion()" class="btn btn-next">下一题 ➔</button>
-                    <button onclick="resetQuestion()" class="btn btn-outline">↺ 重做本题</button>
+                    <button onclick="window.nextQuestion()" class="btn btn-next" id="btn-next-step">跳过评价进入下一题 ➔</button>
                 </div>
 
             </div>
@@ -413,7 +471,61 @@
 
     </div>
 
-    <script>
+    <script type="module">
+        // ----------------------------------------------------
+        // FIREBASE 配置区域
+        // 请前往 https://console.firebase.google.com/ 创建项目
+        // 并将 Web App 的配置复制到下方
+        // ----------------------------------------------------
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 【重要：这里需要填入你的 Firebase 配置】
+        // 如果这里是空的，云同步功能将不会生效，但本地功能依然可用
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCb3qEBV8BYmkP3qjEAqlpGkM0kz-Lr7PE",
+          authDomain: "history-app-6e0f3.firebaseapp.com",
+          projectId: "history-app-6e0f3",
+          storageBucket: "history-app-6e0f3.firebasestorage.app",
+          messagingSenderId: "1065684045418",
+          appId: "1:1065684045418:web:3f99560b0e51decb0c0413",
+          measurementId: "G-PELR13Y7YS"
+        };
+
+        // 初始化 Firebase
+        let db = null;
+        let auth = null;
+        let userId = "guest";
+        let isCloudEnabled = false;
+
+        // 检查用户是否填入了配置
+        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
+            try {
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                
+                // 匿名登录，获取用户ID
+                signInAnonymously(auth).then((userCredential) => {
+                    userId = userCredential.user.uid;
+                    isCloudEnabled = true;
+                    console.log("云端连接成功，用户ID:", userId);
+                    document.getElementById('cloud-indicator').innerText = "☁️ 云端已连接";
+                    document.getElementById('cloud-indicator').style.color = "#16a34a";
+                }).catch((error) => {
+                    console.error("登录失败:", error);
+                });
+            } catch (e) {
+                console.error("Firebase 初始化失败，请检查配置:", e);
+            }
+        }
+
+        // ----------------------------------------------------
+        // 核心逻辑
+        // ----------------------------------------------------
+
         // 题目数据
         const questions = [
             {
@@ -574,52 +686,68 @@
         ];
 
         let currentIndex = 0;
+        const STORAGE_KEY = 'history_training_progress';
+        let progressData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-        function startPractice() {
+        // 将函数挂载到 window 对象上，以便 HTML 按钮调用
+        window.startPractice = function() {
             document.getElementById('welcome-screen').classList.add('hidden');
             document.getElementById('practice-screen').classList.remove('hidden');
             document.getElementById('practice-screen').style.animation = 'fadeIn 0.5s';
-            updateTotalCount();
+            updateStats();
             loadQuestion(0);
         }
 
-        function updateTotalCount() {
-            document.getElementById('progress-text').innerText = `1/${questions.length}`;
+        function updateStats() {
+            const masteredCount = Object.values(progressData).filter(status => status === 'mastered').length;
+            document.getElementById('master-count').innerText = `已掌握: ${masteredCount}`;
+            document.getElementById('progress-text').innerText = `${currentIndex + 1}/${questions.length}`;
         }
 
         function loadQuestion(index) {
             currentIndex = index;
             const q = questions[index];
 
-            // Update Progress
-            document.getElementById('progress-text').innerText = `${index + 1}/${questions.length}`;
+            updateStats();
             document.getElementById('progress-bar').style.width = `${((index + 1) / questions.length) * 100}%`;
 
-            // Render Content
             document.getElementById('q-year').innerText = q.year;
             document.getElementById('q-score-info').innerText = q.scoreInfo;
             document.getElementById('q-title').innerText = q.title;
             document.getElementById('q-content').innerHTML = q.content;
             document.getElementById('q-diagnosis').innerHTML = q.diagnosis;
 
-            // Reset Input
+            const statusBadge = document.getElementById('status-badge');
+            statusBadge.className = 'status-badge'; 
+            const historyStatus = progressData[q.id];
+            
+            if (historyStatus === 'mastered') {
+                statusBadge.innerText = '✅ 已掌握';
+                statusBadge.classList.add('status-mastered');
+                statusBadge.style.display = 'inline-block';
+            } else if (historyStatus === 'review') {
+                statusBadge.innerText = '🔴 需复习';
+                statusBadge.classList.add('status-review');
+                statusBadge.style.display = 'inline-block';
+            } else {
+                statusBadge.style.display = 'none';
+            }
+
             document.getElementById('user-input').value = '';
             document.getElementById('input-section').style.display = 'block';
             document.getElementById('review-section').style.display = 'none';
+            document.getElementById('upload-status').innerText = '';
 
-            // Pre-fill hidden data
             document.getElementById('old-answer-display').innerText = q.oldAnswer;
             document.getElementById('std-answer-display').innerHTML = q.stdAnswer;
             
-            // Render Lists
             document.getElementById('examiner-notes').innerHTML = q.examinerNotes.map(n => `<div>• ${n}</div>`).join('');
             document.getElementById('key-takeaways').innerHTML = q.takeaways.map(t => `<li>${t}</li>`).join('');
 
-            // Scroll to top
             window.scrollTo(0, 0);
         }
 
-        function submitAnswer() {
+        window.submitAnswer = function() {
             const val = document.getElementById('user-input').value;
             if (!val.trim()) {
                 alert("请先输入一些关键词");
@@ -629,27 +757,75 @@
             document.getElementById('new-answer-display').innerText = val;
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('review-section').style.display = 'block';
-            
-            // Scroll to review
             document.getElementById('review-section').scrollIntoView({ behavior: 'smooth' });
         }
+        
+        window.markResult = async function(isMastered) {
+            const q = questions[currentIndex];
+            const status = isMastered ? 'mastered' : 'review';
+            
+            // 1. 本地保存
+            progressData[q.id] = status;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
+            updateStats();
 
-        function skipQuestion() {
-            nextQuestion();
+            // 2. 云端保存 (如果已配置)
+            if (isCloudEnabled && db) {
+                const statusDiv = document.getElementById('upload-status');
+                statusDiv.innerText = "⏳ 正在上传数据...";
+                try {
+                    await addDoc(collection(db, "exam_records"), {
+                        userId: userId,
+                        questionId: q.id,
+                        questionTitle: q.title,
+                        status: status, // mastered or review
+                        timestamp: serverTimestamp(),
+                        dateStr: new Date().toLocaleString()
+                    });
+                    statusDiv.innerText = "☁️ 数据已同步到云端";
+                } catch (e) {
+                    console.error("上传失败", e);
+                    statusDiv.innerText = "⚠️ 上传失败，请检查网络";
+                }
+            } else {
+                console.log("云端未配置，仅保存本地");
+            }
+            
+            // 简单的视觉反馈
+            if(isMastered) {
+                // alert("太棒了！已标记为【已掌握】"); // 体验优化：去掉弹窗，直接下一题
+            }
+            
+            setTimeout(() => {
+                window.nextQuestion();
+            }, 800);
         }
 
-        function resetQuestion() {
+        window.skipQuestion = function() {
+            window.nextQuestion();
+        }
+
+        window.resetQuestion = function() {
             document.getElementById('review-section').style.display = 'none';
             document.getElementById('input-section').style.display = 'block';
             document.getElementById('input-section').style.animation = 'fadeIn 0.3s';
             document.getElementById('user-input').focus();
         }
 
-        function nextQuestion() {
+        window.nextQuestion = function() {
             if (currentIndex < questions.length - 1) {
                 loadQuestion(currentIndex + 1);
             } else {
-                alert("特训完成！建议明天再次复习。");
+                alert("本轮特训完成！\n建议明天再次复习【需复习】的题目。");
+            }
+        }
+        
+        window.clearData = function() {
+            if(confirm('确定要清除所有做题记录吗？')) {
+                localStorage.removeItem(STORAGE_KEY);
+                progressData = {};
+                alert('记录已重置');
+                location.reload();
             }
         }
     </script>
