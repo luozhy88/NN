@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高考政治特训（自动汇报版）</title>
+    <title>高考政治特训（题库扩充版）</title>
     <!-- 引入 EmailJS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
@@ -362,7 +362,7 @@
         <div class="header-content">
             <h1>⚖️ 政治特训</h1>
             <div class="progress-container">
-                <span id="progress-text">1/--</span>
+                <span id="progress-text">-- / --</span>
                 <div class="progress-bar-bg">
                     <div id="progress-bar" class="progress-bar-fill"></div>
                 </div>
@@ -378,14 +378,14 @@
             <h2 style="margin-bottom: 0.5rem;">高考政治 · 弱项定向诊疗</h2>
             <p style="color: var(--text-sub); margin-bottom: 1.5rem;">
                 专为手机优化。<br>
-                包含政治(2012-25)真题。<br>
+                当前题库已收录 <strong id="total-questions-display" style="color: var(--primary);">--</strong> 道精选真题。<br>
                 <strong>做完后自动发送学习报告。</strong>
             </p>
             
             <!-- 设置每日题目数量 -->
             <div style="margin-bottom: 2rem; display: flex; align-items: center; justify-content: center; gap: 10px; background: white; padding: 10px; border-radius: 8px; border: 1px solid var(--gray-200); width: fit-content; margin-left: auto; margin-right: auto;">
                 <label for="question-count" style="color: var(--text-main); font-weight: 600;">📅 今日刷题量:</label>
-                <input type="number" id="question-count" value="5" min="1" max="50" style="padding: 8px; width: 70px; border: 1px solid #d1d5db; border-radius: 6px; text-align: center; font-size: 1rem; font-weight: bold; color: var(--primary);">
+                <input type="number" id="question-count" value="5" min="1" max="10" style="padding: 8px; width: 70px; border: 1px solid #d1d5db; border-radius: 6px; text-align: center; font-size: 1rem; font-weight: bold; color: var(--primary);">
             </div>
 
             <button onclick="startPractice()" class="btn btn-primary">开始特训</button>
@@ -458,7 +458,7 @@
                     </div>
                 </div>
 
-                <!-- 评价按钮组 (修改处：收集掌握情况) -->
+                <!-- 评价按钮组 -->
                 <div class="evaluation-group">
                     <button onclick="handleResult('review')" class="btn btn-warning">⚠️ 需复习/模糊</button>
                     <button onclick="handleResult('mastered')" class="btn btn-success">✅ 已掌握</button>
@@ -495,7 +495,7 @@
         let sessionLogs = []; // 用于存储本次做题记录：{title, result, answer}
         let sessionQuestions = []; // 本次训练的题目列表
 
-        // 题目数据
+        // 题目数据 (扩充至 6 道)
         const questions = [
             // --- 政治部分 (2025 错题) ---
             {
@@ -597,19 +597,82 @@
                 takeaways: [
                     "逻辑与思维新题型：问“方法”时，必须列举思维工具（推理、想象、矛盾分析）。"
                 ]
+            },
+            // --- 新增题目以支持 5 道题的训练 ---
+            {
+                id: 12,
+                subject: "politics",
+                year: "2024 模拟精选",
+                title: "第20题：全过程人民民主",
+                content: `<strong>背景：</strong>某社区设立“板凳议事会”，居民直接参与小区改造方案制定。<br>
+                          <strong>问题：</strong>运用《政治与法治》知识，分析“板凳议事会”是如何体现全过程人民民主的。`,
+                oldAnswer: `体现了民主选举、民主决策... 社区居委会是基层政权...`,
+                scoreInfo: "旧得分：性质错误 / 概念混淆",
+                diagnosis: `1. <strong>性质错误：</strong> 社区居委会是<strong style="color:red">基层群众性自治组织</strong>，绝不是“基层政权”（政府）。<br>
+                            2. <strong>匹配不准：</strong> “议事会”更多体现的是“民主协商”和“民主决策”，而非“民主选举”。`,
+                examinerNotes: [
+                    "关键词：最广泛、最真实、最管用。",
+                    "协商民主：有事好商量，众人的事情由众人商量。",
+                    "基层自治：自我管理、自我教育、自我服务。"
+                ],
+                stdAnswer: `① <strong>最广泛：</strong> 居民直接参与，主体广泛。<br>
+                            ② <strong>最真实：</strong> “板凳议事”让民意真正落实到改造方案中，体现了协商民主。<br>
+                            ③ <strong>最管用：</strong> 解决了居民实际问题，提升了治理效能。<br>
+                            ④ <strong>制度载体：</strong> 依托基层群众自治制度，实践全过程人民民主。`,
+                takeaways: [
+                    "死记硬背：居委会/村委会 = 基层群众自治组织 ≠ 基层政权 ≠ 国家机关。"
+                ]
+            },
+            {
+                id: 13,
+                subject: "politics",
+                year: "2024 模拟精选",
+                title: "第21题：辩证法的“危”与“机”",
+                content: `<strong>背景：</strong>数字技术冲击传统就业，但也催生了新职业。<br>
+                          <strong>问题：</strong>运用《哲学与文化》中矛盾的观点，分析如何看待数字技术带来的就业变局。`,
+                oldAnswer: `要一分为二看问题... 既有好处也有坏处...`,
+                scoreInfo: "旧得分：原理简单堆砌",
+                diagnosis: `1. <strong>深度不足：</strong> 仅仅说“一分为二”太浅。要点出<strong style="color:red">“矛盾双方在一定条件下相互转化”</strong>。<br>
+                            2. <strong>缺方法论：</strong> 不仅要“看”，还要说“怎么办”（创造条件，促使危转机）。`,
+                examinerNotes: [
+                    "矛盾对立统一：挑战与机遇并存。",
+                    "矛盾转化：通过技能培训（条件），将就业压力转化为人才红利。",
+                    "具体问题具体分析：针对不同群体制定政策。"
+                ],
+                stdAnswer: `① <strong>矛盾即对立统一：</strong> 数字技术既冲击旧岗位（危），又创造新职业（机）。<br>
+                            ② <strong>矛盾双方在一定条件下转化：</strong> 我们要发挥主观能动性，通过职业培训等手段，促使“就业难”向“就业新”转化。<br>
+                            ③ <strong>两点论与重点论统一：</strong> 既要看到挑战，更要抓住数字经济发展的机遇。`,
+                takeaways: [
+                    "遇到“双刃剑”问题，必答：对立统一 + 矛盾转化（创造条件）。"
+                ]
             }
         ];
 
         // --- 3. 核心逻辑函数 ---
+
+        // 初始化：页面加载后更新总题数
+        window.onload = function() {
+            const totalCount = questions.length;
+            document.getElementById('total-questions-display').innerText = totalCount;
+            
+            // 更新输入框的最大值和默认值（不超过总数）
+            const countInput = document.getElementById('question-count');
+            countInput.max = totalCount;
+            if(parseInt(countInput.value) > totalCount) {
+                countInput.value = totalCount;
+            }
+        };
 
         function startPractice() {
             // 获取用户设定的题目数量
             const inputCount = document.getElementById('question-count').value;
             let count = parseInt(inputCount) || 5;
             
-            // 限制数量不应超过总题库数（也可以选择循环出题，这里先做截断）
+            // 逻辑修复：如果用户要求的数量多于题库现有数量
             if (count > questions.length) {
+                alert(`当前题库共有 ${questions.length} 道精选真题，已为您自动加载全部 ${questions.length} 道。`);
                 count = questions.length;
+                document.getElementById('question-count').value = count;
             }
             if (count < 1) count = 1;
 
@@ -631,7 +694,7 @@
         }
 
         function updateTotalCount() {
-            document.getElementById('progress-text').innerText = `1/${sessionQuestions.length}`;
+            document.getElementById('progress-text').innerText = `第 1 题 / 共 ${sessionQuestions.length} 题`;
         }
 
         function loadQuestion(index) {
@@ -640,7 +703,7 @@
             const q = sessionQuestions[index];
 
             // 进度更新
-            document.getElementById('progress-text').innerText = `${index + 1}/${sessionQuestions.length}`;
+            document.getElementById('progress-text').innerText = `第 ${index + 1} 题 / 共 ${sessionQuestions.length} 题`;
             document.getElementById('progress-bar').style.width = `${((index + 1) / sessionQuestions.length) * 100}%`;
 
             // 渲染 Header
