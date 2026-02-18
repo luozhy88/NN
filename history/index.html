@@ -573,10 +573,11 @@
     <script type="module">
         // ----------------------------------------------------
         // FIREBASE 配置区域
+        // 修正：将原有的 11.6.1 版本改为 10.8.0 稳定版，防止因版本号错误导致JS不运行
         // ----------------------------------------------------
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // 邮件配置
         const EMAIL_CONFIG = {
@@ -788,7 +789,7 @@
                             <strong>结论：</strong> 代议制是现代政治的现实选择。`,
                 takeaways: [
                     "小论文必写标题。",
-                    "体现"理想 vs 现实"的张力。"
+                    "体现'理想 vs 现实'的张力。"
                 ]
             },
             {
