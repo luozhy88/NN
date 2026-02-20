@@ -8,3 +8,4 @@
 
 2019年历史错题：https://github.com/luozhy88/NN/blob/main/history/2019history.md   
 2020年历史错题：https://github.com/luozhy88/NN/blob/main/history/2020history.md   
+2021年历史错题：https://github.com/luozhy88/NN/blob/main/history/2021history.md   
