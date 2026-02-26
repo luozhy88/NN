@@ -12,3 +12,4 @@
 2022年历史错题：https://github.com/luozhy88/NN/blob/main/history/2022history.md   
 2023年历史错题：https://github.com/luozhy88/NN/blob/main/history/2023history.md   
 2024年历史错题：https://github.com/luozhy88/NN/blob/main/history/2024history.md   
+2025年历史错题：https://github.com/luozhy88/NN/blob/main/history/2025history.md  
