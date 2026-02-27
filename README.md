@@ -13,3 +13,10 @@
 2023年历史错题：https://github.com/luozhy88/NN/blob/main/history/2023history.md   
 2024年历史错题：https://github.com/luozhy88/NN/blob/main/history/2024history.md   
 2025年历史错题：https://github.com/luozhy88/NN/blob/main/history/2025history.md  
+
+数学错题：https://nn-1er.pages.dev/mathematics/index.html   
+政治错题：https://nn-1er.pages.dev/politics/index.html   
+政治错题总结：https://nn-1er.pages.dev/politics/summary20122025.html   
+历史错题：https://nn-1er.pages.dev/history/index.html   
+历史错题总结： https://nn-1er.pages.dev/history/summary20152016.html  
+英语写作错题：https://nn-1er.pages.dev/English/writing.html   
