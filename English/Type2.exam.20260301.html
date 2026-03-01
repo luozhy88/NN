@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作文批改</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', 'PingFang SC', sans-serif; background: #f0f4f8; color: #2d3748; line-height: 1.8; }
+
+  .container { max-width: 860px; margin: 40px auto; padding: 0 20px 60px; }
+
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 { font-size: 2rem; color: #2b6cb0; letter-spacing: 2px; }
+  .header p { color: #718096; margin-top: 6px; }
+
+  .section { background: #fff; border-radius: 14px; padding: 28px 32px; margin-bottom: 28px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+
+  /* 题目区 */
+  .topic-box { background: #ebf8ff; border-left: 5px solid #3182ce; border-radius: 8px; padding: 16px 20px; }
+  .topic-box h2 { font-size: 1.1rem; color: #2b6cb0; margin-bottom: 8px; }
+  .topic-box p { color: #4a5568; font-style: italic; }
+
+  /* 原文区 */
+  .original-text { background: #fffaf0; border-left: 5px solid #ed8936; border-radius: 8px; padding: 16px 20px; font-size: 0.97rem; color: #4a5568; line-height: 2; }
+  .err { background: #fed7d7; border-bottom: 2px solid #e53e3e; border-radius: 3px; padding: 0 2px; color: #c53030; font-weight: 600; }
+
+  /* 批改表格 */
+  table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  thead tr { background: #2b6cb0; color: #fff; }
+  thead th { padding: 12px 14px; text-align: left; }
+  tbody tr:nth-child(odd) { background: #f7fafc; }
+  tbody tr:hover { background: #ebf8ff; transition: background 0.2s; }
+  td { padding: 11px 14px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+  .tag-grammar { background: #fed7d7; color: #c53030; }
+  .tag-spelling { background: #feebc8; color: #c05621; }
+  .tag-logic { background: #e9d8fd; color: #6b46c1; }
+  .tag-content { background: #c6f6d5; color: #276749; }
+  .tag-word { background: #bee3f8; color: #2b6cb0; }
+  .fix { color: #276749; font-weight: 600; }
+
+  /* 范文区 */
+  .model-essay { background: #f0fff4; border-left: 5px solid #38a169; border-radius: 8px; padding: 18px 22px; line-height: 2.1; color: #2d3748; }
+  .model-essay h3 { color: #276749; font-size: 1.05rem; margin-bottom: 12px; text-align: center; }
+
+  /* 建议区 */
+  .tips-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .tip-card { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 16px; }
+  .tip-card .icon { font-size: 1.4rem; margin-bottom: 6px; }
+  .tip-card h4 { font-size: 0.95rem; color: #2b6cb0; margin-bottom: 4px; }
+  .tip-card p { font-size: 0.87rem; color: #718096; }
+
+  @media(max-width: 580px) {
+    .tips-grid { grid-template-columns: 1fr; }
+    .section { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>📝 作文批改报告</h1>
+    <p>Learning English Beyond the Classroom</p>
+  </div>
+
+  <!-- 题目 -->
+  <div class="section">
+    <div class="section-title">📌 题目</div>
+    <div class="topic-box">
+      <h2>Learning English Beyond the Classroom</h2>
+      <p>There are many things we can do to learn English well.</p>
+    </div>
+  </div>
+
+  <!-- 原文 -->
+  <div class="section">
+    <div class="section-title">📄 你的原文（错误已标红）</div>
+    <div class="original-text">
+      <span class="err">There are a lot of advice we can do learn English well.</span><br>
+      According to a study, most of <span class="err">students</span> <span class="err">being interviewed</span>,
+      <span class="err">percent of 65%</span>, choose to <span class="err">listen English song</span> or
+      watch English movies. Others will choose <span class="err">read</span>
+      English books or listen to English <span class="err">lessones</span> to
+      improve <span class="err">themselves</span> English level.<br><br>
+      In my opinion, <span class="err">if you can finish those tips</span>,&nbsp;
+      <span class="err">for it</span> can help students gain a deeper understanding
+      of English. So students should spare more time
+      for English reading instead of watching movies
+      or listening to music.
+    </div>
+  </div>
+
+  <!-- 批改表格 -->
+  <div class="section">
+    <div class="section-title">🔴 错误批改详解</div>
+    <table>
+      <thead>
+        <tr>
+          <th>原文错误</th>
+          <th>错误类型</th>
+          <th>修改建议</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>There are a lot of <b>advice</b>…（重写首句）</td>
+          <td><span class="tag tag-content">内容</span></td>
+          <td class="fix">题目已给首句，不可重写，直接删去</td>
+        </tr>
+        <tr>
+          <td>most of <b>students</b></td>
+          <td><span class="tag tag-grammar">语法</span></td>
+          <td class="fix">→ most of <b>the</b> students（加冠词）</td>
+        </tr>
+        <tr>
+          <td><b>being interviewed</b></td>
+          <td><span class="tag tag-grammar">语法</span></td>
+          <td class="fix">→ <b>surveyed</b> 或 who were surveyed</td>
+        </tr>
+        <tr>
+          <td><b>percent of 65%</b></td>
+          <td><span class="tag tag-word">语序</span></td>
+          <td class="fix">→ <b>65%</b> 或 65 percent</td>
+        </tr>
+        <tr>
+          <td>choose to <b>listen English song</b></td>
+          <td><span class="tag tag-grammar">语法</span></td>
+          <td class="fix">→ listen <b>to</b> English <b>songs</b>（缺介词+单复数）</td>
+        </tr>
+        <tr>
+          <td>will choose <b>read</b></td>
+          <td><span class="tag tag-grammar">语法</span></td>
+          <td class="fix">→ will choose <b>to read</b>（动词形式）</td>
+        </tr>
+        <tr>
+          <td><b>lessones</b></td>
+          <td><span class="tag tag-spelling">拼写</span></td>
+          <td class="fix">→ <b>lessons</b></td>
+        </tr>
+        <tr>
+          <td>improve <b>themselves</b> English level</td>
+          <td><span class="tag tag-grammar">语法</span></td>
+          <td class="fix">→ improve <b>their</b> English level（代词格）</td>
+        </tr>
+        <tr>
+          <td><b>if you can finish those tips</b></td>
+          <td><span class="tag tag-logic">逻辑</span></td>
+          <td class="fix">→ by following these suggestions（搭配错误）</td>
+        </tr>
+        <tr>
+          <td><b>for it can help…</b>（句子残缺）</td>
+          <td><span class="tag tag-logic">逻辑</span></td>
+          <td class="fix">删去"for"，重新组织完整句子结构</td>
+        </tr>
+        <tr>
+          <td>图表数据<b>不完整</b></td>
+          <td><span class="tag tag-content">内容</span></td>
+          <td class="fix">18%读书、12%浏览网站均未提及，需补全四项数据</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 范文 -->
+  <div class="section">
+    <div class="section-title">✅ 修改后范文（供参考）</div>
+    <div class="model-essay">
+      <h3>Learning English Beyond the Classroom</h3>
+      <p>There are many things we can do to learn English well. According to a recent survey on how students learn English outside the classroom, 65% of students choose to listen to English songs, and 50% prefer watching English movies. Meanwhile, 18% enjoy reading English books, while only 12% browse English learning websites.</p>
+      <br>
+      <p>In my opinion, all of these are effective ways to improve our English. However, I would suggest that students spend more time reading English books, as it helps build vocabulary and develop a deeper understanding of the language. Combining reading with listening to songs and watching movies would make learning both enjoyable and productive.</p>
+    </div>
+  </div>
+
+  <!-- 建议 -->
+  <div class="section">
+    <div class="section-title">💡 总体建议</div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="icon">📊</div>
+        <h4>图表要全面</h4>
+        <p>四项数据（18%、65%、50%、12%）都应提及，不能只写两项。</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🔗</div>
+        <h4>注意介词搭配</h4>
+        <p>listen <b>to</b>, choose <b>to do</b>，固定搭配需牢记。</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">🧩</div>
+        <h4>句子逻辑要完整</h4>
+        <p>避免出现"if…"没有结果句的残缺句，保持句子完整性。</p>
+      </div>
+      <div class="tip-card">
+        <div class="icon">📝</div>
+        <h4>建议部分要具体</h4>
+        <p>说明为什么推荐某种方式，给出充分理由，增强说服力。</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
