@@ -213,6 +213,11 @@
                         <button id="btn-start" onclick="window.startQuiz()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:opacity-50">
                             开始今日复习
                         </button>
+                        
+                        <!-- 🚀 新增：查看记忆库按钮 -->
+                        <button onclick="window.showMemoryDashboard()" class="w-full mt-3 bg-white text-purple-600 border border-purple-200 py-3 px-6 rounded-lg font-bold hover:bg-purple-50 transition shadow-sm">
+                            <i class="fa-solid fa-database mr-1"></i> 查看当前账号记忆库
+                        </button>
                     </div>
                 </div>
 
@@ -305,6 +310,21 @@
             </div>
         </div>
     </main>
+
+    <!-- 🚀 新增：记忆库查看弹窗 (Modal) -->
+    <div id="memory-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl fade-in">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-database mr-2 text-purple-500"></i><span id="memory-modal-title">账号记忆库</span></h3>
+                <button onclick="document.getElementById('memory-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition">
+                    <i class="fa-solid fa-xmark text-2xl"></i>
+                </button>
+            </div>
+            <div class="overflow-y-auto flex-1 bg-gray-50 rounded-lg p-3 border border-gray-200" id="memory-list">
+                <!-- Records injected by JS -->
+            </div>
+        </div>
+    </div>
 
     <!-- 🌟 Firebase 云数据库配置 🌟 -->
     <script type="module">
@@ -511,6 +531,56 @@
             }
             return array;
         }
+
+        // 🚀 新增：展示记忆库数据的弹窗逻辑
+        window.showMemoryDashboard = function() {
+            const modal = document.getElementById('memory-modal');
+            const list = document.getElementById('memory-list');
+            const profileSelect = document.getElementById('user-profile');
+            const profileName = profileSelect.options[profileSelect.selectedIndex].text;
+            document.getElementById('memory-modal-title').innerText = `${profileName} 的记忆库`;
+
+            if (userRecords.length === 0) {
+                list.innerHTML = '<div class="text-center text-gray-500 p-10 flex flex-col items-center"><i class="fa-solid fa-box-open text-4xl mb-3 text-gray-300"></i><p>你的记忆库目前空空如也，<br>快去挑战并产生第一道错题吧！</p></div>';
+            } else {
+                let html = '<div class="space-y-3">';
+                // 按照复习时间排序，最紧急的在最上面
+                const sortedRecords = [...userRecords].sort((a, b) => a.nextReviewTime - b.nextReviewTime);
+                
+                sortedRecords.forEach(record => {
+                    const q = mistakeDatabase.find(x => x.id === record.questionId);
+                    if (q) {
+                        const dateObj = new Date(record.nextReviewTime);
+                        const timeString = `${dateObj.getMonth()+1}月${dateObj.getDate()}日 ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
+                        const isDue = record.nextReviewTime <= Date.now();
+                        const dueBadge = isDue ? '<span class="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs ml-2 font-bold shadow-sm border border-red-200">待复习</span>' : '';
+                        
+                        html += `
+                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-blue-200 transition">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="text-sm font-bold text-gray-800"><i class="fa-solid fa-tag text-blue-500 mr-1"></i> ${q.tag}</div>
+                                <div>
+                                    <span class="text-xs font-bold bg-purple-100 text-purple-600 px-2 py-0.5 rounded shadow-sm border border-purple-200">Lv.${record.level}</span>
+                                    ${dueBadge}
+                                </div>
+                            </div>
+                            <div class="text-sm text-gray-600 mb-2 p-2 bg-gray-50 rounded">
+                                <span class="line-through text-red-400 mr-2">${q.incorrect}</span> 
+                                <i class="fa-solid fa-arrow-right text-gray-400 text-xs"></i> 
+                                <span class="text-green-600 font-bold ml-2">${q.correct}</span>
+                            </div>
+                            <div class="text-xs text-gray-400 flex items-center">
+                                <i class="fa-regular fa-clock mr-1"></i> 下次复习安排: <span class="ml-1 ${isDue ? 'text-red-500 font-bold' : 'text-gray-500'}">${timeString}</span>
+                            </div>
+                        </div>
+                        `;
+                    }
+                });
+                html += '</div>';
+                list.innerHTML = html;
+            }
+            modal.classList.remove('hidden');
+        };
 
         window.startQuiz = function() {
             const dailyLimitInput = document.getElementById('daily-limit');
