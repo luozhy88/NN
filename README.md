@@ -20,3 +20,6 @@
 历史错题：https://nn-1er.pages.dev/history/index.html   
 历史错题总结： https://nn-1er.pages.dev/history/summary20152016.html  
 英语写作错题：https://nn-1er.pages.dev/English/writing.html   
+
+
+英语写作错题：https://nnenglish.qyjc.top   
