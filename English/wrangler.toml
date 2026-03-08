@@ -1,0 +1,10 @@
+
+name = "nnenglish" # 您的 Worker 名字
+main = "worker.js"             # 您的本地 JS 文件名
+compatibility_date = "2024-03-08"
+
+# 绑定代码中需要的 D1 数据库
+[[d1_databases]]
+binding = "DB"                 # 必须和代码中的 env.DB 一致
+database_name = "english-review" 
+database_id = "4de4dd98-8982-4b08-924c-66168fa850b1"
