@@ -24,4 +24,4 @@
 
 英语写作错题：https://nnenglish.qyjc.top   
 历史错题：https://nnhistory.qyjc.top/   
-历史高考 26 年预测：https://nn-1er.pages.dev/history/history-analysis.html
+历史高考 26 年预测：https://nn-1er.pages.dev/history/history.analysis.html
