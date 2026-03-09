@@ -1,2063 +1,1364 @@
+/**
+ * =========================================================
+ * 高考历史特训 - Cloudflare Worker 全栈版本
+ * 版本号: v1.0.0 (艾宾浩斯记忆曲线 + D1数据库)
+ * =========================================================
+ * 
+ * 部署指南：
+ * 1. 在 Cloudflare D1 控制台创建一个名为 `history-training` 的数据库，并执行以下建表语句：
+ * 
+ * CREATE TABLE IF NOT EXISTS ebbinghaus_records (
+ *   id TEXT PRIMARY KEY,
+ *   user_profile TEXT NOT NULL,
+ *   question_id INTEGER NOT NULL,
+ *   level INTEGER NOT NULL DEFAULT 1,
+ *   next_review_time INTEGER NOT NULL,
+ *   last_updated INTEGER NOT NULL
+ * );
+ * CREATE INDEX idx_user_review ON ebbinghaus_records(user_profile, next_review_time);
+ * 
+ * 2. 创建一个 Worker，将此代码粘贴进去。
+ * 3. 在 Worker 的 Settings -> Variables -> D1 Database Bindings 中，绑定刚才创建的 `history-training` 数据库，变量名必须为 "DB"。
+ */
 
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
 
-<!DOCTYPE html>
+    // ==========================================
+    // 后端 API: 获取用户的艾宾浩斯记忆数据
+    // ==========================================
+    if (url.pathname === '/api/memory/get' && request.method === 'GET') {
+      const userProfile = url.searchParams.get('userProfile');
+      if (!userProfile) return new Response('Missing userProfile', { status: 400 });
+
+      try {
+        const { results } = await env.DB.prepare(
+          "SELECT * FROM ebbinghaus_records WHERE user_profile = ? ORDER BY next_review_time ASC"
+        ).bind(userProfile).all();
+
+        const formattedResults = results.map(row => ({
+          id: row.id,
+          questionId: row.question_id,
+          level: row.level,
+          nextReviewTime: row.next_review_time
+        }));
+
+        return new Response(JSON.stringify(formattedResults), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
+
+    // ==========================================
+    // 后端 API: 更新或插入错题记录
+    // ==========================================
+    if (url.pathname === '/api/memory/upsert' && request.method === 'POST') {
+      try {
+        const data = await request.json();
+        const { userProfile, questionId, level, nextReviewTime } = data;
+        const id = userProfile + '_' + questionId;
+        const now = Date.now();
+
+        await env.DB.prepare(`
+          INSERT INTO ebbinghaus_records (id, user_profile, question_id, level, next_review_time, last_updated)
+          VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+          ON CONFLICT(id) DO UPDATE SET 
+          level = excluded.level, 
+          next_review_time = excluded.next_review_time, 
+          last_updated = excluded.last_updated
+        `).bind(id, userProfile, questionId, level, nextReviewTime, now).run();
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
+
+    // ==========================================
+    // 后端 API: 清除指定用户的所有记忆数据
+    // ==========================================
+    if (url.pathname === '/api/memory/clear' && request.method === 'POST') {
+      try {
+        const data = await request.json();
+        const { userProfile } = data;
+        
+        await env.DB.prepare("DELETE FROM ebbinghaus_records WHERE user_profile = ?").bind(userProfile).run();
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
+
+    // ==========================================
+    // 前端路由: 返回完整的 HTML SPA 页面
+    // ==========================================
+    return new Response(HTML_CONTENT, {
+      headers: { 'Content-Type': 'text/html;charset=UTF-8' }
+    });
+  }
+};
+
+// ==========================================
+// 历史题目数据库 (从 index.html 提取核心知识点)
+// ==========================================
+const historyQuestions = [
+  {
+    id: 1,
+    year: "2015",
+    tag: "儒学发展",
+    title: "汉代儒学与孔孟儒学的不同之处",
+    question: "汉代儒学与孔孟儒学的不同之处是什么？宋代理学在哪些方面对儒学有所发展？",
+    keyPoint: "孔孟讲仁礼民本；汉儒讲大一统、天人感应、君权神授；宋代理学吸收佛道，思辨化、哲学化，提出存天理灭人欲",
+    commonError: "词汇匮乏，漏掉大一统思想，概念缺失",
+    explanation: "汉代儒学在孔孟基础上吸纳法家、道家、阴阳家思想，形成天人感应理论；宋代理学使儒学哲学化，朱熹提出存天理灭人欲。"
+  },
+  {
+    id: 2,
+    year: "2015",
+    tag: "工业革命",
+    title: "科学技术与生产力公式探讨",
+    question: "运用世界近现代史史实，对公式（生产力=科学技术×（劳动力+劳动工具+劳动对象+生产管理））进行探讨。",
+    keyPoint: "科技是第一生产力；蒸汽机→电气化→自动化（工具）；工厂→垄断→现代管理（管理）；体力→脑力（劳动力）",
+    commonError: "逻辑断层，未紧扣公式要素，缺少结构",
+    explanation: "三次工业革命分别对应公式中的不同要素：第一次是工具变革（蒸汽机），第二次是管理变革（垄断组织），第三次是劳动力素质提升。"
+  },
+  {
+    id: 3,
+    year: "2015",
+    tag: "唐代经济",
+    title: "唐代币制改革",
+    question: "唐代币制改革的主要内容和意义是什么？",
+    keyPoint: "开创通宝/元宝体制；确立十进位制；结束混乱，确立后世范式，利于商品经济",
+    commonError: "术语不准（应为通宝体制），深度不够",
+    explanation: "唐代废除了以重量命名货币的制度，开创通宝/元宝体制，确立十进位制，成为后世铸币范式。"
+  },
+  {
+    id: 4,
+    year: "2015",
+    tag: "抗战历史",
+    title: "抗战前后党派地位变化",
+    question: "抗战胜利前后各党派地位发生了什么变化？原因及影响是什么？",
+    keyPoint: "国民党一党专政→各党派法律上平等；原因：团结抗战、中共增强、民心所向、国际制约；影响：促成政协会议",
+    commonError: "严重漏答影响部分，原因不全",
+    explanation: "抗战胜利后，各民主党派力量壮大，政治协商会议召开，打破了国民党一党专政局面。"
+  },
+  {
+    id: 5,
+    year: "2015",
+    tag: "二战历史",
+    title: "戴高乐与法国复兴",
+    question: "戴高乐号召抵抗的理由是什么？法国复兴的历史经验有哪些？",
+    keyPoint: "理由：胜败未定、有殖民地后盾、有盟友支持、正义必胜；经验：坚持独立主权、依靠人民、国际合作",
+    commonError: "幻视（答成古代史），脱离材料",
+    explanation: "戴高乐在1940年法国沦陷后，依靠殖民地和英美盟友，坚持自由法国运动，最终赢得胜利。"
+  },
+  {
+    id: 6,
+    year: "2016",
+    tag: "清代人口",
+    title: "清中期人口膨胀与近代主张",
+    question: "清中期人口膨胀的原因及影响是什么？近代学者有何主张？",
+    keyPoint: "原因：政治稳定、税改、高产作物；影响：人地矛盾、生态恶化、收入下降；主张：移民、实业、节育",
+    commonError: "细节丢失，评价空泛",
+    explanation: "清代人口从1亿增至4亿，引发严重人地矛盾；近代学者提出多种解决方案，各有优劣。"
+  },
+  {
+    id: 7,
+    year: "2016",
+    tag: "启蒙思想",
+    title: "卢梭思想与制度构想",
+    question: "围绕'制度构想与实践'，结合卢梭思想拟定论题并阐述。",
+    keyPoint: "卢梭主张直接民主（理想性），代议制是现实选择（现实性）；体现理想与现实的张力",
+    commonError: "格式错误（未写论题），缺乏思辨",
+    explanation: "卢梭批判代议制，主张人民主权；但大国实行直接民主困难，代议制成为现代政治的现实选择。"
+  },
+  {
+    id: 8,
+    year: "2018",
+    tag: "基层治理",
+    title: "乡约制度的变化",
+    question: "宋代到明清时期乡约制度有何变化？积极作用是什么？",
+    keyPoint: "变化：民间自发→官府主导，道德教化→宣讲圣谕，自我管理→国家控制；作用：维护秩序、道德教化、弥补行政不足",
+    commonError: "变化答不完整，混入负面评价",
+    explanation: "宋代乡约是民间士绅自发组织；明清时期成为官府推行圣谕、控制基层的工具。"
+  },
+  {
+    id: 9,
+    year: "2018",
+    tag: "清末新政",
+    title: "清末城镇乡地方自治的历史背景",
+    question: "简述清末城镇乡地方自治的历史背景。",
+    keyPoint: "民族危机、清末新政、西方民主思想传入、士绅推动、戊戌变法影响",
+    commonError: "过于简略，缺乏展开",
+    explanation: "清末在内忧外患下推行新政，地方自治被视为强国之基，受到西方思想和士绅阶层推动。"
+  },
+  {
+    id: 10,
+    year: "2018",
+    tag: "现代政治",
+    title: "村民自治的意义",
+    question: "村民自治的意义是什么？",
+    keyPoint: "扩大基层民主、加强基层政权建设、推动民主政治进程、为基层治理现代化提供保障",
+    commonError: "未展开，遗漏法治建设等角度",
+    explanation: "村民自治是中国特色社会主义民主政治的重要组成部分，扩大了基层民主权利。"
+  },
+  {
+    id: 11,
+    year: "2018",
+    tag: "殖民扩张",
+    title: "黑奴贸易的历史现象",
+    question: "《鲁滨逊漂流记》中鲁滨逊贩卖黑奴的情节反映了什么历史现象？",
+    keyPoint: "三角贸易/黑奴贸易；为欧洲提供资本积累，给非洲带来灾难，要批判其罪恶",
+    commonError: "未点出情节，笼统说殖民扩张，评价不全面",
+    explanation: "15-19世纪欧洲殖民者掳掠非洲黑人贩卖到美洲，是原始积累的重要手段，也是人类历史上的罪恶。"
+  },
+  {
+    id: 12,
+    year: "2018",
+    tag: "古代制度",
+    title: "年号纪年制的区别与影响",
+    question: "年号纪年制与之前纪年制度的区别是什么？有何影响？",
+    keyPoint: "区别：之前诸侯各自纪年，年号制统一全国通用；影响：强化皇权、维护统一、影响周边国家",
+    commonError: "表述不完整",
+    explanation: "汉武帝创立年号制，以皇帝年号纪年，全国统一使用，体现中央集权，影响朝鲜日本越南等国。"
+  },
+  {
+    id: 13,
+    year: "2018",
+    tag: "两次世界大战",
+    title: "一战与二战性质的不同认识",
+    question: "1939年和1945年人们对一战与二战性质的两种不同认识是什么？",
+    keyPoint: "1939年：都是帝国主义战争；1945年：二战是反法西斯的正义战争",
+    commonError: "无",
+    explanation: "二战初期英法绥靖，苏德条约，战争性质不明；反法西斯同盟形成后，战争性质明确为正义对邪恶。"
+  },
+  {
+    id: 14,
+    year: "2018",
+    tag: "美国外交",
+    title: "美国对拉美政策的变化",
+    question: "20世纪30年代前后美国两种对拉美政策的不同特征是什么？",
+    keyPoint: "30年代前：武力干涉、强权政策（大棒政策）；30年代后：睦邻友好、经济合作代替武力",
+    commonError: "严重失分，未说明不同特征",
+    explanation: "罗斯福推行睦邻政策，以经济援助代替武力干涉，但实质仍是维护美国在拉美的霸权。"
+  },
+  {
+    id: 15,
+    year: "2019",
+    tag: "战后经济",
+    title: "四国钢产量趋势及原因",
+    question: "1950-1980年美国、苏联、日本、中国钢产量的总体发展趋势及基本原因。",
+    keyPoint: "美国：战后繁荣→70年代滞胀下滑；苏联：持续增长→后期僵化；日本：高速增长→石油危机放缓；中国：快速增长但有波动",
+    commonError: "原因笼统、缺乏条理、表述错误",
+    explanation: "四国钢产量变化反映了各自经济体制和国际环境的影响，1970年代石油危机是共同转折点。"
+  },
+  {
+    id: 16,
+    year: "2019",
+    tag: "改革开放",
+    title: "改革开放后中国钢铁业发展原因",
+    question: "改革开放以来中国钢铁业发展的主要原因是什么？",
+    keyPoint: "改革开放政策、体制改革、资金投入、科技创新、国内需求旺盛、加入WTO",
+    commonError: "答案简短、未结合材料、方向有误",
+    explanation: "改革开放后钢铁业发展是政策、体制、资金、科技、需求等多因素共同作用的结果。"
+  },
+  {
+    id: 17,
+    year: "2019",
+    tag: "史学思想",
+    title: "钱穆《国史大纲》观点评析",
+    question: "评析钱穆'对本国历史应有温情与敬意'的观点。",
+    keyPoint: "积极：增强民族凝聚力、激励抗战；局限：可能压抑批判性反思；结论：既要认同又要理性批判",
+    commonError: "用词错误、结论重复材料、缺乏辩证评析",
+    explanation: "钱穆观点在抗战时期有积极意义，但过分强调温情可能不利于客观认识历史。"
+  },
+  {
+    id: 18,
+    year: "2019",
+    tag: "秦汉制度",
+    title: "秦二十等爵与曹魏五等爵",
+    question: "秦二十等爵和曹魏五等爵反映的思想流派、授予对象和作用是什么？",
+    keyPoint: "二十等爵：法家，军功授爵，打破世袭；五等爵：儒家，授予官员，笼络臣僚",
+    commonError: "过于简单、缺乏说明",
+    explanation: "商鞅变法以军功定爵位，体现法家思想；曹魏五等爵仿周礼，体现儒家复古理念。"
+  },
+  {
+    id: 19,
+    year: "2020",
+    tag: "中德关系",
+    title: "中国与两德关系变化及原因",
+    question: "20世纪50～70年代中国与民主德国、联邦德国关系的变化及其原因。",
+    keyPoint: "与民德：50年代密切→60年代冷淡；与西德：对立→建交；原因：阵营对立→中苏破裂→中美缓和",
+    commonError: "原因逻辑混乱、遗漏新东方政策",
+    explanation: "中德关系演变受冷战格局、中苏关系、中美关系等多重因素影响。"
+  },
+  {
+    id: 20,
+    year: "2020",
+    tag: "明清特征",
+    title: "明清历史特征论述",
+    question: "自拟书名并论证明清时期的时代特征。",
+    keyPoint: "书名：《由盛转衰：明清中国的历史转型》；论证：君主专制强化、资本主义萌芽受压制、闭关锁国",
+    commonError: "书名不规范、史实空洞、逻辑矛盾",
+    explanation: "明清时期是中国传统社会由盛转衰的关键时期，政治专制强化，经济发展受阻，逐渐落后于世界。"
+  },
+  {
+    id: 21,
+    year: "2021",
+    tag: "史学比较",
+    title: "希罗多德与司马迁的比较",
+    question: "希罗多德《历史》与司马迁《史记》的共同点、产生背景及撰史要素。",
+    keyPoint: "共同点：私人撰史、实地考察、广泛收集史料、客观记录、兼顾周边民族；要素：史料真实、体例完备、客观公正",
+    commonError: "表述不准、遗漏重点",
+    explanation: "两位史学家都开创了纪传体史学传统，重视实地考察和史料收集，为后世史学奠定基础。"
+  },
+  {
+    id: 22,
+    year: "2021",
+    tag: "中共党史",
+    title: "建党至建国的重要会议",
+    question: "从建党至建国的重要会议中任选两次，分析两次会议间共产党的发展及原因。",
+    keyPoint: "发展：组织壮大、思想成熟、军事壮大、政治成熟；原因：马列主义结合实际、纠正错误、群众支持",
+    commonError: "格式不符、角度不清、缺少原因",
+    explanation: "从一大到遵义会议，中国共产党从幼年到成熟，逐步找到正确的革命道路。"
+  },
+  {
+    id: 23,
+    year: "2022",
+    tag: "科技引进",
+    title: "中日技术引进特点比较",
+    question: "20世纪五六十年代中日技术引进的特点、背景及中国科技发展的历史经验。",
+    keyPoint: "日本：立法管理→逐步放宽，欧美来源；中国：国家主导，苏联来源，转向自力更生；经验：统一规划、引进与自研结合",
+    commonError: "特点遗漏、背景分析浅、经验笼统",
+    explanation: "中日技术引进的不同路径反映了两国不同的政治体制和国际环境。"
+  },
+  {
+    id: 24,
+    year: "2022",
+    tag: "儒家思想",
+    title: "东汉地方官治虎患的历史现象",
+    question: "东汉地方官治虎患反映的历史现象是什么？",
+    keyPoint: "现象：修德政→虎患息；结论：儒家仁政理念影响官吏施政，史书推崇德政",
+    commonError: "归纳不够全面、结论层次较浅",
+    explanation: "《后汉书》记载地方官以修德政治理虎患，体现儒家德治理念对东汉政治的影响。"
+  },
+  {
+    id: 25,
+    year: "2022",
+    tag: "军事改革",
+    title: "商鞅军事改革评价",
+    question: "荀子为何称商鞅变法后的秦军为'盗兵'？如何评价商鞅军事改革？",
+    keyPoint: "原因：荀子儒家立场，秦军求赏逐利无礼义；评价：积极（提升战力、打击贵族）、消极（功利驱动、精神凝聚不足）",
+    commonError: "审题失误、严重跑题",
+    explanation: "荀子从儒家礼义角度批评秦军以功利为驱动，缺乏道德教化，称之为'盗兵'。"
+  },
+  {
+    id: 26,
+    year: "2023",
+    tag: "抗战胜利",
+    title: "日本对华投降问题",
+    question: "共产党、国民党、美国在日本对华投降问题上的主张、措施及评价。",
+    keyPoint: "共产党：迅速解除敌伪武装，收复失地；国民党：只能向蒋介石投降，抢占要地；美国：助蒋反共",
+    commonError: "严重缺失要点、评价缺乏辩证",
+    explanation: "受降问题是战后国共争夺政权合法性的关键，美国明显偏袒国民党，加剧了中国内战。"
+  },
+  {
+    id: 27,
+    year: "2020",
+    tag: "中德关系",
+    title: "中德战略伙伴关系的历史条件",
+    question: "根据材料并结合所学知识，简述中德建立战略伙伴关系的历史条件。",
+    keyPoint: "冷战结束两极格局瓦解；中国改革开放市场巨大；德国统一经济发达；双方推动多极化共同利益",
+    commonError: "未提冷战结束、遗漏多极化、表述方向有误",
+    explanation: "1990年代冷战结束后，中德在各自改革开放和统一后，基于共同战略诉求建立战略伙伴关系。"
+  },
+  {
+    id: 28,
+    year: "2020",
+    tag: "中德关系",
+    title: "中德关系发展的历史启示",
+    question: "根据材料并结合所学知识，简析20世纪70年代以来中德关系发展的历史启示。",
+    keyPoint: "国家利益是外交核心驱动力；经济合作是关系发展纽带；坚持独立自主灵活调整",
+    commonError: "启示未贴材料、遗漏核心要点",
+    explanation: "中德关系发展表明，国家利益和共同利益是推动外交关系的根本动力，经济合作是深化关系的重要纽带。"
+  },
+  {
+    id: 29,
+    year: "2020",
+    tag: "清末新政",
+    title: "清政府奖励商业的主要措施",
+    question: "根据材料，概括清政府奖励商业的主要措施。",
+    keyPoint: "制定商业法律；建立商会组织；给予商人官衔；奖励创新制造；规范公司形式",
+    commonError: "遗漏奖励创新、表述简略",
+    explanation: "清末新政期间，清政府通过立法、设商会、授荣誉、奖创新等措施，改变了传统抑商政策。"
+  },
+  {
+    id: 30,
+    year: "2020",
+    tag: "清末新政",
+    title: "清政府商业改革的历史意义",
+    question: "根据材料并结合所学知识，简析清政府商业改革的历史意义。",
+    keyPoint: "否定抑商政策提高商人地位；引进近代公司制度；为民族资本主义提供法律保障；推动商业近代化",
+    commonError: "表述模糊、遗漏核心意义、答题过短",
+    explanation: "清末商业改革是晚清经济政策的重要转变，为民族工商业发展提供了制度和法律保障。"
+  },
+  {
+    id: 31,
+    year: "2021",
+    tag: "清末新政",
+    title: "江楚会奏与洋务运动的相同点",
+    question: "根据材料，指出江楚会奏与洋务运动的相同点。",
+    keyPoint: "都是自上而下改革；都向西方学习；都维护清朝统治；都涉及经济军事近代化；都未触动封建根本",
+    commonError: "都以失败告终表述不当",
+    explanation: "江楚会奏（清末新政）与洋务运动都是清政府自上而下的改革，旨在维护统治并向西方学习。"
+  },
+  {
+    id: 32,
+    year: "2021",
+    tag: "清末新政",
+    title: "评价江楚会奏变法方案",
+    question: "根据材料，评价江楚会奏变法方案。",
+    keyPoint: "积极：推动教育近代化、多领域改革、促进思想解放；局限：维护封建统治、治标不治本",
+    commonError: "语句不通、评价不全、遗漏要点",
+    explanation: "江楚会奏是较为全面的改革方案，推动近代化但根本目的是维护清朝统治，未能挽救清朝灭亡。"
+  },
+  {
+    id: 33,
+    year: "2021",
+    tag: "越南战争",
+    title: "美国放弃使用化学剂的原因",
+    question: "根据材料，说明美国放弃在越战中使用化学剂的原因。",
+    keyPoint: "科学界反对；联合国重视环境；国内反战运动；未达到战争目的；对美军士兵造成伤害",
+    commonError: "可补充国际舆论压力",
+    explanation: "美国因国内外多方压力和化学剂未能达到预期效果，最终放弃在越战中使用化学剂。"
+  },
+  {
+    id: 34,
+    year: "2021",
+    tag: "越南战争",
+    title: "使用化学剂的后果",
+    question: "根据材料，说明美国在越战中使用化学剂的后果。",
+    keyPoint: "生态环境破坏；越南人民健康受损；美军士兵患病；美国国际形象受损；推动环保立法",
+    commonError: "国内经济破坏无依据、答案过于简略",
+    explanation: "越战化学剂造成生态灾难和人员伤害，严重损害美国国际形象，推动了国际环保立法进程。"
+  },
+  {
+    id: 35,
+    year: "2021",
+    tag: "史学评价",
+    title: "三则材料对冯道的评价",
+    question: "根据材料，分别概括三则材料对冯道的评价。",
+    keyPoint: "评价一：学识渊博品行端正；评价二：肯定风度但质疑忠节；评价三：批判无礼无耻无气节",
+    commonError: "评价二有误忽略质疑、评价三未补充儒家忠义观",
+    explanation: "三则材料从不同立场评价冯道：《旧五代史》肯定其才学，史臣质疑其忠诚，欧阳修严厉批判。"
+  },
+  {
+    id: 36,
+    year: "2021",
+    tag: "史学评价",
+    title: "影响人物评价的因素",
+    question: "根据材料，说明影响人物评价的因素。",
+    keyPoint: "评价者立场；时代背景；传统观念；史料掌握；政治环境；评价标准差异",
+    commonError: "三点均正确但可补充更多维度",
+    explanation: "历史人物评价受多种因素影响，包括评价者的价值观、所处时代、掌握史料、政治环境等。"
+  },
+  {
+    id: 37,
+    year: "2022",
+    tag: "苏伊士运河战争",
+    title: "美国对英国态度变化及目的",
+    question: "简析苏伊士运河战争爆发前后美国对英国的态度变化及其目的。",
+    keyPoint: "变化：撤援激化矛盾→联合苏联施压停火；目的：削弱英法、扩大美国势力、防止苏联渗透",
+    commonError: "态度变化描述有误、目的分析过浅",
+    explanation: "美国借苏伊士运河战争削弱英法在中东的传统影响力，填补权力真空，扩大自身势力范围。"
+  },
+  {
+    id: 38,
+    year: "2022",
+    tag: "苏伊士运河战争",
+    title: "苏伊士运河战争对西方阵营的影响",
+    question: "说明苏伊士运河战争对当时西方阵营的影响。",
+    keyPoint: "英法大国地位受挫；加速殖民体系瓦解；西方阵营裂痕；推动欧洲一体化；美国扩大中东影响",
+    commonError: "深度不足、可补充更多要点",
+    explanation: "苏伊士运河战争严重打击英法地位，加剧西方阵营分裂，客观上推动欧洲一体化进程。"
+  },
+  {
+    id: 39,
+    year: "2022",
+    tag: "新中国政治",
+    title: "毛泽东高度重视各界人民代表会议的原因",
+    question: "说明毛泽东高度重视各界人民代表会议的原因。",
+    keyPoint: "党的性质宗旨；为人大制度做准备；团结各界壮大统一战线；巩固新解放城市政权；贯彻群众路线",
+    commonError: "推翻国民党的需要史实错误、原因不完整",
+    explanation: "1949年毛泽东重视各界人民代表会议，是为建立人大制度做准备，巩固新政权，发扬人民民主。"
+  },
+  {
+    id: 40,
+    year: "2022",
+    tag: "新中国政治",
+    title: "各界人民代表会议的历史意义",
+    question: "简析毛泽东督促召开各界人民代表会议的历史意义。",
+    keyPoint: "体现人民当家作主；为人大制度积累经验；巩固新生政权；推动民主政治建设；彰显党的历史担当",
+    commonError: "意义较空洞、缺乏具体展开",
+    explanation: "各界人民代表会议是新中国民主政治的重要实践，为人民代表大会制度的建立积累了宝贵经验。"
+  },
+  {
+    id: 41,
+    year: "2023",
+    tag: "东汉儒学",
+    title: "东汉儒学与民德（梁启超观点）",
+    question: "选取中国古代史，对梁启超'东汉民德较优'观点提出看法并阐述。",
+    keyPoint: "认同：东汉儒学浓厚、察举孝廉引导道德、士大夫清议气节、党锢之祸殉道精神",
+    commonError: "论点模糊、史实错误刘秀结束西汉、史论脱节",
+    explanation: "东汉光武帝崇尚儒学，察举制以孝廉为标准，士大夫形成清议风气，民德确实达到较高水准。"
+  },
+  {
+    id: 42,
+    year: "2023",
+    tag: "一战历史",
+    title: "飞机在一战中使用情况的变化",
+    question: "概括飞机在第一次世界大战中使用情况的变化。",
+    keyPoint: "侦察→空战→配置机枪→编队作战（空中马戏团）→全金属飞机→数量优势掌握制空权",
+    commonError: "一战前民用无中生有、技术演变过程缺失",
+    explanation: "一战初期飞机仅用于侦察，后逐步发展为空战武器，1918年协约国凭借空中优势掌握制空权。"
+  },
+  {
+    id: 43,
+    year: "2023",
+    tag: "一战历史",
+    title: "飞机应用于一战所产生的影响",
+    question: "简析飞机应用于第一次世界大战所产生的影响。",
+    keyPoint: "改变战争形态（平面→立体）；推动制空权理论；加速战争结束；刺激飞机制造业；平民伤亡加剧",
+    commonError: "为出行便利不贴切时间范围、严重缺失核心影响",
+    explanation: "飞机使战争从平面扩展到立体空间，推动制空权理论形成，加剧战争残酷性，刺激航空技术发展。"
+  },
+  {
+    id: 44,
+    year: "2024",
+    tag: "古代农业",
+    title: "中国与西欧古代农业土地利用方式差异",
+    question: "概括中国与西欧古代农业在土地利用方式上的主要差异。",
+    keyPoint: "中国：连作制、精耕细作、水利粪肥、圩田梯田；西欧：休耕轮作、二圃三圃制、敞地制度、农牧结合",
+    commonError: "未点明最核心差异、淤田笔误、遗漏敞地制度",
+    explanation: "中国以连作制和精耕细作为主，西欧以休耕轮作和敞地制度为特征，形成不同农业文明路径。"
+  },
+  {
+    id: 45,
+    year: "2024",
+    tag: "古代农业",
+    title: "古代农业对文明发展的影响",
+    question: "分别说明中国和西欧古代农业对文明发展的影响。",
+    keyPoint: "中国：养活庞大人口、支撑统一多民族国家、孕育繁荣文明；西欧：封建庄园基础、推动城镇化、为资本主义萌芽奠基",
+    commonError: "重复表述、遗漏材料核心、过于笼统",
+    explanation: "中国农业支撑了统一多民族国家和中华文明延续；西欧农业推动了封建制度和近代资本主义发展。"
+  },
+  {
+    id: 46,
+    year: "2024",
+    tag: "抗日战争",
+    title: "1932年中华民族抗战短评",
+    question: "根据1932年新闻报道，拟定主题写一篇短评。",
+    keyPoint: "主题：1932年民族危亡与多方应对；史实：一二八事变、伪满洲国、十九路军抗战、国共对立",
+    commonError: "引入1935年一二九运动超时间范围、主题过大、未运用材料新闻标题",
+    explanation: "1932年外有日本侵略步步紧逼，内有国共武装对立，国民政府妥协与人民抗争形成鲜明对比。"
+  },
+  {
+    id: 47,
+    year: "2024",
+    tag: "现代工业",
+    title: "新中国成立以来装备制造业的发展",
+    question: "概述新中国成立以来装备制造业的发展。",
+    keyPoint: "奠基阶段一五计划建立新部门；发展阶段改革开放形成制造基地；腾飞阶段新时代自给率85%世界第一",
+    commonError: "无阶段性概述、未提具体成就、地域布局未提及",
+    explanation: "中国装备制造业从一五计划奠基，到改革开放发展，再到新时代高质量发展，成为世界第一制造大国。"
+  },
+  {
+    id: 48,
+    year: "2024",
+    tag: "现代工业",
+    title: "新时代推动装备制造业发展的主要因素",
+    question: "概括新时代推动中国装备制造业发展的主要因素。",
+    keyPoint: "党中央领导；产业政策支持；自主创新加大科研投入；数字化智能化转型升级；完整产业体系基础；科技工作者奉献精神",
+    commonError: "语义重复、未提数字化智能化转型、表述不够精准",
+    explanation: "新时代装备制造业发展得益于党的领导、自主创新战略、数字化转型和完整工业体系支撑。"
+  },
+  {
+    id: 49,
+    year: "2025",
+    tag: "魏晋医学",
+    title: "魏晋南北朝时期医学发展的特点",
+    question: "概括魏晋南北朝时期医学发展的特点。",
+    keyPoint: "官方医政体系完备；医学典籍整理编撰成就突出；服务对象兼顾贵族与平民体现仁爱；对外医学交流活跃",
+    commonError: "遗漏服务对象多元、表述模糊",
+    explanation: "魏晋南北朝时期医学在官方管理、典籍整理、对外交流和人文关怀等方面取得显著发展。"
+  },
+  {
+    id: 50,
+    year: "2025",
+    tag: "魏晋医学",
+    title: "魏晋南北朝医学发展的意义",
+    question: "分析魏晋南北朝时期医学发展的意义。",
+    keyPoint: "丰富系统化中医理论；为隋唐医学繁荣奠定基础；体现仁爱救世人文精神；促进中外文化交流",
+    commonError: "方向正确但偏空泛、遗漏具体表述",
+    explanation: "魏晋医学发展为后世中医理论体系完善和中外医学交流奠定了重要基础。"
+  },
+  {
+    id: 51,
+    year: "2025",
+    tag: "中共党史",
+    title: "中共不同时期的调查研究",
+    question: "从材料中任选三则调查研究内容，结合中共不同时期任务与举措加以阐释。",
+    keyPoint: "新时代精准扶贫因地制宜；土地革命时期调查农村为土地政策和扩红提供依据；社会主义改造时期调查工商业为三大改造提供数据",
+    commonError: "阐释深度严重不足仅罗列关键词、有错别字",
+    explanation: "调查研究是党制定正确路线政策的重要前提，贯穿各个历史时期，体现实事求是和群众路线。"
+  },
+  {
+    id: 52,
+    year: "2025",
+    tag: "中共党史",
+    title: "中共调查研究的历史启示",
+    question: "简析中共调查研究的历史启示。",
+    keyPoint: "调查研究是制定正确路线政策的前提；坚持实事求是理论联系实际；贯彻群众路线深入基层",
+    commonError: "可补充更多要点",
+    explanation: "调查研究是党的优良传统，是保持先进性和制定正确决策的关键方法。"
+  },
+  {
+    id: 53,
+    year: "2025",
+    tag: "近代财税",
+    title: "近代中英地方财税体制的差异",
+    question: "比较近代中英两国地方财税体制的差异。",
+    keyPoint: "形成方式：中国被动战乱、英国主动立法；税收性质：中国非正式杂税、英国专项税法律保障；中央地方关系：中国争夺、英国协作；监督机制：中国缺乏、英国多元监督",
+    commonError: "遗漏税收性质和监督机制差异",
+    explanation: "近代中英财税体制差异反映了两国政治制度和现代化路径的根本不同。"
+  },
+  {
+    id: 54,
+    year: "2025",
+    tag: "近代财税",
+    title: "近代中英财税体制的影响",
+    question: "分别说明近代中英地方财税体制的影响。",
+    keyPoint: "中国：加剧地方离心、阻碍商品流通、但为洋务运动提供财力；英国：推动城市化工业化、完善代议制、为福利国家奠基",
+    commonError: "中国影响遗漏洋务运动财力、英国影响可补充福利国家",
+    explanation: "中英财税体制对各自近代化进程产生了深远但截然不同的影响。"
+  }
+];
+
+// ==========================================
+// 前端 HTML / CSS / JS 代码
+// ==========================================
+const HTML_CONTENT = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>高考历史特训（手机专用版）</title>
-    <!-- 引入 EmailJS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高考历史特训 - 艾宾浩斯记忆系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --success: #16a34a;
-            --success-bg: #dcfce7;
-            --danger: #dc2626;
-            --danger-bg: #fee2e2;
-            --warning: #ca8a04;
-            --warning-bg: #fef9c3;
-            --gray-50: #f9fafb;
-            --gray-100: #f3f4f6;
-            --gray-200: #e5e7eb;
-            --gray-700: #374151;
-            --gray-800: #1f2937;
-            --text-main: #111827;
-            --text-sub: #6b7280;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--gray-100);
-            color: var(--text-main);
-            margin: 0;
-            padding: 0;
-            line-height: 1.6;
-        }
-
-        /* 顶部导航 */
-        header {
-            background-color: var(--gray-800);
+        body { font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
+        .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
+        .tab-inactive { color: #6b7280; }
+        .tab-inactive:hover { color: #374151; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Quiz specific styles */
+        .option-card { transition: all 0.2s; border: 2px solid transparent; }
+        .option-card:hover { border-color: #bfdbfe; background-color: #eff6ff; }
+        .option-selected-correct { border-color: #10b981; background-color: #ecfdf5; }
+        .option-selected-wrong { border-color: #ef4444; background-color: #fef2f2; }
+        
+        .spinner { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 2s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;}
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Card styles */
+        .history-card { 
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d3748 100%);
             color: white;
-            padding: 1rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .progress-container {
-            font-size: 0.85rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .master-count {
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-        }
-
-        .progress-bar-bg {
-            width: 60px;
-            height: 6px;
-            background-color: #4b5563;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            background-color: #facc15;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        /* 主容器 */
-        .container {
-            padding: 1rem;
-            max-width: 800px;
-            margin: 0 auto;
-            padding-bottom: 80px; /* 为底部按钮留空间 */
-        }
-
-        /* 卡片样式 */
-        .card {
-            background: white;
             border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-            border: 1px solid var(--gray-200);
-        }
-
-        .card-header {
-            background-color: var(--gray-50);
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--gray-200);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .tag {
-            background-color: #dbeafe;
-            color: #1e40af;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            display: none; /* 默认隐藏，有状态才显示 */
-        }
-        .status-mastered {
-            background-color: var(--success-bg);
-            color: var(--success);
-            display: inline-block;
-        }
-        .status-review {
-            background-color: var(--danger-bg);
-            color: var(--danger);
-            display: inline-block;
-        }
-
-        .card-body {
-            padding: 1.25rem;
-        }
-
-        .q-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-top: 0;
+            padding: 1.5rem;
             margin-bottom: 1rem;
-            line-height: 1.4;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-
-        .q-content {
-            background-color: var(--gray-50);
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--gray-200);
-            margin-bottom: 1rem;
-        }
-
-        /* 诊断框 */
-        .diagnosis-box {
-            background-color: var(--danger-bg);
-            border-left: 4px solid var(--danger);
-            padding: 1rem;
-            border-radius: 0 4px 4px 0;
-            margin-top: 1rem;
-        }
-
-        .diagnosis-title {
-            color: #991b1b;
-            font-weight: bold;
-            font-size: 0.9rem;
+        .history-tag { 
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-block;
             margin-bottom: 0.5rem;
         }
-
-        /* 输入区 */
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px;
-            font-size: 1rem;
-            font-family: inherit;
-            margin-bottom: 1rem;
-            -webkit-appearance: none;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        /* 按钮 */
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-align: center;
-            transition: opacity 0.2s;
-        }
-
-        .btn:active {
-            opacity: 0.8;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-next {
-            background-color: var(--gray-800);
-            color: white;
-        }
-
-        .btn-outline {
-            background-color: white;
-            border: 1px solid var(--gray-200);
-            color: var(--gray-700);
-            margin-top: 1rem;
-        }
-
-        /* 评价按钮组 */
-        .eval-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px dashed var(--gray-200);
-        }
         
-        .btn-success {
-            background-color: var(--success);
-            color: white;
-        }
+        /* Table styles */
+        .db-table th { background-color: #f8fafc; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; }
+        .db-table td { font-size: 0.875rem; color: #334155; }
         
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-        }
-
-        /* 对比区域 */
-        .review-section {
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .comparison-grid {
-            display: grid;
-            gap: 1rem;
-        }
-
-        .answer-box {
-            padding: 1rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            white-space: pre-line;
-        }
-
-        .old-answer {
-            background-color: var(--danger-bg);
-            border: 1px solid #fecaca;
-            color: #7f1d1d;
-        }
-
-        .new-answer {
-            background-color: #eff6ff;
-            border: 1px solid #bfdbfe;
-            color: #1e3a8a;
-        }
-
-        .std-box {
-            background-color: white;
-            border: 1px solid var(--success);
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 1rem;
-        }
-
-        .std-header {
-            background-color: var(--success);
-            color: white;
-            padding: 10px 15px;
-            font-weight: bold;
-        }
-
-        .std-body {
-            padding: 1.25rem;
-        }
-
-        .highlight-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .highlight-list li {
-            padding-left: 1.5rem;
-            position: relative;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-            color: var(--gray-700);
-        }
-
-        .highlight-list li::before {
-            content: "•";
-            color: var(--warning);
-            font-weight: bold;
-            font-size: 1.5rem;
-            position: absolute;
-            left: 0;
-            top: -5px;
-        }
-
-        /* 欢迎页 */
-        #welcome-screen {
-            text-align: center;
-            padding: 2rem 1rem;
-        }
-        
-        .welcome-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-
-        /* 设置框 */
-        .setting-box {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border: 1px solid #e5e7eb;
-            text-align: left;
-        }
-
-        .setting-label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .input-num {
-            width: 100%;
-            padding: 10px;
-            font-size: 1.1rem;
-            border: 2px solid #e5e7eb;
-            border-radius: 6px;
-            text-align: center;
-        }
-
-        /* 结算页 */
-        #completion-screen {
-            text-align: center;
-            padding: 1rem;
-        }
-
-        .summary-list {
-            text-align: left;
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border: 1px solid #e5e7eb;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .summary-item {
-            padding: 10px;
-            border-bottom: 1px solid #f3f4f6;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-        
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        
-        .summary-answer {
-            background-color: #f9fafb;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            color: #4b5563;
-        }
-
-        .email-status {
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            background: #f3f4f6;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-        
-        .cloud-status {
-            font-size: 0.7rem;
-            color: #9ca3af;
-            margin-top: 5px;
-        }
+        /* Content styles */
+        .content-box { white-space: pre-wrap; line-height: 1.8; }
+        .key-point { background: #fef3c7; padding: 2px 6px; border-radius: 4px; color: #92400e; font-weight: 600; }
+        .error-point { background: #fee2e2; padding: 2px 6px; border-radius: 4px; color: #991b1b; }
     </style>
 </head>
-<body>
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <header>
-        <div class="header-content">
-            <h1>📜 历史特训</h1>
-            <div class="progress-container">
-                <span class="master-count" id="master-count">已掌握: 0</span>
-                <span id="progress-text">1/--</span>
-                <div class="progress-bar-bg">
-                    <div id="progress-bar" class="progress-bar-fill"></div>
+    <!-- Header -->
+    <header class="bg-white shadow-sm z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-scroll text-amber-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">高考历史特训 <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2 border">v1.0.0</span></h1>
+                </div>
+                <div class="flex space-x-2 sm:space-x-8 overflow-x-auto hide-scrollbar">
+                    <button onclick="window.switchTab('home')" id="tab-home" class="tab-active whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
+                        <i class="fa-solid fa-house mr-1"></i> 首页
+                    </button>
+                    <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
+                        <i class="fa-solid fa-brain mr-2"></i> 挑战复习
+                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <div class="container">
-        
-        <!-- 欢迎页 -->
-        <div id="welcome-screen">
-            <div class="welcome-icon">🎯</div>
-            <h2 style="margin-bottom: 0.5rem;">高考历史 · 弱项定向诊疗</h2>
-            <p style="color: var(--text-sub); margin-bottom: 2rem;">
-                专为手机优化。<br>
-                本地自动记录做题进度。<br>
-                <span id="cloud-indicator">☁️ 数据将同步到云端</span>
-            </p>
-
-            <div class="setting-box">
-                <label class="setting-label">📅 今日计划刷题数：</label>
-                <input type="number" id="daily-goal-input" class="input-num" value="5" min="1" max="50">
-                <div style="font-size:0.8rem; color:#6b7280; margin-top:5px;">完成后将自动发送报告到邮箱</div>
-            </div>
-
-            <button onclick="window.startPractice()" class="btn btn-primary">开始特训</button>
-            <p style="margin-top:1rem; font-size:0.8rem; color:#9ca3af; cursor:pointer;" onclick="window.clearData()">[重置所有记录]</p>
-        </div>
-
-        <!-- 答题页 -->
-        <div id="practice-screen" class="hidden">
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <div class="max-w-4xl mx-auto h-full">
             
-            <!-- 题目卡片 -->
-            <div class="card">
-                <div class="card-header">
-                    <div>
-                        <span class="tag" id="q-year">年份</span>
-                        <span id="status-badge" class="status-badge"></span>
+            <!-- Home: Question List -->
+            <div id="view-home" class="fade-in space-y-6">
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-2"><i class="fa-solid fa-graduation-cap mr-2 text-amber-600"></i>高考历史 · 艾宾浩斯记忆特训</h2>
+                    <p class="text-gray-600 text-sm mb-4">
+                        本系统收录 ${historyQuestions.length} 道高考历史真题核心知识点，采用艾宾浩斯遗忘曲线算法，
+                        自动安排复习计划，帮助你高效掌握历史知识。
+                    </p>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500">
+                        <span><i class="fa-solid fa-database mr-1"></i> Cloudflare D1 云端同步</span>
+                        <span><i class="fa-solid fa-clock mr-1"></i> 智能复习提醒</span>
+                        <span><i class="fa-solid fa-chart-line mr-1"></i> 进度追踪</span>
                     </div>
-                    <span class="score-tag" id="q-score-info">得分信息</span>
                 </div>
-                <div class="card-body">
-                    <h3 class="q-title" id="q-title">题目</h3>
-                    <div class="q-content" id="q-content">内容</div>
-                    
-                    <div class="diagnosis-box">
-                        <div class="diagnosis-title">⚠️ 上次的致命伤</div>
-                        <div style="font-size: 0.9rem;" id="q-diagnosis"></div>
+
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800">题目库概览</h3>
+                        <span class="text-sm text-gray-500">共 ${historyQuestions.length} 题</span>
+                    </div>
+                    <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto" id="question-list">
+                        <!-- Questions will be injected here -->
                     </div>
                 </div>
             </div>
 
-            <!-- 输入区 -->
-            <div id="input-section" class="card" style="padding: 1rem;">
-                <label style="display:block; font-weight:bold; margin-bottom:0.5rem;">你的新回答：</label>
-                <textarea id="user-input" placeholder="请输入你的答案..."></textarea>
-                <div style="display: flex; gap: 12px;">
-                    <button onclick="window.skipQuestion()" class="btn" style="background: white; border: 1px solid #e5e7eb; color: #6b7280; flex: 1;">跳过 ↷</button>
-                    <button onclick="window.submitAnswer()" class="btn btn-primary" style="flex: 2;">提交并对比 ➔</button>
-                </div>
-            </div>
-
-            <!-- 复盘区 -->
-            <div id="review-section" class="review-section">
+            <!-- Review Mode: Quiz -->
+            <div id="view-review" class="hidden fade-in h-full flex flex-col items-center justify-center pt-2 sm:pt-8">
                 
-                <div class="comparison-grid">
-                    <div>
-                        <div style="font-weight:bold; color:#991b1b; margin-bottom:5px;">❌ 你的旧回答</div>
-                        <div class="answer-box old-answer" id="old-answer-display"></div>
-                    </div>
-                    <div>
-                        <div style="font-weight:bold; color:#1e40af; margin-bottom:5px;">✍️ 你的新回答</div>
-                        <div class="answer-box new-answer" id="new-answer-display"></div>
+                <!-- Start Screen -->
+                <div id="quiz-start" class="text-center max-w-lg w-full px-4">
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200">
+                        <div class="bg-amber-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                            <i class="fa-solid fa-scroll text-amber-600 text-3xl sm:text-4xl"></i>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">历史知识突击检查</h2>
+                        <p class="text-gray-600 mb-2 text-sm sm:text-base">系统题库共收录 <span class="font-bold text-amber-600" id="total-questions-count">0</span> 个知识点。</p>
+                        
+                        <div id="ebbinghaus-status" class="mb-4 sm:mb-6">
+                            <div class="inline-block bg-purple-50 text-purple-700 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm border border-purple-100">
+                                <i class="fa-solid fa-hourglass-half mr-1"></i> <span id="sync-status">正在连接 Cloudflare D1...</span>
+                            </div>
+                        </div>
+
+                        <!-- User Selection -->
+                        <div class="mb-4 text-left bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fa-solid fa-users mr-1 text-gray-500"></i> 选择学习账号 (独立记忆池):
+                            </label>
+                            <select id="user-profile" onchange="window.changeProfile()" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
+                                <option value="user1">👤 User 1 (账号一)</option>
+                                <option value="user2">👤 User 2 (账号二)</option>
+                                <option value="user3">👤 User 3 (账号三)</option>
+                                <option value="user4">👤 User 4 (账号四)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Daily Limit Setting -->
+                        <div class="mb-6 text-left bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
+                            <label for="daily-limit" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fa-solid fa-calendar-day mr-1 text-gray-500"></i> 今日目标题数:
+                            </label>
+                            <div class="flex items-center space-x-3">
+                                <select id="daily-limit" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
+                                    <option value="5">5 题</option>
+                                    <option value="10" selected>10 题</option>
+                                    <option value="20">20 题</option>
+                                    <option value="999">全部错题</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button id="btn-start" onclick="window.prepareQuiz()" class="w-full bg-amber-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-amber-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:opacity-50">
+                            开始今日复习
+                        </button>
+                        
+                        <button onclick="window.showMemoryDashboard()" class="w-full mt-3 bg-white text-purple-600 border border-purple-200 py-3 px-6 rounded-lg font-bold hover:bg-purple-50 transition shadow-sm">
+                            <i class="fa-solid fa-database mr-1"></i> 查看当前账号 SQL 记忆库
+                        </button>
                     </div>
                 </div>
 
-                <!-- 标准答案 -->
-                <div class="std-box">
-                    <div class="std-header">★ 标准答案 & 逻辑</div>
-                    <div class="std-body">
-                        <div style="background:#fef9c3; padding:10px; border-radius:4px; margin-bottom:1rem;">
-                            <strong style="color:#854d0e; font-size:0.8rem; display:block; margin-bottom:4px;">阅卷人视角</strong>
-                            <div id="examiner-notes" style="font-size:0.9rem;"></div>
+                <!-- Pre-Review Screen -->
+                <div id="quiz-pre-review" class="hidden w-full max-w-2xl px-4">
+                    <div class="bg-white rounded-xl shadow-xl border-t-4 border-yellow-400 overflow-hidden flex flex-col max-h-[85vh]">
+                        <div class="p-4 bg-yellow-50 border-b border-yellow-100 flex items-center justify-between sticky top-0">
+                            <h3 class="text-lg font-bold text-yellow-800"><i class="fa-solid fa-bolt mr-2"></i> 记忆突击: 提前复习</h3>
+                            <span class="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full font-bold">艾宾浩斯算法拦截</span>
                         </div>
-
-                        <div style="margin-bottom:1rem;">
-                            <strong style="color:#166534; font-size:0.8rem; display:block; margin-bottom:4px;">参考答案</strong>
-                            <div id="std-answer-display" style="font-size:0.95rem; color:#1f2937;"></div>
+                        <div class="p-6 overflow-y-auto flex-1">
+                            <p class="text-gray-600 mb-4 text-sm font-medium">系统检测到以下 <span id="pre-review-count" class="text-red-500 font-bold"></span> 个知识点已达到遗忘临界点。请在正式挑战前进行复习：</p>
+                            <div id="pre-review-list" class="space-y-4"></div>
                         </div>
-
-                        <hr style="border:0; border-top:1px solid #e5e7eb; margin:1rem 0;">
-
-                        <div>
-                            <strong style="color:#4338ca; font-size:0.8rem; display:block; margin-bottom:4px;">🚀 提分关键</strong>
-                            <ul id="key-takeaways" class="highlight-list"></ul>
+                        <div class="p-4 bg-gray-50 border-t border-gray-100 mt-auto">
+                            <button onclick="window.enterQuizContext()" class="w-full bg-yellow-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-yellow-600 transition shadow-md flex justify-center items-center">
+                                我已复习完毕，开始挑战 <i class="fa-solid fa-arrow-right ml-2"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
-                
-                <!-- 自评区域 -->
-                <div class="card" style="margin-top: 1.5rem; padding: 1.25rem;">
-                    <div style="text-align: center; font-weight: bold; margin-bottom: 1rem;">自我评价：这道题现在掌握了吗？</div>
-                    <div class="eval-grid" style="margin-top: 0; border: none; padding-top: 0;">
-                        <button onclick="window.markResult(false)" class="btn btn-danger">🔴 需复习</button>
-                        <button onclick="window.markResult(true)" class="btn btn-success">✅ 已掌握</button>
+
+                <!-- Quiz Card -->
+                <div id="quiz-container" class="hidden w-full max-w-2xl px-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm font-medium text-gray-500">进度: <span id="current-q">1</span>/<span id="total-q">10</span></span>
+                        <div class="h-2 w-48 bg-gray-200 rounded-full">
+                            <div id="progress-bar" class="h-2 bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                        </div>
                     </div>
-                    <div id="upload-status" class="cloud-status" style="text-align:center;"></div>
+
+                    <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden relative min-h-[400px] flex flex-col">
+                        <div class="p-5 sm:p-8 flex-1">
+                            <div class="mb-4 flex flex-wrap items-center gap-2">
+                                <span id="q-year" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-gray-100 text-gray-600"></span>
+                                <span id="q-tag" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-700"></span>
+                                <span id="ebbinghaus-badge" class="hidden inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-purple-100 text-purple-600 shadow-sm border border-purple-200">
+                                    <i class="fa-solid fa-brain mr-1"></i> 艾宾浩斯复习题
+                                </span>
+                            </div>
+
+                            <h3 class="text-lg sm:text-xl text-gray-800 mb-4 font-bold" id="q-title"></h3>
+                            <p class="text-gray-600 mb-4 text-sm italic bg-gray-50 p-3 rounded" id="q-question"></p>
+                            
+                            <div class="mb-6">
+                                <p class="text-sm text-gray-500 mb-2">请选择正确的核心知识点：</p>
+                                <div id="options-container" class="space-y-3"></div>
+                            </div>
+                        </div>
+
+                        <!-- Feedback Area -->
+                        <div id="feedback-area" class="hidden bg-gray-50 p-5 sm:p-6 border-t border-gray-100">
+                            <div class="flex items-start">
+                                <div id="feedback-icon" class="flex-shrink-0 mr-3 mt-1"></div>
+                                <div class="flex-1">
+                                    <h4 id="feedback-title" class="font-bold text-base sm:text-lg mb-1"></h4>
+                                    <div id="feedback-content" class="text-gray-600 text-sm space-y-2">
+                                        <p><strong class="text-amber-700">核心要点：</strong><span id="feedback-keypoint"></span></p>
+                                        <p><strong class="text-red-700">常见错误：</strong><span id="feedback-error"></span></p>
+                                        <p><strong class="text-blue-700">详细解析：</strong><span id="feedback-explanation"></span></p>
+                                    </div>
+                                    <button onclick="window.nextQuestion()" class="mt-4 bg-gray-900 text-white px-5 py-2 rounded text-sm font-medium hover:bg-gray-800 transition">
+                                        下一题 <i class="fa-solid fa-arrow-right ml-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div style="margin-top: 1.5rem;">
-                    <button onclick="window.nextQuestion()" class="btn btn-next" id="btn-next-step">跳过评价进入下一题 ➔</button>
+                <!-- Results Screen -->
+                <div id="quiz-results" class="hidden text-center max-w-lg w-full px-4">
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200">
+                        <div id="score-icon" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 text-green-600">
+                            <i class="fa-solid fa-trophy text-4xl"></i>
+                        </div>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">复习完成!</h2>
+                        <p class="text-gray-600 mb-6">今日得分: <span id="final-score" class="text-3xl font-bold text-amber-600"></span></p>
+                        
+                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 justify-center mb-6">
+                            <button onclick="window.switchTab('review'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('quiz-start').classList.remove('hidden');" class="bg-amber-100 text-amber-700 py-2 px-6 rounded-lg font-medium hover:bg-amber-200">
+                                返回面板
+                            </button>
+                            <button onclick="window.showMemoryDashboard()" class="bg-purple-100 text-purple-700 py-2 px-6 rounded-lg font-medium hover:bg-purple-200">
+                                查看数据库变化
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
             </div>
-
         </div>
+    </main>
 
-        <!-- 结算页 -->
-        <div id="completion-screen" class="hidden">
-            <div class="welcome-icon">🎉</div>
-            <h2>今日特训完成！</h2>
-            <p>已完成今日设定的目标。</p>
+    <!-- Database Modal -->
+    <div id="memory-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl fade-in overflow-hidden">
+            <div class="flex justify-between items-center p-5 bg-gray-900 text-white border-b border-gray-800">
+                <h3 class="text-lg font-bold flex items-center">
+                    <i class="fa-solid fa-database mr-3 text-purple-400"></i>
+                    <span id="memory-modal-title">Cloudflare D1 记忆库 (真实连接)</span>
+                </h3>
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.clearAllMemory()" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 hover:text-red-300 px-3 py-1.5 rounded text-sm font-bold transition flex items-center border border-red-500/30">
+                        <i class="fa-solid fa-trash-can mr-1"></i> 全部清除
+                    </button>
+                    <button onclick="document.getElementById('memory-modal').classList.add('hidden')" class="text-gray-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
             
-            <div class="summary-list" id="session-summary-list">
-                <!-- JS 会填充这里 -->
+            <div class="bg-gray-800 p-3 text-xs font-mono text-green-400 overflow-x-auto">
+                <span class="text-gray-500">-- Current Query Executed:</span><br>
+                SELECT * FROM <span class="text-yellow-300">ebbinghaus_records</span> WHERE user_profile = '<span class="text-blue-300" id="sql-user-id"></span>' ORDER BY next_review_time ASC;
             </div>
 
-            <div id="email-report-status" class="email-status">
-                📨 正在生成邮件报告...
+            <div class="overflow-y-auto flex-1 bg-white">
+                <table class="min-w-full db-table text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-50 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-3 border-b">题目信息</th>
+                            <th class="px-4 py-3 border-b text-center">状态</th>
+                            <th class="px-4 py-3 border-b text-center">掌握等级</th>
+                            <th class="px-4 py-3 border-b">下次复习时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-table-body" class="divide-y divide-gray-100">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
             </div>
-
-            <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">返回首页</button>
         </div>
-
     </div>
 
-    <script type="module">
-        // ----------------------------------------------------
-        // FIREBASE 配置区域
-        // 修正：将原有的 11.6.1 版本改为 10.8.0 稳定版，防止因版本号错误导致JS不运行
-        // ----------------------------------------------------
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <!-- 前端逻辑 -->
+    <script>
+        let userRecords = []; 
+        let currentProfile = 'user1';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizData = [];
+        let isAnswered = false;
 
-        // 邮件配置
-        const EMAIL_CONFIG = {
-            serviceID: "service_j2ak28v",
-            templateID: "template_ol3ws9o",
-            publicKey: "bGbqCw1wlTrkCwfFo"
-        };
-
-        // 初始化 EmailJS
-        (function() {
-            if(window.emailjs) {
-                emailjs.init(EMAIL_CONFIG.publicKey);
-            } else {
-                console.error("EmailJS SDK failed to load");
-            }
-        })();
-
-        const firebaseConfig = {
-          apiKey: "AIzaSyCb3qEBV8BYmkP3qjEAqlpGkM0kz-Lr7PE",
-          authDomain: "history-app-6e0f3.firebaseapp.com",
-          projectId: "history-app-6e0f3",
-          storageBucket: "history-app-6e0f3.firebasestorage.app",
-          messagingSenderId: "1065684045418",
-          appId: "1:1065684045418:web:3f99560b0e51decb0c0413",
-          measurementId: "G-PELR13Y7YS"
-        };
-
-        // 初始化 Firebase
-        let db = null;
-        let auth = null;
-        let userId = "guest";
-        let isCloudEnabled = false;
-
-        if (firebaseConfig.apiKey !== "YOUR_API_KEY") {
-            try {
-                const app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                
-                signInAnonymously(auth).then((userCredential) => {
-                    userId = userCredential.user.uid;
-                    isCloudEnabled = true;
-                    console.log("云端连接成功，用户ID:", userId);
-                    document.getElementById('cloud-indicator').innerText = "☁️ 云端已连接";
-                    document.getElementById('cloud-indicator').style.color = "#16a34a";
-                }).catch((error) => {
-                    console.error("登录失败:", error);
-                });
-            } catch (e) {
-                console.error("Firebase 初始化失败，请检查配置:", e);
-            }
-        }
-
-        // ----------------------------------------------------
-        // 核心逻辑
-        // ----------------------------------------------------
-
-        // 题目数据
-        const questions = [
-            {
-                id: 1,
-                year: "2015 高考历史",
-                title: "第13题：儒学的发展（汉代 vs 宋代）",
-                content: `<strong>（1）指出汉代儒学与孔孟儒学的不同之处，并概括宋代理学在哪些方面对儒学有所发展。</strong><br><br>
-                          <strong>（2）指出韩愈、康有为关于儒学认识的共通之处。</strong><br><br>
-                          <strong>（3）我们应当以什么样的态度对待孔子与儒学？</strong>`,
-                oldAnswer: `（1）孔孟是仁政，民本教化；汉儒是皇权神授。发展：重视儒家经典\n（2）借儒家影响为现实服务；重视孔孟经典\n（3）态度：取其精华，去其糟粕；要用理性的眼光看待前人`,
-                scoreInfo: "旧得分：失分严重",
-                diagnosis: `1. <strong>词汇匮乏：</strong> 宋代理学核心在于<span style="color:red">思辨化、哲学化</span>。<br>
-                            2. <strong>漏点：</strong> 汉代儒学吸收了法家、道家思想（大一统）。<br>
-                            3. <strong>概念缺失：</strong> 未提及“存天理，灭人欲”。`,
-                examinerNotes: [
-                    "汉代儒学：大一统、天人感应。",
-                    "宋代理学：思辨化、哲学化、伦理纲常。",
-                    "你的旧回答第2问抓得准，但第1问太笼统。"
-                ],
-                stdAnswer: `<strong>（1）不同：</strong> 孔孟讲“仁/礼/民本”；汉儒讲“大一统/天人感应/君权神授”（吸纳法道阴阳）。<br>
-                            <strong>发展：</strong> 吸收佛道思想；使儒学<strong>思辨化、哲学化</strong>；提出“存天理，灭人欲”。<br><br>
-                            <strong>（2）共通：</strong> 回归原典（否定后世流变）；托古改制；服务于现实政治。<br><br>
-                            <strong>（3）态度：</strong> 批判继承；结合时代创新。`,
-                takeaways: [
-                    "提到宋明理学，必须反射出关键词：<strong>思辨化、哲学化、存天理灭人欲</strong>。",
-                    "对比题注意：A有B无，B有A无。"
-                ]
-            },
-            {
-                id: 2,
-                year: "2015 高考历史",
-                title: "第14题：科学技术与生产力公式（论述题）",
-                content: `<strong>运用世界近现代史的史实，对公式（生产力=科学技术×（劳动力+劳动工具+劳动对象+生产管理））进行探讨。</strong>`,
-                oldAnswer: `（1）1第一次工业革命提高社会生产力，建设工业制度\n（2）2第二次工业革命出现垄断组织跨国公司，提高生产水平\n（3）3第三次科技革命，提高生产效率，社会进入信息时代`,
-                scoreInfo: "旧得分：逻辑脱节",
-                diagnosis: `1. <strong>逻辑断层：</strong> 未扣住公式里的具体项（劳动力、工具、管理）。<br>
-                            2. <strong>缺少结构：</strong> 缺少明确的观点句和总结句。`,
-                examinerNotes: [
-                    "论据选择正确（三次革命）。",
-                    "缺乏与公式要素（工具、管理）的对应分析。",
-                    "缺观点句。"
-                ],
-                stdAnswer: `<strong>观点：</strong> 科技是第一生产力，对各要素有放大效应。<br>
-                            <strong>论证：</strong><br>
-                            1. <strong>工具：</strong> 蒸汽机→电气化→自动化。<br>
-                            2. <strong>管理：</strong> 工厂制度→垄断组织→现代企业管理。<br>
-                            3. <strong>劳动力：</strong> 体力→脑力。<br>
-                            <strong>总结：</strong> 科技推动要素重组，促进发展。`,
-                takeaways: [
-                    "论述题公式：<strong>观点 + 分论点（紧扣题目关键词） + 史实支撑 + 总结</strong>。"
-                ]
-            },
-            {
-                id: 3,
-                year: "2015 高考历史",
-                title: "第15题：唐代币制改革",
-                content: `<strong>（1）指出唐代币制改革的主要内容。</strong><br>
-                          <strong>（2）说明唐代币制改革的意义。</strong>`,
-                oldAnswer: `（1）内容：推进十进位制的转变，不用钱币重量体现钱币价值\n（2）意义：开启新的货币体系，有利于经济的发展，方便日常货币的使用`,
-                scoreInfo: "旧得分：良好",
-                diagnosis: `1. <strong>术语不准：</strong> 应为“通宝/元宝体制”（不再以重量命名）。<br>
-                            2. <strong>深度不够：</strong> 应拔高到“确立了历代铸币范式”。`,
-                examinerNotes: [
-                    "抓住了十进位制，方向正确。",
-                    "补充“范式”和“商品经济发展”会更好。"
-                ],
-                stdAnswer: `<strong>（1）内容：</strong> 开创“通宝/元宝”体制；确立十进位制；统一币制。<br>
-                            <strong>（2）意义：</strong> 结束混乱，利于商品经济；确立后世范式；方便计算。`,
-                takeaways: [
-                    "经济史意义：对当时（经济发展）、对后世（制度范式）、对操作（便利）。"
-                ]
-            },
-            {
-                id: 4,
-                year: "2015 高考历史",
-                title: "第16题：抗战前后党派地位变化",
-                content: `<strong>（1）概括指出抗战胜利前后各党派地位发生的变化。</strong><br>
-                          <strong>（2）分析各党派地位变化的原因及影响。</strong>`,
-                oldAnswer: `（1）变化：抗日战争时期，各党派于国民党领导下，抗日胜利，多数党派在宪法下一律地位平等\n（2）原因：国共两党实力发生巨大变化，美国和苏联在背后的影响`,
-                scoreInfo: "旧得分：严重漏答",
-                diagnosis: `1. <strong>审题大忌：</strong> 题目问“原因及<strong style='color:red'>影响</strong>”，你完全漏掉了“影响”！<br>
-                            2. <strong>原因不全：</strong> 忽视了内因（抗战贡献、民心）。`,
-                examinerNotes: [
-                    "严重漏点，完全未回答“影响”。",
-                    "原因部分忽视了内部因素。"
-                ],
-                stdAnswer: `<strong>（1）变化：</strong> 国民党一党专政 → 各党派法律上平等。<br>
-                            <strong>（2）原因：</strong> 团结抗战力量壮大；中共增强；民心所向；国际制约。<br>
-                            <strong>影响：</strong> 促成政协会议；利于民主政治；为新中国奠基；打破专政。`,
-                takeaways: [
-                    "看到“原因及影响”，必须在草稿纸上圈出来，强制分段。"
-                ]
-            },
-            {
-                id: 5,
-                year: "2015 高考历史",
-                title: "第17题：戴高乐与法国复兴",
-                content: `<strong>（1）概括戴高乐号召抵抗的理由。</strong><br>
-                          <strong>（2）总结法国复兴的历史经验。</strong><br>
-                          <small style='color:#666'>材料提示：“没有输掉战争”、“庞大帝国”、“盟友”。</small>`,
-                oldAnswer: `（1）原因：统治者需要治理庞大的帝国，善于劝诫\n（2）意义：维护国家安定，为后代提供参考价值，有重要的文献价值`,
-                scoreInfo: "旧得分：0分 (跑题)",
-                diagnosis: `1. <strong>幻视：</strong> 答成了古代史或史书评价。<br>
-                            2. <strong>脱离材料：</strong> 必须依据材料里的“盟友”、“殖民地”作答。`,
-                examinerNotes: [
-                    "严重审题/知识点错误。",
-                    "必须依据材料：戴高乐演讲内容。"
-                ],
-                stdAnswer: `<strong>（1）理由：</strong> 胜败未定；有殖民地后盾；有盟友支持；正义必胜。<br>
-                            <strong>（2）经验：</strong> 坚持独立主权；依靠人民；国际合作；调整策略。`,
-                takeaways: [
-                    "不懂背景不要编，答案全在材料里。"
-                ]
-            },
-            {
-                id: 6,
-                year: "2016 高考历史",
-                title: "第13题：清中期人口与近代主张",
-                content: `<strong>（1）说明清中期人口膨胀的原因及影响。</strong><br>
-                          <strong>（2）概括近代学者主张并评价。</strong>`,
-                oldAnswer: `原因：政治稳定，高产作物。影响：土地紧张。\n主张：计生，改良农业。评价：借鉴，移民不可行。`,
-                scoreInfo: "旧得分：18/25",
-                diagnosis: `1. <strong>细节丢失：</strong> 漏掉“生态破坏”、“人均收入下降”。<br>
-                            2. <strong>评价空泛：</strong> “提供借鉴”是废话。要具体评析实业、移民的优劣。`,
-                examinerNotes: [
-                    "漏掉农作制改进、生态恶化。",
-                    "评价过于笼统。"
-                ],
-                stdAnswer: `<strong>（1）原因：</strong> 稳定；税改；复种；高产作物；耕地扩大。<br>
-                            <strong>影响：</strong> 人地矛盾；生态恶化；收入下降；游手好闲；民变。<br>
-                            <strong>（2）评价：</strong> 移民缓解但破环生态；实业治本但需资金；节育根本但受观念制约。`,
-                takeaways: [
-                    "概括题要像剥洋葱，每一句话都是得分点。"
-                ]
-            },
-            {
-                id: 7,
-                year: "2016 高考历史",
-                title: "第14题：卢梭思想与制度（小论文）",
-                content: `<strong>围绕“制度构想与实践”拟定论题并阐述。</strong><br>
-                          <small>卢梭反对代议制，认为英国人选出议员后就是奴隶。</small>`,
-                oldAnswer: `英国君主立宪，国王世袭无权...`,
-                scoreInfo: "旧得分：4/12",
-                diagnosis: `1. <strong>格式错误：</strong> 未写“论题：xxxx”。<br>
-                            2. <strong>缺乏思辨：</strong> 只写了英国制度，未结合卢梭观点的“理想vs现实”冲突。`,
-                examinerNotes: [
-                    "未拟定论题。",
-                    "未分析卢梭思想与代议制的矛盾。"
-                ],
-                stdAnswer: `<strong>论题：</strong> 卢梭人民主权理论的理想性与代议制实践的现实性。<br>
-                            <strong>阐述：</strong> 卢梭主张直接民主（理想性）在大国难实现；代议制（现实性）虽有缺陷但通过分权制衡防止暴政。<br>
-                            <strong>结论：</strong> 代议制是现代政治的现实选择。`,
-                takeaways: [
-                    "小论文必写标题。",
-                    "体现'理想 vs 现实'的张力。"
-                ]
-            },
-            {
-                id: 8,
-                year: "2018 高考历史",
-                title: "第13题(1)：宋代到明清乡约制度的变化",
-                content: `<strong>根据材料一并结合所学知识，概括宋代到明清时期乡约制度的变化，并说明乡约制度的积极作用。</strong>`,
-                oldAnswer: `制定规约进行道德教化；功能是扬善惩恶。明清：宣讲"圣谕"成为乡约最重要的内容，加强对人民的思想控制，有利于促进农业经济发展。`,
-                scoreInfo: "旧得分：约5~7分（满分12分左右）",
-                diagnosis: `1. <strong>变化部分</strong>答得不完整，只提到了内容变化，未点明推行主体的变化（从民间自发→官府主导推行），也未指出功能变化（道德教化→政治教化/思想控制）。<br>
-                            2. "积极作用"部分混入了"加强思想控制"这一中性乃至负面表述，题目问的是<strong>积极作用</strong>，需注意角度。<br>
-                            3. 促进农业经济发展这一点论据不足，材料中仅提到"重农桑"，不能直接得出此结论。`,
-                examinerNotes: [
-                    "变化：推行主体变化（民间士绅→官府主导）；内容变化（道德教化→宣讲圣谕）；功能变化（乡村自我管理→国家统治工具）。",
-                    "积极作用：维护基层社会秩序；道德教化；弥补国家行政不足。",
-                    "注意题目要求的是'积极作用'，不要写负面内容。"
-                ],
-                stdAnswer: `<strong>变化：</strong><br>
-                            ① 推行主体变化：由民间士绅自发组织→地方官府主导推行；<br>
-                            ② 内容变化：以道德教化、扬善惩恶为主→以宣讲皇帝"圣谕"为核心，政治功能强化；<br>
-                            ③ 功能变化：偏重乡村自我道德管理→成为国家基层统治和思想控制的工具。<br><br>
-                            <strong>积极作用：</strong><br>
-                            ① 有利于维护基层社会秩序，化解民间矛盾；<br>
-                            ② 有利于道德教化，凝聚乡村共同体；<br>
-                            ③ 弥补了国家正式行政体系在基层的不足，有助于国家治理。`,
-                takeaways: [
-                    "变化题要从<strong>主体、内容、功能</strong>多角度分析。",
-                    "问'积极作用'就只写积极面，不要混入负面评价。"
-                ]
-            },
-            {
-                id: 9,
-                year: "2018 高考历史",
-                title: "第13题(2)：清末城镇乡地方自治的历史背景",
-                content: `<strong>根据材料二并结合所学知识，简述清末城镇乡地方自治的历史背景。</strong>`,
-                oldAnswer: `清末民族危机严重，清政府实行清末新政，受西方民主影响。`,
-                scoreInfo: "旧得分：约4~5分（满分5分左右）",
-                diagnosis: `答案方向正确，但过于简略，仅三点且每点均缺乏展开。高考评分要求每点需有一定说明性表述。`,
-                examinerNotes: [
-                    "方向正确，但需要展开说明。",
-                    "应补充：地方自治被视为强国之基；知识分子积极倡导；士绅阶层推动实践。"
-                ],
-                stdAnswer: `① 民族危机加深，救亡图存成为时代主题，地方自治被视为强国之基；<br>
-                            ② 清政府推行"清末新政"（预备立宪），地方自治是其重要内容；<br>
-                            ③ 西方民主政治思想（如卢梭社会契约论、地方自治理念）传入中国，知识分子积极倡导；<br>
-                            ④ 戊戌变法失败后，改良思潮仍有影响，士绅阶层推动地方自治实践。`,
-                takeaways: [
-                    "背景题要从<strong>政治、思想、社会</strong>多角度展开。",
-                    "每个要点都要有说明性语言，不能只列关键词。"
-                ]
-            },
-            {
-                id: 10,
-                year: "2018 高考历史",
-                title: "第13题(3)：村民自治的意义",
-                content: `<strong>根据材料三并结合所学知识，说明村民自治的意义。</strong>`,
-                oldAnswer: `维护社会稳定，促进经济发展，调动农民政治积极性。`,
-                scoreInfo: "旧得分：约3~4分（满分8分左右）",
-                diagnosis: `三个角度方向基本正确，但均未展开说明，且遗漏了重要角度，如法治建设、民主制度建设等层面。`,
-                examinerNotes: [
-                    "方向正确但未展开。",
-                    "遗漏了民主政治建设、法治建设等重要角度。"
-                ],
-                stdAnswer: `① 扩大了基层民主，保障了农民的民主权利，调动了农民参政积极性；<br>
-                            ② 有利于加强农村基层政权建设，维护农村社会稳定；<br>
-                            ③ 推动了中国社会主义民主政治建设进程；<br>
-                            ④ 促进了农村经济发展和社会和谐；<br>
-                            ⑤ 为基层治理现代化提供了制度保障，丰富了"一国两制"以外的民主实践形式。`,
-                takeaways: [
-                    "意义题要从<strong>对个人、对基层、对国家、对制度</strong>多层次分析。",
-                    "不要只列要点，每点都要有具体说明。"
-                ]
-            },
-            {
-                id: 11,
-                year: "2018 高考历史",
-                title: "第14题：近代早期历史现象（黑奴贸易）",
-                content: `<strong>提取一个情节，指出其反映的近代早期重大历史现象，并概述和评价该历史现象。</strong><br>
-                          <small style='color:#666'>提示：鲁滨逊漂流记中的相关情节</small>`,
-                oldAnswer: `近代殖民始于新航路开辟，在亚非拉强占殖民地，掠夺财富，为资本主义提供资本积累，客观上带动世界市场的发展。`,
-                scoreInfo: "旧得分：约5~6分（满分12分）",
-                diagnosis: `1. <strong>没有明确点出"所提取的情节"</strong>，如"鲁滨逊去非洲贩卖黑奴"，这是格式硬伤，答题结构不完整。<br>
-                            2. 将殖民扩张与黑奴贸易混为一谈，"黑奴贸易"（三角贸易）是更具体、更精准的历史现象，而你笼统说"殖民扩张"，针对性不强。<br>
-                            3. 评价部分有积极面（资本积累、世界市场），但<strong>缺少对殖民行为残酷性的批判</strong>，评价不全面。`,
-                examinerNotes: [
-                    "必须先点出具体情节。",
-                    "要区分'殖民扩张'和'黑奴贸易'。",
-                    "评价要一分为二：既要写积极意义，也要批判其罪恶性质。"
-                ],
-                stdAnswer: `<strong>情节：</strong> 鲁滨逊前往非洲贩卖黑奴。<br><br>
-                            <strong>历史现象：</strong> 近代早期的奴隶贸易（三角贸易）。<br><br>
-                            <strong>概述：</strong> 15~19世纪，欧洲殖民者在非洲大肆掳掠黑人，运往美洲充当奴隶，形成欧洲—非洲—美洲之间的"三角贸易"，数百年间共有上千万非洲人被贩卖为奴。<br><br>
-                            <strong>评价：</strong> 奴隶贸易是西方殖民扩张的重要组成部分，为欧洲资本主义原始积累提供了大量资金；促进了世界市场的发展和欧美经济繁荣。但其本质是野蛮的人口掠夺，给非洲带来了人口减少、社会动荡的深重灾难，是人类历史上的巨大罪恶。`,
-                takeaways: [
-                    "答题结构：<strong>情节→现象→概述→评价</strong>，缺一不可。",
-                    "评价殖民、战争类题目必须一分为二，既写影响也批判罪恶。"
-                ]
-            },
-            {
-                id: 12,
-                year: "2018 高考历史",
-                title: "第15题(1)：年号纪年制与之前的区别",
-                content: `<strong>指出年号纪年制与之前纪年制度的区别。</strong>`,
-                oldAnswer: `皇帝诸侯各自纪年，年号制以年号纪年。`,
-                scoreInfo: "旧得分：约2~3分（满分4分）",
-                diagnosis: `抓住了核心区别，但表述不够完整，未提到年号统一全国通用这一关键点。`,
-                examinerNotes: [
-                    "核心区别：之前各自纪年；年号制统一、以帝王年号纪年、全国通用。"
-                ],
-                stdAnswer: `<strong>区别：</strong><br>
-                            ① 之前：诸侯王各自纪年，缺乏统一标准；<br>
-                            ② 年号制：以皇帝年号纪年，全国统一使用，体现中央集权。`,
-                takeaways: [
-                    "对比题要明确<strong>A的特点→B的特点</strong>，突出差异。"
-                ]
-            },
-            {
-                id: 13,
-                year: "2018 高考历史",
-                title: "第15题(2)：年号制的影响",
-                content: `<strong>说明年号制的影响。</strong>`,
-                oldAnswer: `有利于君主集权和维护国家统一，长期使用，影响深远，为世界文明做贡献。`,
-                scoreInfo: "旧得分：约4~5分（满分6分）",
-                diagnosis: `方向正确，但"为世界文明做贡献"过于空泛。应点明对朝鲜、日本、越南等国的具体影响。`,
-                examinerNotes: [
-                    "影响：强化皇权；维护统一；规范时间秩序；影响周边国家（朝鲜、日本、越南）。"
-                ],
-                stdAnswer: `① 有利于强化君主专制和中央集权；<br>
-                            ② 维护国家统一，增强政治认同；<br>
-                            ③ 规范时间秩序，便于历史记载；<br>
-                            ④ 影响周边国家（如朝鲜、日本、越南等）采用类似制度，体现中华文化圈的影响力。`,
-                takeaways: [
-                    "影响题要具体化，避免空泛表述如'做出贡献'。"
-                ]
-            },
-            {
-                id: 14,
-                year: "2018 高考历史",
-                title: "第16题(1)：一战与二战性质的不同认识",
-                content: `<strong>指出1939年和1945年人们对一战与二战性质的两种不同认识。</strong>`,
-                oldAnswer: `帝国主义战争；反法西斯的解放战争。`,
-                scoreInfo: "旧得分：约3分（满分4分）",
-                diagnosis: `准确，简洁到位。`,
-                examinerNotes: [
-                    "1939年认识：都是帝国主义战争。",
-                    "1945年认识：二战是反法西斯的正义战争。"
-                ],
-                stdAnswer: `<strong>1939年认识：</strong> 一战和二战都是帝国主义战争；<br>
-                            <strong>1945年认识：</strong> 二战是反法西斯的正义战争、人民解放战争。`,
-                takeaways: [
-                    "对比题要明确时间节点，分别说明。"
-                ]
-            },
-            {
-                id: 15,
-                year: "2018 高考历史",
-                title: "第16题(2)：两种认识的历史背景",
-                content: `<strong>分析两种认识产生的历史背景。</strong>`,
-                oldAnswer: `英国采取绥靖政策，苏德签订互不侵犯条约；太平洋战争爆发，世界反法西斯同盟形成。`,
-                scoreInfo: "旧得分：约5~6分（满分8分）",
-                diagnosis: `两个背景各抓住了关键事件，基本正确，但对第一种认识（1939年）的背景可以补充"二战初期法西斯与西方列强性质相近，战争本质是帝国主义矛盾激化"。`,
-                examinerNotes: [
-                    "1939年背景：英法绥靖；苏德条约；二战初期各国性质相近。",
-                    "1945年背景：反法西斯同盟形成；战争性质明确为正义对邪恶。"
-                ],
-                stdAnswer: `<strong>1939年背景：</strong><br>
-                            ① 英法对德意采取绥靖政策，姑息法西斯；<br>
-                            ② 苏德签订互不侵犯条约，苏联中立；<br>
-                            ③ 二战初期，法西斯与西方列强性质相近，都是帝国主义国家，战争本质是帝国主义矛盾激化。<br><br>
-                            <strong>1945年背景：</strong><br>
-                            ① 太平洋战争爆发，美国参战；<br>
-                            ② 世界反法西斯同盟形成，团结抗击法西斯；<br>
-                            ③ 战争性质明确为反法西斯侵略的正义战争，得到世界人民支持。`,
-                takeaways: [
-                    "背景题要结合当时的<strong>外交政策、国际格局、战争性质</strong>分析。"
-                ]
-            },
-            {
-                id: 16,
-                year: "2018 高考历史",
-                title: "第17题(1)：美国两种对拉美政策的不同特征",
-                content: `<strong>指出20世纪30年代前后美国两种对拉美政策的不同特征。</strong>`,
-                oldAnswer: `中立政策、睦邻政策，积极参与拉美事务。`,
-                scoreInfo: "旧得分：约1~2分（满分4分）",
-                diagnosis: `<strong>严重失分</strong>，完全没有说明两者的<strong>不同特征</strong>。中立政策是孤立主义、不介入；睦邻政策是以经济政治手段代替武力干涉，二者差异明显，你的答案几乎等于没答。`,
-                examinerNotes: [
-                    "必须对比两种政策的不同特征。",
-                    "30年代前：武力干涉、强权政策；30年代后：睦邻友好、经济合作。"
-                ],
-                stdAnswer: `<strong>30年代前：</strong> 武力干涉、强权政策（"大棒政策"、"金元外交"）；<br>
-                            <strong>30年代后：</strong> 睦邻友好政策，以经济援助和政治合作代替武力干涉，平等对话。`,
-                takeaways: [
-                    "对比题必须明确<strong>A的特征 vs B的特征</strong>，不能混为一谈。"
-                ]
-            },
-            {
-                id: 17,
-                year: "2018 高考历史",
-                title: "第17题(2)：睦邻政策的作用与实质",
-                content: `<strong>说明睦邻政策的作用与实质。</strong>`,
-                oldAnswer: `抵制法西斯势力，扩大美国对外贸易，实质是维护美国利益。`,
-                scoreInfo: "旧得分：约4~5分（满分6分）",
-                diagnosis: `作用和实质方向正确，但作用的表述太简单，少了"推动美洲团结合作""提升美国在拉美影响力"等。`,
-                examinerNotes: [
-                    "作用：抵制法西斯；推动美洲团结；扩大贸易；提升美国影响力。",
-                    "实质：维护美国在拉美的霸权地位和经济利益。"
-                ],
-                stdAnswer: `<strong>作用：</strong><br>
-                            ① 抵制法西斯势力在拉美的渗透；<br>
-                            ② 推动泛美团结合作，巩固美洲防务；<br>
-                            ③ 扩大美国在拉美的经济贸易；<br>
-                            ④ 提升美国在拉美的政治影响力。<br><br>
-                            <strong>实质：</strong> 维护和扩大美国在拉美的霸权地位和经济利益，以更隐蔽的方式控制拉美。`,
-                takeaways: [
-                    "实质题要透过现象看本质：<strong>表面做法→深层目的</strong>。"
-                ]
-            },
-            {
-                id: 18,
-                year: "2019 高考历史",
-                title: "第13题(1)：四国钢产量趋势及原因",
-                content: `<strong>根据材料并结合所学知识，分别说明四个国家钢产量的总体发展趋势及基本原因。</strong><br>
-                          <small style='color:#666'>提示：美国、苏联、日本、中国（1950-1980）</small>`,
-                oldAnswer: `美国产量长期稳步增长，70年代中后期下降趋势。日本50年代中期到60年代末产量增长快，70年代缓慢。苏联稳步增长，70年代中后放缓。中国快速增长。因美国采取经济政策，日本采取引进技术促进经济高速发展，中国重视发展重工业，苏联优先发展重工业，后来摆脱苏联模式。`,
-                scoreInfo: "旧得分：6~8分/15分",
-                diagnosis: `1. <strong>原因过于笼统：</strong> "采取经济政策"几乎没有实质内容，应具体说明战后资本主义黄金期、国家垄断资本主义等。<br>
-                            2. <strong>缺乏条理：</strong> 四国混写在一起，应分国逐一作答，方便阅卷。<br>
-                            3. <strong>"摆脱苏联模式"表述错误：</strong> 1950-1980年中国尚未完成改革，该表述不适用。<br>
-                            4. <strong>遗漏关键因素：</strong> 日本的"朝鲜战争特需景气"、美国70年代"滞胀"、苏联"体制僵化"等。`,
-                examinerNotes: [
-                    "四国趋势基本准确，但原因说明太笼统。",
-                    "美国70年代下滑：石油危机、滞胀、产业结构调整。",
-                    "日本：朝鲜战争、政府主导、引进技术、劳动力充裕。",
-                    "苏联：计划体制集中资源，后期僵化。",
-                    "中国：一五计划、社会主义工业化（有波动）。"
-                ],
-                stdAnswer: `<strong>美国：</strong><br>
-                            趋势——总体保持较高水平，1950至1960年代稳步增长，1970年代后出现下降。<br>
-                            原因——战后美国经济持续繁荣，国家垄断资本主义发展，工业需求旺盛；1970年代受石油危机冲击，经济陷入"滞胀"，产业结构向第三产业和高科技转型，重工业比重下降。<br><br>
-                            <strong>苏联：</strong><br>
-                            趋势——持续稳步增长，1970年代后增速趋缓。<br>
-                            原因——苏联长期优先发展重工业，计划经济体制集中资源投入，推动产量持续上升；后期高度集中的计划体制弊端显现，体制僵化制约进一步发展。<br><br>
-                            <strong>日本：</strong><br>
-                            趋势——1950年代至1970年代初高速增长，1970年代后增速明显放缓。<br>
-                            原因——战后日本推行政府主导的经济政策，大力引进先进技术，朝鲜战争带来"特需"刺激，经济高速增长推动钢铁需求；1970年代受石油危机冲击，加之劳动力成本上升，增速放缓。<br><br>
-                            <strong>中国：</strong><br>
-                            趋势——整体呈快速增长态势，但增速不均衡（有波动）。<br>
-                            原因——新中国成立后实施"一五计划"，优先发展重工业；社会主义工业化建设持续推进，国家大力投入钢铁生产，推动产量持续攀升。`,
-                takeaways: [
-                    "多国对比题<strong>必须分国逐一作答</strong>，每国独立成段。",
-                    "原因要具体化：美国（国家垄断资本主义、滞胀）、日本（朝战特需）、苏联（计划体制僵化）。",
-                    "注意时代特征：1970年代是美日共同转折点（石油危机）。"
-                ]
-            },
-            {
-                id: 19,
-                year: "2019 高考历史",
-                title: "第13题(2)：改革开放后中国钢铁业发展原因",
-                content: `<strong>根据材料并结合所学知识，简析改革开放以来中国钢铁业发展的主要原因。</strong><br>
-                          <small style='color:#666'>材料提示：固定资产投资增长39.30%，科技活动经费增长33.82%</small>`,
-                oldAnswer: `中国坚持对外开放，引进外资，建立现代企业制度，经济发展迅速。`,
-                scoreInfo: "旧得分：3~4分/10分",
-                diagnosis: `1. <strong>答案极为简短：</strong> 10分题至少要覆盖5个要点，每点需简要展开。<br>
-                            2. <strong>未结合材料：</strong> 材料中的"固定资产投资增长39.30%""科技经费增长33.82%"都是重要提示，完全未利用。<br>
-                            3. <strong>缺少核心驱动力：</strong> 国内市场需求扩大（城镇化、基建需求）是最重要的原因之一。<br>
-                            4. <strong>政策层面不足：</strong> 社会主义市场经济体制改革、国企改革等。`,
-                examinerNotes: [
-                    "方向正确（对外开放、现代企业制度），但得分点太少。",
-                    "必须结合材料数字作答。",
-                    "遗漏：国内需求旺盛、资金投入、科技创新、体制改革深化。"
-                ],
-                stdAnswer: `① <strong>改革开放政策推动：</strong> 实行对外开放，积极引进外资、先进技术和管理经验，促进钢铁业技术升级。<br>
-                            ② <strong>体制改革深化：</strong> 推进国有企业改革，建立现代企业制度，增强企业活力与竞争力。<br>
-                            ③ <strong>资金持续投入：</strong> 固定资产投资大幅增长（材料显示2002年增长39.30%），为扩大产能提供物质基础。<br>
-                            ④ <strong>科技创新驱动：</strong> 重点企业科技经费持续增加（2002年增长33.82%），推动品种结构优化和高附加值产品开发。<br>
-                            ⑤ <strong>国内需求旺盛：</strong> 改革开放后经济高速增长，城镇化加快、基础设施大规模建设，对钢铁需求持续扩大。<br>
-                            ⑥ <strong>社会主义市场经济体制逐步建立：</strong> 资源配置效率提升，市场竞争机制促进行业发展。`,
-                takeaways: [
-                    "10分大题至少5个要点，<strong>必须结合材料数字</strong>。",
-                    "原因类题目：政策+体制+资金+科技+需求，多角度思考。"
-                ]
-            },
-            {
-                id: 20,
-                year: "2019 高考历史",
-                title: "第14题：评析钱穆《国史大纲》观点",
-                content: `<strong>评析材料中的观点（任意一点或整体），得出结论。</strong><br>
-                          <small style='color:#666'>材料：钱穆《国史大纲》序言（1940年）——对本国历史应有温情与敬意，避免历史虚无主义</small><br>
-                          <strong style='color:red;'>注意：结论不能重复材料中观点</strong>`,
-                oldAnswer: `抗日战争时期，受帝国主义影响，面对日军屠杀，一些知识分子对国家前途失望，散布亡国论和西方至上思想，否定中华文化，造成恶劣风气。甚至钱穆先生编写了《国史大纲》，树立起对中国文化的认同感，对抗战胜利发挥了积极作用。无论是在战时还是和平时期，我们都爱护国家和尊重历史。`,
-                scoreInfo: "旧得分：4~5分/12分",
-                diagnosis: `1. <strong>"甚至钱穆先生"用词错误：</strong> 钱穆是在反对虚无主义，不应用"甚至"引出。<br>
-                            2. <strong>结论重复材料观点：</strong> "爱护国家和尊重历史"基本是材料观点的直接复述，不符合题目要求。<br>
-                            3. <strong>缺乏辩证评析：</strong> 钱穆观点有积极意义，但也有局限性（过度强调"温情"可能压抑批判性反思），应一分为二。<br>
-                            4. <strong>论证不充分：</strong> 史实举例太少，缺乏具体历史事件支撑。<br>
-                            5. <strong>结构不清晰：</strong> 没有"提出观点—史实论证—得出结论"三段式。`,
-                examinerNotes: [
-                    "能联系时代背景（抗战），方向正确。",
-                    "结论严重失分：直接复述材料观点。",
-                    "缺少辩证评析：只写积极意义，未写局限性。",
-                    "必须用三段式结构作答。"
-                ],
-                stdAnswer: `<strong>观点提炼：</strong> 钱穆认为，国民应对本国历史有所了解，并怀有温情与敬意，避免历史虚无主义，这是国家发展的重要前提。<br><br>
-                            <strong>评析：</strong><br>
-                            此观点有其合理之处。1940年正值抗日战争艰难时期，部分知识分子受西方文化冲击，产生民族文化虚无主义倾向，否定传统文化的价值，不利于凝聚民心、坚定抗战信念。钱穆撰写《国史大纲》，意在唤起国人对中华文明的认同与自信，具有增强民族凝聚力、激励抗战斗志的积极意义。事实上，文化自信是民族复兴的重要精神支柱，尊重历史有助于汲取前人经验，推动国家发展，这一点在今天仍有现实意义。<br><br>
-                            然而，此观点也存在一定局限性。过分强调对历史的"温情与敬意"，可能压抑对历史的批判性反思，不利于客观认识历史的曲折与教训。历史研究既需要情感认同，也需要实事求是的科学态度，二者不可偏废。<br><br>
-                            <strong>结论：</strong> 对待本国历史，既要有文化认同与民族自信，又要保持理性批判的科学精神，方能真正从历史中汲取智慧，推动国家与民族的进步。`,
-                takeaways: [
-                    "评析题<strong>必须辩证</strong>：积极意义 + 局限性。",
-                    "结论必须<strong>升华提炼</strong>，不能重复材料观点。",
-                    "三段式结构：观点提炼 → 评析（积极+局限） → 结论。"
-                ]
-            },
-            {
-                id: 21,
-                year: "2019 高考历史",
-                title: "第15题(1)：秦二十等爵与曹魏五等爵反映的思想",
-                content: `<strong>分别说明秦"二十等爵"制和曹魏末年"五等爵"制所反映的思想流派。</strong>`,
-                oldAnswer: `20等爵反映法家依法治国的思想。5等爵反映了儒家治国的思想理念。`,
-                scoreInfo: "旧得分：3分/5分",
-                diagnosis: `结论正确，但<strong>过于简单，未作任何说明与论证</strong>。题目说"说明"，需要简要解释为何这样判断。例如二十等爵依据军功授爵，体现法家以"法"、"赏罚"激励臣民的思想；五等爵仿照《周礼》分封，体现儒家恢复礼制、等级秩序的理念。`,
-                examinerNotes: [
-                    "结论正确，但缺乏说明。",
-                    "二十等爵：军功定爵，信赏必罚，法家思想。",
-                    "五等爵：仿《周礼》，恢复礼制，儒家思想。"
-                ],
-                stdAnswer: `<strong>二十等爵：</strong> 反映法家思想。商鞅变法以军功定爵位，打破血缘贵族垄断，以严格的赏罚制度激励臣民，体现了法家"信赏必罚"、重耕战、以法治国的核心理念。<br><br>
-                            <strong>五等爵：</strong> 反映儒家思想。司马昭仿照《周礼》设公、侯、伯、子、男五等，恢复先秦宗法分封体系，强调礼制与等级秩序，体现了儒家"尊礼"、"复古"的政治理念。`,
-                takeaways: [
-                    "题目要求'说明'，<strong>必须解释判断依据</strong>，不能只写结论。",
-                    "法家关键词：军功、赏罚、法治；儒家关键词：周礼、礼制、等级。"
-                ]
-            },
-            {
-                id: 22,
-                year: "2019 高考历史",
-                title: "第15题(2)：两种爵位制的授予对象与作用",
-                content: `<strong>分别概括秦"二十等爵"和曹魏末年"五等爵"的授予对象，并简析两种爵位制的各自作用。</strong>`,
-                oldAnswer: `20等爵授予军人，5等爵授予官员。20等爵激发军人积极性，促进秦统一。五等爵弱化曹家影响力，扩大司马氏力量，为晋统一奠定基础。`,
-                scoreInfo: "旧得分：6~7分/10分",
-                diagnosis: `1. <strong>"20等爵授予军人"略显单一：</strong> 更准确的说法是"依据军功授予将士（包括士兵和军官）"。<br>
-                            2. <strong>二十等爵的作用单薄：</strong> 除"激发积极性"外，还应提到打破贵族世袭特权、加强中央集权、推动社会阶层流动等深远意义。<br>
-                            3. <strong>五等爵的作用分析较好：</strong> 但可补充稳定政治局面、为司马氏建立晋朝制造舆论合法性等。`,
-                examinerNotes: [
-                    "授予对象判断准确，作用分析方向正确。",
-                    "二十等爵作用：打破世袭、加强集权、阶层流动、推动统一。",
-                    "五等爵作用：笼络臣僚、分化曹魏、篡权合法性、奠基西晋。"
-                ],
-                stdAnswer: `<strong>授予对象：</strong><br>
-                            二十等爵——依据军功授予将士，不论出身贵贱，凭战功获爵。<br>
-                            五等爵——授予支持司马氏的文武官员（"骑督以上六百余人"），依政治立场而非军功。<br><br>
-                            <strong>各自作用：</strong><br>
-                            二十等爵的作用：打破先秦以来血缘贵族对爵位的世袭垄断，激励将士奋勇作战；推动社会阶层流动，增强秦国军事实力；强化国君权威，削弱旧贵族势力，有力推动了秦国统一六国。<br><br>
-                            五等爵的作用：通过爵位利益笼络臣僚，将支持司马氏的官员与曹魏忠臣明确区分，分化瓦解曹魏政权的政治基础；赋予司马氏篡权以"复古礼制"的合法性外衣，为西晋建立奠定政治和舆论基础。`,
-                takeaways: [
-                    "作用题要<strong>多角度分析</strong>：政治（集权）、社会（阶层流动）、军事（激励作战）。",
-                    "注意深远意义：二十等爵（推动统一）、五等爵（篡权合法性）。"
-                ]
-            },
-            {
-                id: 23,
-                year: "2020 高考历史",
-                title: "第13题(1)：中国与两德关系变化及原因",
-                content: `<strong>根据材料一并结合所学知识，概述20世纪50～70年代中国与民主德国、联邦德国关系的变化及其原因。</strong>`,
-                oldAnswer: `变化：中国与民主德国从交往频繁到冷淡，与联邦德国从对立到关系正常化。原因：美苏两极对立，中国与民主德国同为社会主义，联邦德国与美国为资本主义，中苏关系恶化后与民主德国冷淡。中美关系日益升温，帮德国较好`,
-                scoreInfo: "旧得分：5～6分/10分",
-                diagnosis: `1. <strong>原因逻辑混乱：</strong>没有分层次阐述（50年代/60年代/70年代各阶段原因应分别说明）<br>
-                            2. <strong>遗漏重要史实：</strong><span style="color:red">70年代初中美关系改善（尼克松访华）</span>是推动中西德建交的关键，表述过于简略<br>
-                            3. <strong>草稿语言入卷：</strong>"帮德国较好"等口语化表述不能出现在正式答卷中<br>
-                            4. <strong>未提及：</strong>联邦德国"新东方政策"的主动调整这一重要因素<br>
-                            5. <strong>未提及：</strong>中国外交政策调整（打破外交僵局的需要）`,
-                examinerNotes: [
-                    "变化部分答得较准确，两组关系的转变方向抓住了。",
-                    "原因应分阶段作答：50年代两大阵营对立；60年代中苏破裂，与民主德国冷淡；70年代中美关系缓和，联邦德国推行新东方政策。",
-                    "遗漏联邦德国\"新东方政策\"和中国外交政策调整两个关键因素。"
-                ],
-                stdAnswer: `<strong>变化：</strong><br>
-                            ① 与民主德国：50年代两国关系密切，交往频繁；60年代起随中苏关系破裂而逐渐冷淡。<br>
-                            ② 与联邦德国：50～60年代对立；70年代两国关系正常化，实现建交。<br><br>
-                            <strong>原因：</strong><br>
-                            ① 50年代：两大阵营对立，中苏同盟，民主德国属社会主义阵营，故关系密切；联邦德国属西方资本主义阵营，故对立。<br>
-                            ② 60年代：中苏关系破裂，中苏同盟瓦解，与民主德国关系随之降至冰点。<br>
-                            ③ 70年代：中美关系缓和，中国外交打开新局面；联邦德国推行"新东方政策"，主动改善对华关系，两国实现建交。`,
-                takeaways: [
-                    "原因类题目要<strong>分层次、按时间段</strong>作答，不能混为一谈。",
-                    "注意联邦德国<strong>\"新东方政策\"</strong>是70年代建交的关键主动因素。",
-                    "草稿语言（\"帮德国较好\"）不能入卷，务必规范表述。"
-                ]
-            },
-            {
-                id: 24,
-                year: "2020 高考历史",
-                title: "第13题(2)：中德建立战略伙伴关系的历史条件",
-                content: `<strong>根据材料二并结合所学知识，简述中德建立战略伙伴关系的历史条件。</strong>`,
-                oldAnswer: `1. 中国改革开放，实行对外开放，引进先进技术，经济不断发展，国际影响力提高。\n2. 德国统一，经济发达，对中国市场有需求，推动世界多极化`,
-                scoreInfo: "旧得分：4～5分/9分",
-                diagnosis: `1. <strong>未提及：</strong>冷战结束、两极格局瓦解这一重要国际背景<br>
-                            2. <strong>未提及：</strong>多极化趋势加强，中德均有抗衡单极霸权的共同利益<br>
-                            3. <strong>未提及：</strong>中国加入WTO，融入全球经济体系<br>
-                            4. <strong>方向有误：</strong>"引进先进技术"表述方向有误，应强调中国<span style="color:red">市场规模巨大</span>，对德国资本和技术具有吸引力<br>
-                            5. <strong>角度单一：</strong>缺少从双边共同利益角度分析`,
-                examinerNotes: [
-                    "提到了中国改革开放和德国统一，方向正确。",
-                    "遗漏重要背景：冷战结束、两极格局瓦解、多极化趋势。",
-                    "强调中国市场规模，而非'引进技术'（方向应从德国视角看中国吸引力）。",
-                    "补充中国加入WTO和双边共同战略诉求。"
-                ],
-                stdAnswer: `① <strong>国际背景：</strong>冷战结束，两极格局瓦解，多极化趋势增强，中德均谋求扩大国际影响力。<br>
-                            ② <strong>中国方面：</strong>改革开放深入推进，经济持续高速增长，市场潜力巨大，综合国力和国际地位提升；加入WTO，融入全球经济体系。<br>
-                            ③ <strong>德国方面：</strong>两德统一，经济实力雄厚，积极拓展海外市场，推行外交"正常化"。<br>
-                            ④ <strong>共同利益：</strong>双方均主张推动世界多极化，反对单极霸权，有共同的战略诉求。`,
-                takeaways: [
-                    "历史条件类题目要从<strong>国际背景、双方各自条件、共同利益</strong>多角度分析。",
-                    "注意中国市场对德国的吸引力，而非'中国引进技术'的单向叙述。"
-                ]
-            },
-            {
-                id: 25,
-                year: "2020 高考历史",
-                title: "第13题(3)：中德关系发展的历史启示",
-                content: `<strong>根据材料并结合所学知识，简析20世纪70年代以来中德关系发展的历史启示。</strong>`,
-                oldAnswer: `1. 坚持独立自主和平共处原则的外交理念。\n2. 奉行多边贸易体系，反对霸权主义、强权政治，推动世界多极化`,
-                scoreInfo: "旧得分：3～4分/6分",
-                diagnosis: `1. <strong>启示未贴材料：</strong>应更紧密结合中德关系的具体经验，而非泛泛而谈<br>
-                            2. <strong>遗漏要点：</strong>国家利益是外交关系的核心驱动力（中德关系发展本质上是两国共同利益推动的结果）<br>
-                            3. <strong>遗漏要点：</strong>经济合作是推动国家关系发展的重要纽带<br>
-                            4. <strong>表述生硬：</strong>"奉行多边贸易体系"与材料联系不紧密`,
-                examinerNotes: [
-                    "两点均有一定道理，表述较为规范。",
-                    "启示应从材料中提炼：国家利益驱动外交、经济合作是纽带。",
-                    "可补充：顺应时代潮流灵活调整外交策略。"
-                ],
-                stdAnswer: `① 国家利益是外交关系的核心驱动力，共同利益是推动国家关系发展的根本动力。<br>
-                            ② 经济合作是推动国家关系深化发展的重要纽带。<br>
-                            ③ 应坚持独立自主的外交原则，根据国际形势变化灵活调整外交策略。<br>
-                            ④ 推动世界多极化，反对霸权主义，符合时代发展潮流。`,
-                takeaways: [
-                    "启示题要<strong>紧密结合材料具体经验</strong>提炼，不能脱离材料泛泛而谈。",
-                    "国家利益是外交关系的核心，经济合作是关系发展的重要纽带。"
-                ]
-            },
-            {
-                id: 26,
-                year: "2020 高考历史",
-                title: "第14题：自拟书名论证明清历史特征（论述题）",
-                content: `<strong>就中国古代某一历史时期，自拟一个能够反映其时代特征的书名，并运用具体史实予以论证。</strong>`,
-                oldAnswer: `书名：《中国的衰败历程》——明清时期封建社会由盛转衰。论证：政治上君主专制强化；经济上出现资本主义萌芽；文化上八股文禁锢思想；外交上闭关锁国；科技上缺乏创新，只是总结整理前人文献。`,
-                scoreInfo: "旧得分：5～6分/12分",
-                diagnosis: `1. <strong>书名不够规范：</strong>"衰败历程"过于消极笼统，缺乏学术感<br>
-                            2. <strong>史实空洞：</strong>缺乏具体史实支撑。"君主专制强化"应举<span style="color:red">废丞相、设军机处</span>等具体制度；"闭关锁国"应提及广州十三行、禁海令等<br>
-                            3. <strong>逻辑矛盾：</strong>"经济上出现资本主义萌芽"与"衰败"主题矛盾，应转换角度说资本主义萌芽<span style="color:red">发展缓慢、受到压制</span><br>
-                            4. <strong>结尾空洞：</strong>缺乏提升性结论<br>
-                            5. <strong>开放性题：</strong>对论证的逻辑性和史实精准度要求较高`,
-                examinerNotes: [
-                    "能从多个维度展开论证，角度较全面。",
-                    "书名应改为更学术规范的表达，如《由盛转衰：明清中国的历史转型》。",
-                    "史实必须具体：废丞相（明太祖）、设军机处（雍正）、广州十三行等。",
-                    "逻辑要自洽：资本主义萌芽出现反证有发展，需说'发展缓慢受压制'才符合衰败主题。"
-                ],
-                stdAnswer: `<strong>书名：</strong>《由盛转衰：明清中国的历史转型》<br><br>
-                            <strong>论证：</strong><br>
-                            ① <strong>政治：</strong>君主专制空前强化。明太祖废丞相、设殿阁大学士，明成祖设内阁；清雍正设军机处，皇权达到顶峰，相权彻底消亡。<br>
-                            ② <strong>经济：</strong>资本主义萌芽出现但发展缓慢、受到压制。明中叶苏松地区出现"机户出资、机工出力"的雇佣关系，但封建制度与重农抑商政策严重制约其发展。<br>
-                            ③ <strong>文化：</strong>思想文化专制日益强化。科举制推行八股文，僵化学术思维；清代大兴文字狱，压制思想活跃和科技创新。<br>
-                            ④ <strong>对外：</strong>推行闭关锁国政策，设广州十三行统一管理对外贸易，阻碍了与外国的经济文化交流，使中国逐渐落后于世界发展潮流。<br><br>
-                            <strong>结论：</strong>综上所述，明清时期在政治、经济、文化等多个层面均呈现出由盛转衰的历史转型特征，封建制度的僵化最终导致中国在近代落后于世界。`,
-                takeaways: [
-                    "书名要有<strong>学术感</strong>，避免消极笼统（\"衰败历程\"→\"历史转型\"）。",
-                    "论证必须举<strong>具体史实</strong>：废丞相、设军机处、广州十三行等。",
-                    "逻辑要自洽：资本主义萌芽要说'发展缓慢受压制'，不能单纯说'出现'。",
-                    "结尾写提升性结论，体现'史论结合、逻辑严密'。"
-                ]
-            },
-            {
-                id: 27,
-                year: "2020 高考历史",
-                title: "第15题(1)：清政府奖励商业的主要措施",
-                content: `<strong>根据材料，概括清政府奖励商业的主要措施。</strong>`,
-                oldAnswer: `1. 组织商会，制定关于商业的法律。\n2. 对商人颁发官位，保护商人权益`,
-                scoreInfo: "旧得分：3～4分/6分",
-                diagnosis: `1. <strong>遗漏要点：</strong>未充分概括材料中"奖励创新制造"这一重要信息<br>
-                            2. <strong>表述简略：</strong>未提及统一规范公司组织形式等内容`,
-                examinerNotes: [
-                    "基本抓住了两个要点，方向正确。",
-                    "遗漏'奖励创新制造'和'统一规范公司组织形式'两个要点。",
-                    "每点需有一定说明，不能只列关键词。"
-                ],
-                stdAnswer: `① 制定商业法律法规，为商业活动提供法律保障；<br>
-                            ② 建立商会等商业组织，统一规范公司组织形式；<br>
-                            ③ 给予商人荣誉（官衔/官位），提高商人社会地位；<br>
-                            ④ 奖励创新制造，鼓励技术进步和商品生产。`,
-                takeaways: [
-                    "概括题要仔细阅读材料，不遗漏任何一个明确信息点。",
-                    "每点均需简要说明，让阅卷老师明白你在说什么。"
-                ]
-            },
-            {
-                id: 28,
-                year: "2020 高考历史",
-                title: "第15题(2)：清政府商业改革的历史意义",
-                content: `<strong>根据材料并结合所学知识，简析清政府商业改革的历史意义。</strong>`,
-                oldAnswer: `否定了抑商政策，提高了商人的社会地位，突破旧商业组织形式，动摇传统利益`,
-                scoreInfo: "旧得分：3～4分/9分",
-                diagnosis: `1. <strong>表述模糊：</strong>"动摇传统利益"不知所指，模糊不清<br>
-                            2. <strong>遗漏核心意义：</strong>未提及引进近代公司制度、推动近代工商业发展、为民族资本主义发展提供法律保障等核心意义<br>
-                            3. <strong>答题不足：</strong>整体过短，未达到9分题的作答要求`,
-                examinerNotes: [
-                    "'否定抑商政策''提高商人地位'方向正确。",
-                    "遗漏：引进近代公司制度；推动近代工商业发展；为民族资本主义发展提供法律保障。",
-                    "9分题需要至少4-5个要点，并有展开说明。"
-                ],
-                stdAnswer: `① 否定了中国传统的抑商政策，有利于改变商人的社会地位；<br>
-                            ② 引进了近代西方公司制度和商业组织形式，推动中国商业近代化；<br>
-                            ③ 制定商业法律，为民族资本主义的发展提供了一定的法律保障；<br>
-                            ④ 鼓励创新制造，有助于推动民族工商业的发展；<br>
-                            ⑤ 顺应了近代经济发展的潮流，是晚清经济政策的重要转变，对中国近代经济的发展产生了积极影响。`,
-                takeaways: [
-                    "9分题至少要覆盖4-5个要点，每点均需简要展开。",
-                    "意义类题目要从<strong>政策转变、制度创新、法律保障、经济影响</strong>多角度分析。",
-                    "避免模糊表述（如'动摇传统利益'），要清晰指出'什么方面有何具体意义'。"
-                ]
-            },
-            {
-                id: 29,
-                year: "2021 高考历史",
-                title: "第13题(1)：希罗多德与司马迁的共同之处",
-                content: `<strong>阅读希罗多德《历史》与司马迁《史记》相关材料，概括两位历史学家的共同之处。</strong>`,
-                oldAnswer: `私人记录，客观地记录历史，为后世研究提供一定的参考价值，史料充分，取材广泛`,
-                scoreInfo: "旧得分：约3~4分（满分6分）",
-                diagnosis: `1. <strong>表述不准：</strong> "私人记录"应为"私人撰史"或"非官方修史"。<br>
-                            2. <strong>遗漏重点：</strong> 亲身调查、实地考察；批判精神/求真精神；兼顾周边民族历史。<br>
-                            3. <strong>深度不够：</strong> 未点明为后世史学奠定基础这一重要意义。`,
-                examinerNotes: [
-                    "客观记录历史、取材广泛——方向正确。",
-                    "遗漏：亲身调查实地考察（希罗多德亲赴埃及，司马迁游历各地）。",
-                    "遗漏：批判精神/求真精神；兼顾周边民族历史。",
-                    "遗漏：为后世史学奠定基础。"
-                ],
-                stdAnswer: `① 私人撰史（非官方修史），具有相对独立性；<br>
-                            ② 重视实地考察与调查（希罗多德亲赴埃及等地，司马迁游历天下）；<br>
-                            ③ 广泛收集史料，取材丰富；<br>
-                            ④ 客观记录历史，具有批判精神和求真精神；<br>
-                            ⑤ 不仅记录本民族历史，也兼顾周边民族；<br>
-                            ⑥ 为后世史学研究奠定基础，具有重要参考价值。`,
-                takeaways: [
-                    "对比题：从多角度找共同点（撰史性质、研究方法、史料来源、历史态度、记录范围、历史影响）。",
-                    "术语要准确：'私人撰史'而非'私人记录'。"
-                ]
-            },
-            {
-                id: 30,
-                year: "2021 高考历史",
-                title: "第13题(2)：《历史》与《史记》产生的历史背景",
-                content: `<strong>分别说明《历史》与《史记》两书产生的历史背景。</strong>`,
-                oldAnswer: `《历史》：民主政治先进，地理环境差异，雅典战争的胜利，人文精神的萌芽，《荷马史诗》的影响\n《史记》：中央集权不断强化，大一统王朝的建立，民族交融与中华民族意识的强化，儒家思想成为传统思想`,
-                scoreInfo: "旧得分：约5~6分（满分8分）",
-                diagnosis: `1. <strong>表述模糊：</strong> "地理环境差异"应具体说明希腊城邦林立、海洋文明特征。<br>
-                            2. <strong>遗漏核心：</strong> 《历史》主题是希波战争，这是全书创作的直接推动因素。<br>
-                            3. <strong>《史记》遗漏：</strong> 汉朝国力强盛、文景之治为修史提供条件；前代史学积淀深厚。`,
-                examinerNotes: [
-                    "《历史》：人文精神萌芽、《荷马史诗》影响——准确。",
-                    "《史记》：大一统、儒家思想——正确。",
-                    "遗漏《历史》：希波战争是直接推动。",
-                    "遗漏《史记》：汉朝国力强盛（文景之治）；前代史学积淀。"
-                ],
-                stdAnswer: `<strong>《历史》背景：</strong><br>
-                            ① 希波战争的爆发，希罗多德意在记录这场东西方文明冲突；<br>
-                            ② 古希腊城邦林立，海洋文明发达，商业贸易促进文化交流；<br>
-                            ③ 雅典民主政治发展，言论自由，为史学研究创造条件；<br>
-                            ④ 人文精神萌芽，理性思考兴起；<br>
-                            ⑤ 《荷马史诗》等文学传统为历史叙述提供范本。<br><br>
-                            <strong>《史记》背景：</strong><br>
-                            ① 秦汉大一统王朝建立，中央集权强化，需要系统总结历史；<br>
-                            ② 汉武帝时期国力强盛，文景之治奠定经济基础，为修史提供条件；<br>
-                            ③ 民族交融加强，中华民族意识形成；<br>
-                            ④ 儒家思想成为正统，强调以史为鉴；<br>
-                            ⑤ 前代史学传统积淀深厚（《春秋》《左传》等）。`,
-                takeaways: [
-                    "背景题要具体化：地理、政治、经济、文化、史学传统多角度。",
-                    "抓住核心事件：《历史》写希波战争，《史记》写大一统。"
-                ]
-            },
-            {
-                id: 31,
-                year: "2021 高考历史",
-                title: "第13题(3)：撰写史书应包括的要素",
-                content: `<strong>根据材料，简述撰写史书应包括的要素。</strong>`,
-                oldAnswer: `①史学编辑的体系 ②史料的真实性 ③文学运用的准确性 ④史学观念的正确`,
-                scoreInfo: "旧得分：约3分（满分4分）",
-                diagnosis: `1. <strong>表述生硬：</strong> "史学编辑的体系"应改为"体例完备、结构合理"。<br>
-                            2. <strong>偏离重点：</strong> "文学运用的准确性"应为"语言表达清晰、叙述准确"。<br>
-                            3. <strong>遗漏要点：</strong> 广泛收集史料、去伪存真的考证精神；秉笔直书的客观立场。`,
-                examinerNotes: [
-                    "史料真实性——核心要素，正确。",
-                    "史学观念——角度正确。",
-                    "遗漏：广泛收集史料、去伪存真；秉笔直书、客观公正。",
-                    "表述需优化：体例完备，而非'编辑体系'。"
-                ],
-                stdAnswer: `① <strong>史料真实可靠：</strong>广泛收集史料，去伪存真，考证严谨；<br>
-                            ② <strong>体例完备：</strong>结构合理，逻辑清晰；<br>
-                            ③ <strong>客观公正：</strong>秉笔直书，不受权势干扰；<br>
-                            ④ <strong>史学观念正确：</strong>以史为鉴，实事求是；<br>
-                            ⑤ <strong>叙述清晰：</strong>语言准确，表达流畅。`,
-                takeaways: [
-                    "撰史要素：史料（真实）+ 体例（完备）+ 态度（客观）+ 观念（正确）+ 语言（清晰）。"
-                ]
-            },
-            {
-                id: 32,
-                year: "2021 高考历史",
-                title: "第14题：建党至建国的重要会议",
-                content: `<strong>从建党至建国的重要会议中任选两次，简析两次会议间共产党的发展及原因。</strong>`,
-                oldAnswer: `选取中共一大→遵义会议，梳理了党从成立到遵义会议的历程`,
-                scoreInfo: "旧得分：约6~8分（满分12分）",
-                diagnosis: `1. <strong>格式不符：</strong> 未明确列出"两次会议"名称，题目要求明确列出。<br>
-                            2. <strong>"发展"角度不清：</strong> 应分层论述组织发展、思想成熟、军事壮大等。<br>
-                            3. <strong>缺少"原因"分析：</strong> 这是重要得分点，如马列主义与中国实际相结合、人民群众支持等。<br>
-                            4. <strong>逻辑跳跃：</strong> "中国一大提出以城市为中心"后表述过渡不清晰。`,
-                examinerNotes: [
-                    "史实基本正确（统一战线、右倾错误、左倾错误、遵义会议意义）。",
-                    "未明确列出两次会议，格式不符。",
-                    "发展角度不够清晰，应分层：组织、思想、军事。",
-                    "严重缺少原因分析（马列主义结合实际、人民支持）。"
-                ],
-                stdAnswer: `<strong>两次会议：</strong>中共一大（1921年）→ 遵义会议（1935年）<br><br>
-                            <strong>党的发展：</strong><br>
-                            ① <strong>组织发展：</strong>从成立时50余名党员发展到遵义会议时约3万人；<br>
-                            ② <strong>思想成熟：</strong>从照搬苏联经验到开始独立自主解决中国革命问题；<br>
-                            ③ <strong>军事壮大：</strong>从无武装到建立红军，开辟农村革命根据地；<br>
-                            ④ <strong>政治成熟：</strong>从幼年党到开始形成成熟的领导核心（毛泽东）。<br><br>
-                            <strong>原因分析：</strong><br>
-                            ① 马克思列宁主义与中国革命实际相结合，找到正确道路（农村包围城市）；<br>
-                            ② 纠正了"左"倾和右倾错误，总结经验教训；<br>
-                            ③ 得到工农群众的广泛支持；<br>
-                            ④ 建立统一战线，团结各方力量；<br>
-                            ⑤ 遵义会议确立毛泽东的领导地位，实现思想和组织上的转折。`,
-                takeaways: [
-                    "会议题格式：<strong>明确列出两次会议</strong> → 发展（分层）→ 原因（多角度）。",
-                    "发展要分层：组织、思想、军事、政治。",
-                    "原因必须答：理论结合实际、纠正错误、群众支持、统一战线。"
-                ]
-            },
-            {
-                id: 33,
-                year: "2021 高考历史",
-                title: "第15题(1)：江楚会奏与洋务运动的相同点",
-                content: `<strong>根据材料，指出江楚会奏与洋务运动的相同点。</strong>`,
-                oldAnswer: `都是进行变革，维护清王朝统治，得到最高统治者支持，主张向西方学习，都以失败告终`,
-                scoreInfo: "旧得分：约3~4分（满分4分）",
-                diagnosis: `1. <strong>"都以失败告终"不准确：</strong> 清末新政在一定程度上推动了近代化，不能简单定性为失败。<br>
-                            2. <strong>可补充：</strong> 都未触动封建制度根本；都涉及经济和军事近代化。`,
-                examinerNotes: [
-                    "维护封建统治、向西方学习、得到统治者支持——均正确。",
-                    "'都以失败告终'需斟酌，清末新政推动了近代化。",
-                    "可补充：都未触动封建制度根本；都涉及经济军事近代化。"
-                ],
-                stdAnswer: `① 都是自上而下的改革，得到最高统治者支持；<br>
-                            ② 都主张向西方学习先进技术和制度；<br>
-                            ③ 都旨在维护清朝封建统治；<br>
-                            ④ 都涉及经济和军事领域的近代化；<br>
-                            ⑤ 都未触动封建制度的根本。`,
-                takeaways: [
-                    "相同点题：从性质、目的、内容、方式、局限多角度。",
-                    "避免绝对化：不要轻易说'都失败'，要看具体影响。"
-                ]
-            },
-            {
-                id: 34,
-                year: "2021 高考历史",
-                title: "第15题(2)：评价江楚会奏变法方案",
-                content: `<strong>根据材料，评价江楚会奏变法方案。</strong>`,
-                oldAnswer: `清政府在危机加深下推动教育近代化人才培养，对教育近代化起重要作用，挽救统治和政治民主起推动作用`,
-                scoreInfo: "旧得分：约2~3分（满分6分）",
-                diagnosis: `1. <strong>语句不通：</strong> "自由运动教育"表述不知所云，逻辑混乱。<br>
-                            2. <strong>评价不全：</strong> 应包含积极意义（推动近代化、促进思想解放）和局限性（维护封建统治、治标不治本）。<br>
-                            3. <strong>遗漏：</strong> 方案涉及政治、军事、经济多领域改革的综合性意义。`,
-                examinerNotes: [
-                    "提到教育近代化——方向正确。",
-                    "语言严重混乱，'自由运动教育'不知所云。",
-                    "评价应包含积极与局限两方面。",
-                    "遗漏：政治、军事、经济多领域改革的综合意义。"
-                ],
-                stdAnswer: `<strong>积极意义：</strong><br>
-                            ① 推动教育近代化，废科举、兴学堂，培养新式人才；<br>
-                            ② 涉及政治、经济、军事多领域改革，是较为全面的改革方案；<br>
-                            ③ 客观上促进了思想解放和社会进步；<br>
-                            ④ 为清末新政提供了改革蓝图，推动了中国近代化进程。<br><br>
-                            <strong>局限性：</strong><br>
-                            ① 根本目的是维护清朝封建统治，未触及制度根本；<br>
-                            ② 改革不彻底，治标不治本；<br>
-                            ③ 未能挽救清朝灭亡的命运。`,
-                takeaways: [
-                    "评价题必须辩证：<strong>积极意义 + 局限性</strong>，缺一不可。",
-                    "答题语言要规范通顺，避免口语化或逻辑混乱。"
-                ]
-            },
-            {
-                id: 35,
-                year: "2021 高考历史",
-                title: "第16题(1)：美国放弃使用化学剂的原因",
-                content: `<strong>根据材料，说明美国放弃在越战中使用化学剂的原因。</strong>`,
-                oldAnswer: `科学界的反对，联合国对环境问题的重视，国内反战运动高潮，没有达到战争目的`,
-                scoreInfo: "旧得分：约4分（满分5分）",
-                diagnosis: `1. <strong>四点均有依据：</strong> 科学界反对、联合国重视环境、国内反战、未达战争目的。<br>
-                            2. <strong>可补充：</strong> 化学剂对美国士兵自身造成伤害（材料末句有提及）；国际舆论压力。`,
-                examinerNotes: [
-                    "四点均有材料依据，角度全面，作答较好。",
-                    "可补充：化学剂对美军士兵自身伤害；国际舆论压力。"
-                ],
-                stdAnswer: `① 科学界强烈反对，认为化学剂危害生态环境和人类健康；<br>
-                            ② 联合国对环境问题日益重视，国际舆论压力增大；<br>
-                            ③ 美国国内反战运动高涨，民众反对使用化学武器；<br>
-                            ④ 化学剂未能达到预期战争目的，反而增加战争成本；<br>
-                            ⑤ 化学剂对美国士兵自身也造成健康伤害。`,
-                takeaways: [
-                    "原因题：从国内（科学界、民众）、国际（联合国、舆论）、效果（未达目的、自身伤害）多角度。"
-                ]
-            },
-            {
-                id: 36,
-                year: "2021 高考历史",
-                title: "第16题(2)：使用化学剂的后果",
-                content: `<strong>根据材料，说明美国在越战中使用化学剂的后果。</strong>`,
-                oldAnswer: `①对生态环境和国内经济造成严重破坏 ②对越南和美国人民造成巨大伤害`,
-                scoreInfo: "旧得分：约2~3分（满分4分）",
-                diagnosis: `1. <strong>"国内经济破坏"无依据：</strong> 材料中无直接依据，不宜随意添加。<br>
-                            2. <strong>答案过于简略：</strong> 应展开说明生态破坏、人员伤亡、国际形象、环保立法等。`,
-                examinerNotes: [
-                    "生态破坏、人员伤亡——方向正确。",
-                    "'国内经济破坏'材料中无依据。",
-                    "答案过于简略，应展开：生态长期破坏；越南人民健康受损；美国士兵患病；国际形象受损；推动环保立法。"
-                ],
-                stdAnswer: `① <strong>生态环境：</strong>越南森林大面积被毁，生态环境遭到长期严重破坏；<br>
-                            ② <strong>越南人民：</strong>大量平民健康受损，后代出现畸形等严重后遗症；<br>
-                            ③ <strong>美国士兵：</strong>许多美军士兵也因接触化学剂而患病；<br>
-                            ④ <strong>国际形象：</strong>美国国际形象严重受损，遭到国际社会谴责；<br>
-                            ⑤ <strong>推动立法：</strong>促进了国际社会对环境保护和化学武器管制的立法进程。`,
-                takeaways: [
-                    "后果题要全面：对环境、对他国人民、对本国士兵、对国际形象、对国际立法。",
-                    "依据材料作答，不要随意添加材料中没有的内容。"
-                ]
-            },
-            {
-                id: 37,
-                year: "2021 高考历史",
-                title: "第17题(1)：三则材料对冯道的评价",
-                content: `<strong>根据材料，分别概括三则材料对冯道的评价。</strong>`,
-                oldAnswer: `评价一：学识广泛，品德端正，忠于国家\n评价二：忠于君主，对君臣礼仪颇有心得\n评价三：没有礼仪，没有廉耻`,
-                scoreInfo: "旧得分：约3~4分（满分6分）",
-                diagnosis: `1. <strong>评价一：</strong> 基本正确。<br>
-                            2. <strong>评价二有误：</strong> 《旧五代史》"可得为忠乎"是反问，表示质疑，你的概括偏向正面，忽略了质疑成分。<br>
-                            3. <strong>评价三：</strong> 方向正确，可补充欧阳修以儒家忠义观批判冯道无气节。`,
-                examinerNotes: [
-                    "评价一基本正确。",
-                    "评价二有误：'可得为忠乎'是反问质疑，非肯定。",
-                    "评价三方向正确，补充：欧阳修以儒家忠义观批判无气节。"
-                ],
-                stdAnswer: `<strong>评价一（《旧五代史·冯道传》）：</strong>肯定冯道学识渊博、品行端正、能力突出；<br>
-                            <strong>评价二（《旧五代史》史臣）：</strong>肯定冯道风度器量，但质疑其忠节（"可得为忠乎"是反问，表示不认可其忠诚）；<br>
-                            <strong>评价三（《新五代史》欧阳修）：</strong>严厉批判冯道无礼无耻，缺乏儒家士大夫应有的忠义气节。`,
-                takeaways: [
-                    "概括评价要准确：注意反问句表达的是质疑而非肯定。",
-                    "分析作者立场：欧阳修以儒家忠义观衡量历史人物。"
-                ]
-            },
-            {
-                id: 38,
-                year: "2021 高考历史",
-                title: "第17题(2)：影响人物评价的因素",
-                content: `<strong>根据材料，说明影响人物评价的因素。</strong>`,
-                oldAnswer: `个人立场，时代背景，传统观念`,
-                scoreInfo: "旧得分：约3分（满分4分）",
-                diagnosis: `1. <strong>三点均正确：</strong> 个人立场、时代背景、传统观念是核心因素。<br>
-                            2. <strong>可补充：</strong> 史料来源与掌握程度；评价者所处的政治环境；评价标准的差异（道德标准 vs 历史功绩标准）。`,
-                examinerNotes: [
-                    "三点均正确，是核心因素。",
-                    "可补充：史料来源；评价者政治环境；评价标准差异（道德vs功绩）。"
-                ],
-                stdAnswer: `① <strong>评价者立场：</strong>不同史学家有不同的价值观和历史观；<br>
-                            ② <strong>时代背景：</strong>不同时代有不同的社会风尚和评价标准；<br>
-                            ③ <strong>传统观念：</strong>儒家忠义观等传统观念影响评价标准；<br>
-                            ④ <strong>史料掌握：</strong>史料来源和掌握程度影响评价的全面性；<br>
-                            ⑤ <strong>政治环境：</strong>评价者所处的政治环境影响其评价尺度；<br>
-                            ⑥ <strong>评价标准：</strong>道德标准与历史功绩标准的权衡。`,
-                takeaways: [
-                    "影响评价的因素：立场、时代、观念、史料、环境、标准。",
-                    "理解历史评价的多元性和复杂性。"
-                ]
-            },
-            {
-                id: 39,
-                year: "2022 高考历史",
-                title: "第13题：中日技术引进特点与中国科技经验",
-                content: `<strong>(1) 根据材料一、二，概括20世纪五六十年代中日两国技术引进的特点；分析中日技术引进呈现不同特点的背景。</strong><br>
-                          <strong>(2) 简析20世纪五六十年代中国科技发展的历史经验。</strong>`,
-                oldAnswer: `(1) 日本政府政策的改变，制定相关法律保障，引进先进技术，加入资本主义阵营。中国加入中国社会主义阵营，政府主导引进先进技术，侧重尖端技术。
-(2) 日本国家垄断资本主义的进一步发展，美国对日本扶持，在二战中经济受到冲击；中国社会主义制度的建立，美国及西方国家对其经济封锁，一五计划的实施。
-(3) 重视科技人才的培养，重视科技创新，发展国防力量，坚持科技独立创新。`,
-                scoreInfo: "旧得分：12/22分",
-                diagnosis: `1. <strong>日本特点遗漏：</strong> 政策由严格管制→逐渐放宽、企业自主性增强、技术来源主要是欧美。<br>
-                            2. <strong>中国特点不全：</strong> 遗漏技术来源苏联及东欧、引进内容涵盖成套设备+人才+资金+管理经验、苏联撤援后转向自力更生。<br>
-                            3. <strong>背景分析浅：</strong> 日本缺少朝鲜战争刺激；中国缺少中苏关系破裂背景。<br>
-                            4. <strong>经验过于笼统：</strong> 缺少国家统一规划、集中力量办大事、引进与自主研发结合等具体经验。`,
-                examinerNotes: [
-                    "日本：政府立法管理→政策逐步放宽；企业自主性增强；技术来源以欧美为主。",
-                    "中国：国家主导、统一规划；技术来源苏联和东欧；引进内容全面；苏联撤援后转向自力更生。",
-                    "日本背景：二战战败；美国扶日政策；朝鲜战争刺激。",
-                    "中国背景：新中国成立；西方封锁；中苏结盟；1960年中苏破裂。"
-                ],
-                stdAnswer: `<strong>(1) 特点：</strong><br>
-                            日本：政府立法加强管理，对技术引进进行指导；政策逐步放宽，企业自主性增强；技术来源以欧美为主；以引进欧美先进技术为主要方式。<br>
-                            中国：国家主导，统一规划；技术来源以苏联和东欧为主；引进内容较为全面（设备、人才、资金、管理经验）；苏联撤援后转向自力更生为主。<br><br>
-                            <strong>(2) 背景：</strong><br>
-                            日本：二战战败，经济遭受严重破坏；美国推行"扶日"政策，将日本纳入西方阵营；国家垄断资本主义发展，政府主导经济重建；朝鲜战争带来经济刺激。<br>
-                            中国：新中国成立，社会主义制度建立；冷战格局下美国为首的西方国家对中国实行封锁；中苏结盟，苏联给予大力援助；1960年中苏关系破裂，被迫走向自力更生。<br><br>
-                            <strong>(3) 历史经验：</strong><br>
-                            国家统一规划，集中力量攻克重点科技领域；坚持以自力更生为主，同时积极引进和利用外部科技成果；将引进技术与自主研发相结合；重视科技人才培养；面对外部封锁，坚持独立自主的科技发展道路。`,
-                takeaways: [
-                    "对比题要全面：A有B无，B有A无，注意<strong>来源、内容、方式、政策</strong>。",
-                    "背景题要答内外因：内部（制度、政策）、外部（国际环境、大国关系）。",
-                    "经验题要具体化：统一规划、引进与自研结合、人才培养、独立自主。"
-                ]
-            },
-            {
-                id: 40,
-                year: "2022 高考历史",
-                title: "第14题：东汉地方官治虎患的历史现象",
-                content: `<strong>阐述从上述材料中发现的历史现象，并得出一个结论。（要求：现象源自材料，结论明确，史论结合，表述清晰。）</strong><br>
-                          <small style='color:#666'>材料提示：南郡前太守悬赏捕虎反而伤民；刘陵、刘平、童恢为官通过修德政应对虎患</small>`,
-                oldAnswer: `南郡前太守悬赏捕虎，反而加大了对百姓的伤害。刘陵、刘平、童恢为官，通过修德政，用德行应对老虎，虎患得以解决。东汉时期，儒家思想主张影响官员的行为，官员通过修德政治虎患。总之，儒家思想深刻影响了东汉官吏的治理行为。`,
-                scoreInfo: "旧得分：8/12分",
-                diagnosis: `1. <strong>归纳不够全面：</strong> 童恢以"审判"方式处置老虎，体现儒家礼法精神，与其他三人的"修德"方式有区别，未加以区分。<br>
-                            2. <strong>结论层次较浅：</strong> 停留在"儒家思想影响官吏"，应进一步升华：这类记载本身反映了《后汉书》等史书对"德政"理念的价值推崇，史书书写本身也是儒家思想传播的体现。<br>
-                            3. <strong>史论结合不够紧密：</strong> 现象描述与结论之间缺乏过渡论证。`,
-                examinerNotes: [
-                    "能提炼'修德政→虎患息'模式，结论较明确。",
-                    "童恢'审判'老虎与其他人'修德'有区别，应区分。",
-                    "结论应升华：史书书写本身推崇德政理念。"
-                ],
-                stdAnswer: `<strong>历史现象：</strong> 东汉时期各地多有虎患，地方官员采取不同方式应对。前任太守采用悬赏捕杀的方式，反而造成更多伤亡；而刘陵、法雄、刘平等良吏则通过修德政、施仁政、选用贤良、禁止滥捕等方式，使虎患得以平息；童恢则以礼法"审判"老虎，区别处置，受到百姓歌颂。<br><br>
-                            <strong>结论：</strong> 东汉时期，儒家仁政、德治理念深刻影响了地方官员的施政方式。地方官吏将修德行仁视为解决社会问题的根本途径，这既体现了儒学在东汉社会的主导地位，也反映出《后汉书》等史书书写中对儒家"德政"理念的高度认同与推崇。`,
-                takeaways: [
-                    "现象阐述题要<strong>分类归纳</strong>：不同类型的做法要区分。",
-                    "结论要<strong>升华</strong>：从史实→思想→史学书写多层次思考。",
-                    "史论结合：现象→分析→结论，有逻辑过渡。"
-                ]
-            },
-            {
-                id: 41,
-                year: "2022 高考历史",
-                title: "第15题：荀子批评商鞅变法后秦军为'盗兵'",
-                content: `<strong>(1) 简析荀子称商鞅变法后的秦国军队为"盗兵"的原因。</strong><br>
-                          <strong>(2) 评价商鞅的军事改革。</strong>`,
-                oldAnswer: `(1) 商鞅变法，提高军人积极性，军队战斗力加强，促进新兴地主阶级，为秦统一奠定基础。秦国军队没有礼仪，没有纪律约束。
-(2) 积极：提高军队战斗力，沉重打击贵族阶级，为秦统一奠定基础，有利于秦国的壮大，促进中央集权建立。消极：军队整体素质不高，崇尚功利，为秦二世亡埋下伏笔。`,
-                scoreInfo: "旧得分：7/13分",
-                diagnosis: `1. <strong>审题失误（最严重）：</strong> 第(1)问问的是荀子批评的逻辑和立场，你却大篇幅回答商鞅变法的积极意义，严重跑题。<br>
-                            2. <strong>核心应答：</strong> 荀子站在儒家礼义立场，认为秦军以求赏逐利为作战动机，缺乏礼义教化与道德约束，胜负没有保障，与荀子推崇的仁义之师相去甚远，故称"盗兵"。<br>
-                            3. <strong>第(2)问消极面牵强：</strong> "为秦二世亡埋下伏笔"逻辑跳跃。应聚焦：军队以功利为导向，缺乏精神凝聚力和礼义约束，长远来看难以建立稳固统治秩序。`,
-                examinerNotes: [
-                    "第(1)问严重跑题，未答荀子批评逻辑。",
-                    "荀子视角：儒家礼义立场→秦军求赏逐利，无礼义教化→称'盗兵'。",
-                    "第(2)问积极面较完整，消极面逻辑牵强。"
-                ],
-                stdAnswer: `<strong>(1) 原因：</strong><br>
-                            荀子是儒家代表，推崇礼义教化；他认为秦军"隆势诈，尚功利"，士兵作战动机是求赏逐利（"干赏蹈利"），而非忠义报国；军队缺乏礼义教化，无道德精神支撑；在荀子看来，这样的军队胜负无常，不能与仁义之师相比，故称"盗兵"。<br><br>
-                            <strong>(2) 评价：</strong><br>
-                            积极：废除世卿世禄制，以军功授爵，打击了旧贵族特权；极大提升了军队战斗力，使秦国成为战国强国；为秦统一六国奠定了军事基础；促进了社会阶层流动。<br>
-                            消极：军队以功利为驱动，缺乏礼义教化，精神凝聚力不足；荀子批评其"胜、不胜，无常"，说明单纯依靠利益驱动难以长治久安；军国主义风气也在一定程度上影响了秦的统治方式。`,
-                takeaways: [
-                    "<strong>审题三步：</strong>圈出主语（荀子）、动词（批评原因）、限定词（立场）。",
-                    "站在材料人物视角答题，不要代入自己的判断。",
-                    "评价消极面要<strong>贴近史实</strong>，不要过度联想。"
-                ]
-            },
-            {
-                id: 42,
-                year: "2022 高考历史",
-                title: "第16题：苏伊士运河战争中美国对英国态度变化",
-                content: `<strong>(1) 简析苏伊士运河战争爆发前后美国对英国的态度变化及其目的。</strong><br>
-                          <strong>(2) 说明苏伊士运河战争对当时西方阵营的影响。</strong>`,
-                oldAnswer: `(1) 支持英国打压埃及，到和苏联共同反对打压埃及。目的：美国想要增强中东地区的影响力，避免战争爆发后直接与苏联接触。
-(2) 打击了英法在中东地区的影响力，客观上推动欧洲的联合，扩大美国对中东的影响力。`,
-                scoreInfo: "旧得分：13/18分",
-                diagnosis: `1. <strong>态度变化描述有误：</strong> 材料中战前美国并非"支持英国打压埃及"，而是美英共同附条件援助埃及，后撤援，并非主动打压。正确表述：战前美国撤销对埃及水坝援助，间接激化矛盾；战争爆发后，美国联合苏联向英法施压，要求停火。<br>
-                            2. <strong>目的分析过浅：</strong> 应补充：取代英法在中东的传统势力、防止苏联扩大影响、维护美国全球霸权战略、防止局势失控引发美苏直接冲突。<br>
-                            3. <strong>影响深度不足：</strong> 可补充：严重动摇英法的世界大国地位；西方阵营内部出现严重裂痕，美国与英法盟友关系产生嫌隙；加速了英法非殖民化进程。`,
-                examinerNotes: [
-                    "态度变化：战前撤援（间接激化）→战后联合苏联施压停火。",
-                    "目的：削弱英法、扩大美国势力、防止苏联渗透、避免美苏冲突。",
-                    "影响：英法大国地位受挫、西方阵营裂痕、加速非殖民化、推动欧洲一体化。"
-                ],
-                stdAnswer: `<strong>(1) 态度变化及目的：</strong><br>
-                            变化：战争爆发前，美英因附加条件问题撤销对埃及援助，实际上激化了矛盾却未直接干预；战争爆发后，美国对英法发动军事行动持反对态度，联合苏联向英法施压，迫使其停火。<br>
-                            目的：借机削弱英法在中东的传统影响力，填补权力真空，扩大美国在中东的势力范围；防止苏联借势渗透中东；避免局势失控引发美苏直接冲突，维护美国主导的冷战秩序。<br><br>
-                            <strong>(2) 影响：</strong><br>
-                            英法的世界大国地位受到严重打击，国际威望大幅下降；加速了英法殖民体系的瓦解（英国加快从殖民地撤离，法国转向欧洲联合）；西方阵营内部出现明显裂痕，美国与英法矛盾公开化；客观上推动了欧洲一体化进程；美国借机扩大了在中东地区的影响力，逐渐取代英法的主导地位。`,
-                takeaways: [
-                    "态度变化题：战前态度→战后态度，要<strong>基于材料</strong>，不要臆测。",
-                    "目的要多维：对内（扩大势力）、对外（制衡对手）、战略（维护秩序）。",
-                    "影响要全面：对当事国、对阵营、对进程。"
-                ]
-            },
-            {
-                id: 43,
-                year: "2022 高考历史",
-                title: "第17题：毛泽东与各界人民代表会议",
-                content: `<strong>(1) 说明毛泽东高度重视各界人民代表会议的原因。</strong><br>
-                          <strong>(2) 简析毛泽东督促召开各界人民代表会议的历史意义。</strong>`,
-                oldAnswer: `(1) 共产党的本质属性决定是为人民服务的政党，为全国人民代表大会做准备，推翻国民党的需要。
-(2) 充分说明人民当家作主的理念，体现党践行全心全意为人民服务的宗旨，为建立新中国、团结各族人民做准备。`,
-                scoreInfo: "旧得分：9/15分",
-                diagnosis: `1. <strong>史实错误：</strong> 1949年8月时解放战争已接近尾声，国民党政权基本被推翻，"推翻国民党的需要"不符合史实。<br>
-                            2. <strong>原因不完整：</strong> 应补充：巩固新解放城市政权的现实需要；团结各界民主人士、壮大统一战线的政治需要；探索人民民主政治制度建设的需要。<br>
-                            3. <strong>意义较空洞：</strong> 应补充：为后来建立人民代表大会制度积累了经验；有利于巩固新生人民政权、稳定新解放区社会秩序；推动了新中国民主政治制度建设；体现了中国共产党对民主执政的积极探索。`,
-                examinerNotes: [
-                    "原因：党的性质和宗旨；为人民代表大会制度做准备；团结各界壮大统一战线；巩固新解放城市政权；贯彻群众路线。",
-                    "意义：体现人民当家作主；为人大制度积累经验；团结各界巩固政权；推动民主政治建设；彰显党的历史担当。",
-                    "'推翻国民党'时间错误。"
-                ],
-                stdAnswer: `<strong>(1) 原因：</strong><br>
-                            中国共产党的性质和宗旨决定了必须保证人民当家作主；各界人民代表会议是人民代表大会制度的前身，为建立正式民主制度做准备；有助于团结各界人士，壮大人民民主统一战线；巩固新解放城市政权、维护社会稳定的现实需要；贯彻党的群众路线，充分发扬民主的政治需要。<br><br>
-                            <strong>(2) 历史意义：</strong><br>
-                            体现了人民当家作主的政治理念，是中国民主政治建设的重要实践；为后来全国人民代表大会制度的建立积累了宝贵经验；有利于团结各界力量，巩固新生人民政权；推动了新中国政治制度的探索与建设；彰显了中国共产党践行群众路线、推进民主执政的历史担当。`,
-                takeaways: [
-                    "注意时间节点：1949年8月国民党政权已基本被推翻。",
-                    "原因题要<strong>全面</strong>：理论（党的性质）、现实（巩固政权）、长远（制度建设）。",
-                    "意义题要<strong>分层</strong>：对当时、对后世、对制度、对精神。"
-                ]
-            },
-            {
-                id: 44,
-                year: "2023 高考历史",
-                title: "第13题：日本对华投降问题上各方做法",
-                content: `<strong>(1) 概括中国共产党、国民党政府在接受日本投降问题上的主张。</strong><br>
-                          <strong>(2) 概括美国在日本对华投降问题上采取的措施。</strong><br>
-                          <strong>(3) 评价中国共产党、国民党政府、美国在日本对华投降问题上的做法。</strong>`,
-                oldAnswer: `(1) 共产党：彻底摧毁敌伪组织和反动势力，维护革命秩序，建立人民政权，收复敌占区。国民党：日军必须向蒋介石指定军官投降，对伪军策动反正。
-(2) 利用日本军队阻止共产党前进；美国干涉中国内政，助蒋反共；保留日本实力；要求日军向蒋介石投降。
-(3) 共产党：维护革命秩序，建立国家政权，符合人民和国家利益。国民党：应战敌军抵抗，符合民族利益，指定军官投降，对伪军策动反正体现国民政府权益。美国：违反国际法，干涉中国内政，扶蒋反共。`,
-                scoreInfo: "旧得分：15/25分",
-                diagnosis: `1. <strong>国民党主张缺失：</strong> 材料二明确写到"先期控制敌军撤离后之要点要线，以待国军到达"——抢占战略要地这一核心意图完全未被提炼。<br>
-                            2. <strong>美国措施不全：</strong> "美军在天津、青岛登陆"这一材料中明确的具体措施完全未提及。"保留日本实力"材料依据不足，属过度解读。<br>
-                            3. <strong>评价缺乏辩证：</strong> 国民党评价判断有误——排斥共产党、依赖外国势力、维护一党私利的本质完全未被揭示。应一分为二：形式上维护国家主权（正面）；但排斥共产党、依赖美国，激化国内矛盾（局限）。<br>
-                            4. <strong>评价深度不足：</strong> 美国部分未说明动机（冷战战略、维护亚太利益）；未分析其影响（加剧中国内战，损害中国主权）。`,
-                examinerNotes: [
-                    "共产党主张基本正确，但深层战略意图（争取受降主动权）未提炼。",
-                    "国民党主张严重缺失'抢占战略要地'这一核心点。",
-                    "美国措施缺失'美军登陆天津、青岛'具体行动。",
-                    "评价必须辩证：共产党（正义性+客观上加剧冲突）；国民党（形式上维护主权+实质上激化矛盾）；美国（冷战战略+损害中国主权）。"
-                ],
-                stdAnswer: `<strong>(1) 主张：</strong><br>
-                            共产党：依据波茨坦宣言，迅速解除敌伪武装；收复敌占城镇和交通要道；摧毁敌伪组织，维护革命秩序；建立人民政权，争取受降主动权，壮大革命力量。<br>
-                            国民党：要求日军只能向蒋介石指定军官投降，排斥共产党参与受降；策动伪军反正并加以掌控；提前控制战略要点要线，等待国军接管，巩固国民政府对全国的统治。<br><br>
-                            <strong>(2) 措施：</strong><br>
-                            利用日本军队充当守备队，阻止共产党扩张；颁布《一号通令》，要求日军统一向蒋介石投降；大力帮助国民党向华北、华东、东北运兵；美国军队在天津、青岛等地登陆，直接武装介入中国局势。<br><br>
-                            <strong>(3) 评价：</strong><br>
-                            共产党：代表广大人民利益，积极争取受降主动权，有利于壮大人民革命力量，推动民族解放事业，具有正义性和进步性；客观上也加剧了国共受降之争，使局势趋于紧张。<br>
-                            国民党：作为合法政府主导受降，形式上维护了国家主权统一；但排斥共产党参与，维护一党私利，依赖美国外部势力，激化了国内矛盾，为此后全面内战埋下隐患。<br>
-                            美国：出于冷战战略和维护亚太利益的目的公然干涉中国内政，违反国际法准则；严重损害中国主权；助蒋反共加剧了中国内战进程，从根本上损害了中国人民的利益。`,
-                takeaways: [
-                    "概括题要<strong>逐句扫描材料</strong>，提炼关键词，不可遗漏送分信息。",
-                    "评价题必须<strong>辩证</strong>：积极意义 + 历史局限，缺一不可。",
-                    "避免无中生有：'保留日本实力'材料中无依据。"
-                ]
-            },
-            {
-                id: 45,
-                year: "2023 高考历史",
-                title: "第14题：钱穆《国史大纲》观点评析",
-                content: `<strong>评析材料中的观点（任意一点或整体），得出结论。</strong><br>
-                          <small style='color:#666'>材料：钱穆《国史大纲》序言（1940年）——对本国历史应有温情与敬意，避免历史虚无主义</small><br>
-                          <strong style='color:red;'>注意：结论不能重复材料中观点</strong>`,
-                oldAnswer: `抗日战争时期，受帝国主义影响，面对日军屠杀，一些知识分子对国家前途失望，散布亡国论和西方至上思想，否定中华文化，造成恶劣风气。甚至钱穆先生编写了《国史大纲》，树立起对中国文化的认同感，对抗战胜利发挥了积极作用。无论是在战时还是和平时期，我们都爱护国家和尊重历史。`,
-                scoreInfo: "旧得分：4～5分/12分",
-                diagnosis: `1. <strong>"甚至钱穆先生"用词错误：</strong> 钱穆是在反对虚无主义，不应用"甚至"引出。<br>
-                            2. <strong>结论重复材料观点：</strong> "爱护国家和尊重历史"基本是材料观点的直接复述，不符合题目要求。<br>
-                            3. <strong>缺乏辩证评析：</strong> 钱穆观点有积极意义，但也有局限性（过度强调"温情"可能压抑批判性反思），应一分为二。<br>
-                            4. <strong>论证不充分：</strong> 史实举例太少，缺乏具体历史事件支撑。<br>
-                            5. <strong>结构不清晰：</strong> 没有"提出观点—史实论证—得出结论"三段式。`,
-                examinerNotes: [
-                    "能联系时代背景（抗战），方向正确。",
-                    "结论严重失分：直接复述材料观点。",
-                    "缺少辩证评析：只写积极意义，未写局限性。",
-                    "必须用三段式结构作答。"
-                ],
-                stdAnswer: `<strong>观点提炼：</strong> 钱穆认为，国民应对本国历史有所了解，并怀有温情与敬意，避免历史虚无主义，这是国家发展的重要前提。<br><br>
-                            <strong>评析：</strong><br>
-                            此观点有其合理之处。1940年正值抗日战争艰难时期，部分知识分子受西方文化冲击，产生民族文化虚无主义倾向，否定传统文化的价值，不利于凝聚民心、坚定抗战信念。钱穆撰写《国史大纲》，意在唤起国人对中华文明的认同与自信，具有增强民族凝聚力、激励抗战斗志的积极意义。事实上，文化自信是民族复兴的重要精神支柱，尊重历史有助于汲取前人经验，推动国家发展，这一点在今天仍有现实意义。<br><br>
-                            然而，此观点也存在一定局限性。过分强调对历史的"温情与敬意"，可能压抑对历史的批判性反思，不利于客观认识历史的曲折与教训。历史研究既需要情感认同，也需要实事求是的科学态度，二者不可偏废。<br><br>
-                            <strong>结论：</strong> 对待本国历史，既要有文化认同与民族自信，又要保持理性批判的科学精神，方能真正从历史中汲取智慧，推动国家与民族的进步。`,
-                takeaways: [
-                    "评析题<strong>必须辩证</strong>：积极意义 + 局限性。",
-                    "结论必须<strong>升华提炼</strong>，不能重复材料观点。",
-                    "三段式结构：观点提炼 → 评析（积极+局限） → 结论。"
-                ]
-            },
-            {
-                id: 46,
-                year: "2023 高考历史",
-                title: "第16题：飞机在第一次世界大战中的使用",
-                content: `<strong>(1) 概括飞机在第一次世界大战中使用情况的变化。</strong><br>
-                          <strong>(2) 简析飞机应用于第一次世界大战所产生的影响。</strong><br>
-                          <small style='color:#666'>材料：1910年福煦认为飞机没有军事价值；一战初期飞机仅用于侦察；后逐步用于空战、配置机枪争夺制空权；德国组建"空中马戏团"，1917年制成全金属飞机；1918年协约国拥有飞机8000余架，牢牢掌握制空权。</small>`,
-                oldAnswer: `(1) 一战前，飞机军事应用少，主要民用；一战中担任侦察，后应用于空战，争夺制空权。
-(2) 飞机的发展增加战争杀伤性，加速战争结束，刺激科技发展，也应用于日常生活，为出行带来便利。`,
-                scoreInfo: "旧得分：5～6分/10分",
-                diagnosis: `1. <strong>"一战前主要民用"：</strong> 材料并未提及民用，属无中生有。<br>
-                            2. <strong>变化内容不完整：</strong> 缺失：飞机从木制到全金属的技术质变；机枪配置的出现；"空中马戏团"编队作战方式的诞生；双方飞机数量的巨大差距（8000 vs 3300）。<br>
-                            3. <strong>"为出行带来便利"不贴切：</strong> 这是飞机的长远影响，与本题"应用于一战所产生的影响"的时间范围不符。<br>
-                            4. <strong>严重缺失核心影响：</strong> 改变了战争形态（平面→立体）；推动制空权理论的形成；空中轰炸造成更大规模平民伤亡；推动了飞机制造业和相关工业的技术革新。`,
-                examinerNotes: [
-                    "(1) 逻辑清晰但内容不够完整，'一战前主要民用'无中生有。",
-                    "(1) 缺失：木制→全金属；机枪配置；编队作战；飞机数量对比。",
-                    "(2) '为出行带来便利'与题目时间范围不符。",
-                    "(2) 严重缺失：立体战争、制空权理论、平民伤亡、工业革新。"
-                ],
-                stdAnswer: `<strong>(1) 变化：</strong><br>
-                            一战初期，飞机仅用于目视侦察和空中照相，军事价值极为有限；随着战争深入，飞机逐步投入空战，驾驶员以枪支互击、手掷炸弹；1915年起，配置机枪的战斗机出现，各国开始系统争夺制空权；1916年出现编队作战方式（"空中马戏团"），1917年全金属军用飞机问世，飞机性能实现质的飞跃；至1918年，协约国飞机数量远超德国，牢牢掌握制空权，飞机成为决定战局的重要力量。<br><br>
-                            <strong>(2) 影响：</strong><br>
-                            改变了战争形态，使战争从平面扩展到立体空间，增加了战争的复杂性与残酷性；协约国凭借制空权优势发起总反攻，加速了一战的结束；推动了制空权理论的形成，深刻影响此后各国军事战略思想；刺激了飞机制造业和相关技术的迅速发展，为战后民用航空业奠定基础；空中轰炸造成更大范围平民伤亡，加剧了战争的破坏性。`,
-                takeaways: [
-                    "变化题要<strong>完整提取材料信息</strong>：技术（木制→金属）、战术（单机→编队）、规模（数量对比）。",
-                    "影响题要<strong>注意时间范围</strong>：'应用于一战'不包括战后民用发展。",
-                    "影响要全面：战争形态、战争进程、军事理论、科技发展、人员伤亡。"
-                ]
-            }
+        // 艾宾浩斯遗忘曲线间隔 (毫秒)
+        const EBBINGHAUS_INTERVALS = [
+            0, 
+            5 * 60 * 1000,           // Lv.1: 5分钟
+            30 * 60 * 1000,          // Lv.2: 30分钟
+            12 * 60 * 60 * 1000,     // Lv.3: 12小时
+            24 * 60 * 60 * 1000,     // Lv.4: 1天
+            2 * 24 * 60 * 60 * 1000, // Lv.5: 2天
+            4 * 24 * 60 * 60 * 1000, // Lv.6: 4天
+            7 * 24 * 60 * 60 * 1000, // Lv.7: 7天
+            15 * 24 * 60 * 60 * 1000,// Lv.8: 15天
+            30 * 24 * 60 * 60 * 1000 // Lv.9: 30天 (Mastered)
         ];
 
-        let currentIndex = 0;
-        const STORAGE_KEY = 'history_training_progress';
-        let progressData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        
-        // 每日计划功能变量
-        let dailyGoal = 5;
-        let sessionCount = 0; // 本次会话已做题数
-        let sessionRecords = []; // 记录本次会话的题目和结果
+        // 历史题目数据库
+        const mistakeDatabase = ${JSON.stringify(historyQuestions)};
 
-        // 将函数挂载到 window 对象上，以便 HTML 按钮调用
-        window.startPractice = function() {
-            // 获取用户设定的每日题量
-            const inputVal = document.getElementById('daily-goal-input').value;
-            dailyGoal = parseInt(inputVal) || 5;
-            sessionCount = 0;
-            sessionRecords = [];
+        document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
 
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('practice-screen').classList.remove('hidden');
-            document.getElementById('practice-screen').style.animation = 'fadeIn 0.5s';
-            
-            updateStats();
-            loadQuestion(0);
+        // 初始化环境与数据库连接
+        async function initApp() {
+            await fetchMemoryRecords();
+            renderQuestionList();
         }
 
-        function updateStats() {
-            const masteredCount = Object.values(progressData).filter(status => status === 'mastered').length;
-            document.getElementById('master-count').innerText = `已掌握: ${masteredCount}`;
-            // 显示格式：当前第几题 / 总数 (今日目标: X)
-            document.getElementById('progress-text').innerText = `${currentIndex + 1}/${questions.length} (今日目标:${dailyGoal})`;
-        }
-
-        function loadQuestion(index) {
-            currentIndex = index;
-            const q = questions[index];
-
-            updateStats();
-            document.getElementById('progress-bar').style.width = `${((index + 1) / questions.length) * 100}%`;
-
-            document.getElementById('q-year').innerText = q.year;
-            document.getElementById('q-score-info').innerText = q.scoreInfo;
-            document.getElementById('q-title').innerText = q.title;
-            document.getElementById('q-content').innerHTML = q.content;
-            document.getElementById('q-diagnosis').innerHTML = q.diagnosis;
-
-            const statusBadge = document.getElementById('status-badge');
-            statusBadge.className = 'status-badge'; 
-            const historyStatus = progressData[q.id];
-            
-            if (historyStatus === 'mastered') {
-                statusBadge.innerText = '✅ 已掌握';
-                statusBadge.classList.add('status-mastered');
-                statusBadge.style.display = 'inline-block';
-            } else if (historyStatus === 'review') {
-                statusBadge.innerText = '🔴 需复习';
-                statusBadge.classList.add('status-review');
-                statusBadge.style.display = 'inline-block';
-            } else {
-                statusBadge.style.display = 'none';
-            }
-
-            document.getElementById('user-input').value = '';
-            document.getElementById('input-section').style.display = 'block';
-            document.getElementById('review-section').style.display = 'none';
-            document.getElementById('upload-status').innerText = '';
-
-            document.getElementById('old-answer-display').innerText = q.oldAnswer;
-            document.getElementById('std-answer-display').innerHTML = q.stdAnswer;
-            
-            document.getElementById('examiner-notes').innerHTML = q.examinerNotes.map(n => `<div>• ${n}</div>`).join('');
-            document.getElementById('key-takeaways').innerHTML = q.takeaways.map(t => `<li>${t}</li>`).join('');
-
-            window.scrollTo(0, 0);
-        }
-
-        window.submitAnswer = function() {
-            const val = document.getElementById('user-input').value;
-            if (!val.trim()) {
-                alert("请先输入一些关键词");
-                return;
-            }
-
-            document.getElementById('new-answer-display').innerText = val;
-            document.getElementById('input-section').style.display = 'none';
-            document.getElementById('review-section').style.display = 'block';
-            document.getElementById('review-section').scrollIntoView({ behavior: 'smooth' });
-        }
-        
-        window.markResult = async function(isMastered) {
-            const q = questions[currentIndex];
-            const status = isMastered ? 'mastered' : 'review';
-            const statusText = isMastered ? '✅ 已掌握' : '🔴 需复习';
-            
-            // 获取用户的回答内容 (在复盘界面显示的那个)
-            const userAnswer = document.getElementById('new-answer-display').innerText || "（未记录回答）";
-            
-            // 记录本次会话数据，用于发邮件
-            sessionRecords.push({
-                title: q.title,
-                status: statusText,
-                userAnswer: userAnswer,
-                questionId: q.id
+        // 渲染题目列表
+        function renderQuestionList() {
+            const container = document.getElementById('question-list');
+            let html = '';
+            mistakeDatabase.forEach(q => {
+                html += \`
+                    <div class="border-b border-gray-100 pb-4 last:border-0">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <span class="inline-block bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded mr-2">\${q.year}</span>
+                                <span class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">\${q.tag}</span>
+                            </div>
+                            <span class="text-xs text-gray-400">#\${q.id}</span>
+                        </div>
+                        <h4 class="font-medium text-gray-800 mb-1">\${q.title}</h4>
+                        <p class="text-sm text-gray-500 line-clamp-2">\${q.question}</p>
+                    </div>
+                \`;
             });
-            sessionCount++;
-
-            // 1. 本地保存
-            progressData[q.id] = status;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(progressData));
-            updateStats();
-
-            // 2. 云端保存 (如果已配置)
-            if (isCloudEnabled && db) {
-                const statusDiv = document.getElementById('upload-status');
-                statusDiv.innerText = "⏳ 正在上传数据...";
-                try {
-                    await addDoc(collection(db, "exam_records"), {
-                        userId: userId,
-                        questionId: q.id,
-                        questionTitle: q.title,
-                        status: status, // mastered or review
-                        userAnswer: userAnswer, // 同时也存到云端
-                        timestamp: serverTimestamp(),
-                        dateStr: new Date().toLocaleString()
-                    });
-                    statusDiv.innerText = "☁️ 数据已同步到云端";
-                } catch (e) {
-                    console.error("上传失败", e);
-                    statusDiv.innerText = "⚠️ 上传失败，请检查网络";
-                }
-            }
-            
-            // 检查是否达到今日目标或题目做完
-            setTimeout(() => {
-                if (sessionCount >= dailyGoal || currentIndex >= questions.length - 1) {
-                    finishSession();
-                } else {
-                    window.nextQuestion();
-                }
-            }, 800);
+            container.innerHTML = html;
         }
 
-        window.skipQuestion = function() {
-            window.nextQuestion();
+        // 调用 Cloudflare API: 拉取记忆记录
+        async function fetchMemoryRecords() {
+            try {
+                const response = await fetch('/api/memory/get?userProfile=' + currentProfile);
+                if (!response.ok) throw new Error('API Request Failed');
+                userRecords = await response.json();
+                updateSyncUI();
+            } catch(e) {
+                console.error("Fetch Data Error", e);
+                document.getElementById('sync-status').innerHTML = '<span class="text-red-500"><i class="fa-solid fa-xmark"></i> 连接后端 API 失败</span>';
+            }
+        }
+
+        function updateSyncUI() {
+            const now = Date.now();
+            const dueCount = userRecords.filter(r => r.nextReviewTime <= now).length;
+            const syncUI = document.getElementById('sync-status');
+            syncUI.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-cloud-arrow-down"></i> D1 Sync OK (' + currentProfile.toUpperCase() + ') | <b class="text-purple-700">' + dueCount + '</b> 题待复习</span>';
+            document.getElementById('sql-user-id').innerText = currentProfile;
+        }
+
+        // 调用 Cloudflare API: 触发算法更新数据库
+        async function updateMemoryRecord(questionId, isCorrect) {
+            try {
+                const existingIndex = userRecords.findIndex(r => r.questionId === questionId);
+                const existing = existingIndex !== -1 ? userRecords[existingIndex] : null;
+                const now = Date.now();
+                let newData;
+
+                if (!existing) {
+                    if (!isCorrect) {
+                        newData = { questionId: questionId, level: 1, nextReviewTime: now + EBBINGHAUS_INTERVALS[1] };
+                    }
+                } else {
+                    if (isCorrect) {
+                        const nextLevel = Math.min(existing.level + 1, EBBINGHAUS_INTERVALS.length - 1);
+                        newData = { questionId: questionId, level: nextLevel, nextReviewTime: now + EBBINGHAUS_INTERVALS[nextLevel] };
+                    } else {
+                        newData = { questionId: questionId, level: 1, nextReviewTime: now + EBBINGHAUS_INTERVALS[1] };
+                    }
+                }
+
+                if (newData) {
+                    // 更新本地内存
+                    if (existingIndex !== -1) {
+                        userRecords[existingIndex] = newData;
+                    } else {
+                        userRecords.push(newData);
+                    }
+                    
+                    // 发送 POST 到同源 Cloudflare API
+                    await fetch('/api/memory/upsert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userProfile: currentProfile,
+                            questionId: newData.questionId,
+                            level: newData.level,
+                            nextReviewTime: newData.nextReviewTime
+                        })
+                    });
+                }
+            } catch(e) {
+                console.error("Update DB Failed", e);
+            }
+        }
+
+        // 生成干扰选项
+        function generateDistractors(correctAnswer, questionId) {
+            // 从其他题目的keyPoint中选取作为干扰项
+            const otherQuestions = mistakeDatabase.filter(q => q.id !== questionId);
+            const distractors = [];
+            
+            // 随机选取2个干扰项
+            const indices = [];
+            while (indices.length < 2 && indices.length < otherQuestions.length) {
+                const r = Math.floor(Math.random() * otherQuestions.length);
+                if (!indices.includes(r)) indices.push(r);
+            }
+            
+            indices.forEach(i => {
+                // 截取前50个字符作为干扰项
+                let text = otherQuestions[i].keyPoint.substring(0, 50);
+                if (otherQuestions[i].keyPoint.length > 50) text += '...';
+                distractors.push(text);
+            });
+            
+            return distractors;
+        }
+
+        window.changeProfile = async function() {
+            const profileSelect = document.getElementById('user-profile');
+            currentProfile = profileSelect.value;
+            document.getElementById('sync-status').innerHTML = '<span class="text-purple-600"><i class="fa-solid fa-spinner fa-spin"></i> 拉取 ' + currentProfile + ' 数据...</span>';
+            await fetchMemoryRecords();
+        };
+
+        window.switchTab = function(tabName) {
+            ['view-home', 'view-review'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            ['tab-home', 'tab-review'].forEach(id => {
+                document.getElementById(id).className = "tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
+            });
+            document.getElementById('view-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).className = "tab-active whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
+        };
+
+        window.clearAllMemory = async function() {
+            if (!confirm('确定要清除账号 ' + currentProfile + ' 的所有历史记忆数据吗？此操作不可恢复！')) return;
+            
+            try {
+                const response = await fetch('/api/memory/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userProfile: currentProfile })
+                });
+                
+                if (!response.ok) throw new Error('Clear Failed');
+                
+                userRecords = [];
+                updateSyncUI();
+                window.showMemoryDashboard();
+                alert('数据已全部清除！');
+            } catch(e) {
+                console.error(e);
+                alert('清除失败，请检查网络或后端配置。');
+            }
+        };
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        window.prepareQuiz = function() {
+            const limitVal = parseInt(document.getElementById('daily-limit').value) || 10;
+            const now = Date.now();
+            const dueQuestionIds = userRecords.filter(r => r.nextReviewTime <= now).map(r => r.questionId);
+            
+            let dueQuestions = mistakeDatabase.filter(q => dueQuestionIds.includes(q.id));
+            let newQuestions = mistakeDatabase.filter(q => !dueQuestionIds.includes(q.id));
+            
+            dueQuestions = shuffleArray(dueQuestions);
+            newQuestions = shuffleArray(newQuestions);
+
+            quizData = [...dueQuestions, ...newQuestions].slice(0, Math.min(limitVal, mistakeDatabase.length));
+            
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-results').classList.add('hidden');
+            
+            if (dueQuestions.length > 0) {
+                showPreReviewScreen(dueQuestions);
+            } else {
+                window.enterQuizContext();
+            }
+        };
+
+        function showPreReviewScreen(dueList) {
+            const listContainer = document.getElementById('pre-review-list');
+            document.getElementById('pre-review-count').innerText = dueList.length;
+            listContainer.innerHTML = '';
+
+            dueList.forEach(q => {
+                const dbRecord = userRecords.find(r => r.questionId === q.id);
+                const lvl = dbRecord ? dbRecord.level : 1;
+                listContainer.innerHTML += 
+                    '<div class="bg-white p-4 rounded-lg border border-yellow-200 shadow-sm relative overflow-hidden">' +
+                        '<div class="absolute right-0 top-0 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-bl-lg font-bold">' +
+                            'Lv.' + lvl +
+                        '</div>' +
+                        '<div class="flex items-center gap-2 mb-2">' +
+                            '<span class="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded">' + q.year + '</span>' +
+                            '<span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">' + q.tag + '</span>' +
+                        '</div>' +
+                        '<h4 class="font-bold text-gray-800 mb-2">' + q.title + '</h4>' +
+                        '<p class="text-sm text-gray-600 mb-2">' + q.question + '</p>' +
+                        '<div class="bg-amber-50 p-2 rounded text-sm">' +
+                            '<strong class="text-amber-700">核心要点：</strong>' + q.keyPoint +
+                        '</div>' +
+                    '</div>';
+            });
+            document.getElementById('quiz-pre-review').classList.remove('hidden');
+        }
+
+        window.enterQuizContext = function() {
+            document.getElementById('quiz-pre-review').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('total-q').innerText = quizData.length;
+            loadQuestion();
+        };
+
+        function loadQuestion() {
+            isAnswered = false;
+            const q = quizData[currentQuestionIndex];
+            
+            const isReviewQuestion = userRecords.some(r => r.questionId === q.id && r.nextReviewTime <= Date.now());
+            document.getElementById('ebbinghaus-badge').style.display = isReviewQuestion ? 'inline-flex' : 'none';
+
+            document.getElementById('current-q').innerText = currentQuestionIndex + 1;
+            document.getElementById('progress-bar').style.width = (((currentQuestionIndex) / quizData.length) * 100) + '%';
+            
+            document.getElementById('q-year').innerText = q.year + '年高考';
+            document.getElementById('q-tag').innerText = q.tag;
+            document.getElementById('q-title').innerText = q.title;
+            document.getElementById('q-question').innerText = q.question;
+            document.getElementById('feedback-area').classList.add('hidden');
+
+            const optionsDiv = document.getElementById('options-container');
+            optionsDiv.innerHTML = '';
+
+            // 生成选项
+            let options = [
+                { text: q.keyPoint, isCorrect: true },
+                ...generateDistractors(q.keyPoint, q.id).map(d => ({ text: d, isCorrect: false }))
+            ];
+            options = shuffleArray(options);
+
+            options.forEach((opt) => {
+                const btn = document.createElement('div');
+                btn.className = "option-card w-full p-3 sm:p-4 rounded-lg border border-gray-200 cursor-pointer flex items-center bg-white";
+                btn.innerHTML = '<div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center dot-indicator shrink-0"></div><span class="font-medium text-gray-700 text-sm">' + opt.text + '</span>';
+                btn.onclick = () => window.checkAnswer(opt, btn, q);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        window.checkAnswer = async function(selectedOption, btnElement, questionData) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const allBtns = document.getElementById('options-container').children;
+
+            if (selectedOption.isCorrect) {
+                score++;
+                btnElement.classList.add('option-selected-correct');
+                btnElement.querySelector('.dot-indicator').innerHTML = '<i class="fa-solid fa-check text-green-500 text-xs"></i>';
+                btnElement.querySelector('.dot-indicator').classList.add('border-green-500');
+                showFeedback(true, questionData);
+            } else {
+                btnElement.classList.add('option-selected-wrong');
+                btnElement.querySelector('.dot-indicator').innerHTML = '<i class="fa-solid fa-xmark text-red-500 text-xs"></i>';
+                btnElement.querySelector('.dot-indicator').classList.add('border-red-500');
+                
+                Array.from(allBtns).forEach(b => {
+                    if (b.innerText.includes(questionData.keyPoint.substring(0, 30))) {
+                        b.classList.add('option-selected-correct');
+                    }
+                });
+                showFeedback(false, questionData);
+            }
+
+            await updateMemoryRecord(questionData.id, selectedOption.isCorrect);
+            updateSyncUI();
+        };
+
+        function showFeedback(isCorrect, data) {
+            const fbArea = document.getElementById('feedback-area');
+            const fbIcon = document.getElementById('feedback-icon');
+            const fbTitle = document.getElementById('feedback-title');
+            
+            document.getElementById('feedback-keypoint').innerText = data.keyPoint;
+            document.getElementById('feedback-error').innerText = data.commonError;
+            document.getElementById('feedback-explanation').innerText = data.explanation;
+
+            fbArea.classList.remove('hidden');
+            fbArea.classList.add('fade-in');
+
+            if (isCorrect) {
+                fbIcon.innerHTML = '<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><i class="fa-solid fa-check text-green-600"></i></div>';
+                fbTitle.innerText = "正确! 算法已调高该题掌握层级";
+                fbTitle.className = "font-bold text-base sm:text-lg mb-1 text-green-700";
+            } else {
+                fbIcon.innerHTML = '<div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><i class="fa-solid fa-xmark text-red-600"></i></div>';
+                fbTitle.innerText = "答错了! 遗忘曲线已重置为Lv.1";
+                fbTitle.className = "font-bold text-base sm:text-lg mb-1 text-red-700";
+            }
         }
 
         window.nextQuestion = function() {
-            if (currentIndex < questions.length - 1) {
-                loadQuestion(currentIndex + 1);
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
             } else {
-                finishSession();
+                showResults();
             }
-        }
-        
-        // 结束本次特训，展示结算页并发送邮件
-        function finishSession() {
-            document.getElementById('practice-screen').classList.add('hidden');
-            document.getElementById('completion-screen').classList.remove('hidden');
-            
-            // 生成摘要HTML
-            const summaryContainer = document.getElementById('session-summary-list');
-            let summaryHTML = "";
-            let emailContentText = ""; // 纯文本内容用于邮件
+        };
 
-            sessionRecords.forEach((record, index) => {
-                // UI 展示摘要
-                summaryHTML += `
-                    <div class="summary-item">
-                        <div class="summary-header">
-                            <span>${index + 1}. ${record.title}</span>
-                            <strong>${record.status}</strong>
-                        </div>
-                        <div class="summary-answer">
-                            我的回答：${record.userAnswer.substring(0, 40)}${record.userAnswer.length > 40 ? '...' : ''}
-                        </div>
-                    </div>
-                `;
-                
-                // 邮件文本内容
-                emailContentText += `----------------------------------------\n`;
-                emailContentText += `题目 ${index + 1}: ${record.title}\n`;
-                emailContentText += `状态: ${record.status}\n`;
-                emailContentText += `你的回答:\n${record.userAnswer}\n`;
-                emailContentText += `----------------------------------------\n\n`;
-            });
-            summaryContainer.innerHTML = summaryHTML;
-
-            // 调用发送邮件功能
-            sendEmailReport(emailContentText);
+        function showResults() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-results').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score + ' / ' + quizData.length;
         }
 
-        // 发送邮件功能
-        function sendEmailReport(content) {
-            const statusDiv = document.getElementById('email-report-status');
+        window.showMemoryDashboard = function() {
+            const modal = document.getElementById('memory-modal');
+            const tbody = document.getElementById('db-table-body');
             
-            if (!sessionRecords.length) {
-                statusDiv.innerText = "⚠️ 本次未做题，无报告发送。";
-                return;
-            }
+            if (userRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">当前账号 (SELECT *) 结果为空。去答题写入数据吧！</td></tr>';
+            } else {
+                let html = '';
+                const sorted = [...userRecords].sort((a,b) => a.nextReviewTime - b.nextReviewTime);
+                const now = Date.now();
 
-            // 准备模板参数
-            // 这里假设模板里有一个 {{message}} 或类似的变量来接收主要内容
-            // 我们构造一个包含日期和详情的字符串
-            const todayStr = new Date().toLocaleString();
-            const reportData = {
-                to_name: "用户", // 如果有用户名可替换
-                message: `
-[历史特训报告 - ${todayStr}]
-今日目标: ${dailyGoal}题
-实际完成: ${sessionRecords.length}题
+                sorted.forEach(record => {
+                    const q = mistakeDatabase.find(x => x.id === record.questionId);
+                    if(!q) return;
 
-=== 详细复盘 ===
-${content}
-                `
-            };
+                    const dateObj = new Date(record.nextReviewTime);
+                    const timeStr = dateObj.getFullYear() + '-' + 
+                                    (dateObj.getMonth()+1).toString().padStart(2,'0') + '-' + 
+                                    dateObj.getDate().toString().padStart(2,'0') + ' ' + 
+                                    dateObj.getHours().toString().padStart(2,'0') + ':' + 
+                                    dateObj.getMinutes().toString().padStart(2,'0');
+                    
+                    const isDue = record.nextReviewTime <= now;
+                    const statusHtml = isDue 
+                        ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">DUE (待复习)</span>' 
+                        : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">RETAINED</span>';
 
-            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, reportData)
-                .then(function(response) {
-                    console.log('SUCCESS!', response.status, response.text);
-                    statusDiv.innerHTML = "✅ 邮件报告已发送成功！<br>包含每道题的详细回答和掌握情况。";
-                    statusDiv.style.background = "#dcfce7";
-                    statusDiv.style.color = "#166534";
-                }, function(error) {
-                    console.log('FAILED...', error);
-                    statusDiv.innerHTML = "❌ 邮件发送失败。<br>请检查网络或配置。";
-                    statusDiv.style.background = "#fee2e2";
-                    statusDiv.style.color = "#991b1b";
+                    const timeClass = isDue ? 'text-red-500 font-bold' : 'text-gray-500';
+
+                    html += 
+                    '<tr class="hover:bg-gray-50 transition">' +
+                        '<td class="px-4 py-3 border-b max-w-xs truncate">' +
+                            '<span class="font-bold text-gray-700">[' + q.year + ']</span> ' + q.title + '<br>' +
+                            '<span class="text-xs text-gray-400 font-mono">' + q.tag + '</span>' +
+                        '</td>' +
+                        '<td class="px-4 py-3 border-b text-center">' + statusHtml + '</td>' +
+                        '<td class="px-4 py-3 border-b text-center">' +
+                            '<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-sm">' +
+                                record.level +
+                            '</div>' +
+                        '</td>' +
+                        '<td class="px-4 py-3 border-b font-mono text-xs ' + timeClass + '">' +
+                            timeStr + '<br>' +
+                            '<span class="text-[10px] text-gray-400">TIMESTAMP: ' + record.nextReviewTime + '</span>' +
+                        '</td>' +
+                    '</tr>';
                 });
-        }
-
-        window.clearData = function() {
-            if(confirm('确定要清除所有做题记录吗？')) {
-                localStorage.removeItem(STORAGE_KEY);
-                progressData = {};
-                alert('记录已重置');
-                location.reload();
+                tbody.innerHTML = html;
             }
-        }
+            modal.classList.remove('hidden');
+        };
+
+        // 启动应用
+        initApp();
     </script>
 </body>
-</html>
+</html>`;

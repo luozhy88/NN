@@ -6,5 +6,5 @@ compatibility_date = "2024-03-08"
 # 绑定代码中需要的 D1 数据库
 [[d1_databases]]
 binding = "DB"                 # 必须和代码中的 env.DB 一致
-database_name = "history-review" 
-database_id = "4de4dd98-"
+database_name = "history-training" 
+database_id = "58135f6e-af02-44a7-abef-e6dc08a095c2"
