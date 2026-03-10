@@ -7,4 +7,4 @@ compatibility_date = "2024-03-08"
 [[d1_databases]]
 binding = "DB"                 # 必须和代码中的 env.DB 一致
 database_name = "politics-review" 
-database_id = "4"
+database_id = "96c209b0-9ff6-4efd-afe7-31ea1d30b3db"

@@ -1,67 +1,33 @@
-/**
- * =========================================================
- * 高考历史特训 - Cloudflare Worker 全栈版本
- * 版本号: v1.0.0 (艾宾浩斯记忆曲线 + D1数据库)
- * =========================================================
- * 
- * 部署指南：
- * 1. 在 Cloudflare D1 控制台创建一个名为 `history-training` 的数据库，并执行以下建表语句：
- * 
- * CREATE TABLE IF NOT EXISTS ebbinghaus_records (
- *   id TEXT PRIMARY KEY,
- *   user_profile TEXT NOT NULL,
- *   question_id INTEGER NOT NULL,
- *   level INTEGER NOT NULL DEFAULT 1,
- *   next_review_time INTEGER NOT NULL,
- *   last_updated INTEGER NOT NULL
- * );
- * CREATE INDEX idx_user_review ON ebbinghaus_records(user_profile, next_review_time);
- * 
- * 2. 创建一个 Worker，将此代码粘贴进去。
- * 3. 在 Worker 的 Settings -> Variables -> D1 Database Bindings 中，绑定刚才创建的 `history-training` 数据库，变量名必须为 "DB"。
- */
-
-export default {
+// worker.js
+var worker_default = {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-
-    // ==========================================
-    // 后端 API: 获取用户的艾宾浩斯记忆数据
-    // ==========================================
-    if (url.pathname === '/api/memory/get' && request.method === 'GET') {
-      const userProfile = url.searchParams.get('userProfile');
-      if (!userProfile) return new Response('Missing userProfile', { status: 400 });
-
+    if (url.pathname === "/api/memory/get" && request.method === "GET") {
+      const userProfile = url.searchParams.get("userProfile");
+      if (!userProfile) return new Response("Missing userProfile", { status: 400 });
       try {
         const { results } = await env.DB.prepare(
           "SELECT * FROM ebbinghaus_records WHERE user_profile = ? ORDER BY next_review_time ASC"
         ).bind(userProfile).all();
-
-        const formattedResults = results.map(row => ({
+        const formattedResults = results.map((row) => ({
           id: row.id,
           questionId: row.question_id,
           level: row.level,
           nextReviewTime: row.next_review_time
         }));
-
         return new Response(JSON.stringify(formattedResults), {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" }
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500 });
       }
     }
-
-    // ==========================================
-    // 后端 API: 更新或插入错题记录
-    // ==========================================
-    if (url.pathname === '/api/memory/upsert' && request.method === 'POST') {
+    if (url.pathname === "/api/memory/upsert" && request.method === "POST") {
       try {
         const data = await request.json();
         const { userProfile, questionId, level, nextReviewTime } = data;
-        const id = userProfile + '_' + questionId;
+        const id = userProfile + "_" + questionId;
         const now = Date.now();
-
         await env.DB.prepare(`
           INSERT INTO ebbinghaus_records (id, user_profile, question_id, level, next_review_time, last_updated)
           VALUES (?1, ?2, ?3, ?4, ?5, ?6)
@@ -70,598 +36,579 @@ export default {
           next_review_time = excluded.next_review_time, 
           last_updated = excluded.last_updated
         `).bind(id, userProfile, questionId, level, nextReviewTime, now).run();
-
         return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" }
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500 });
       }
     }
-
-    // ==========================================
-    // 后端 API: 清除指定用户的所有记忆数据
-    // ==========================================
-    if (url.pathname === '/api/memory/clear' && request.method === 'POST') {
+    if (url.pathname === "/api/memory/clear" && request.method === "POST") {
       try {
         const data = await request.json();
         const { userProfile } = data;
-        
         await env.DB.prepare("DELETE FROM ebbinghaus_records WHERE user_profile = ?").bind(userProfile).run();
-
         return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json' }
+          headers: { "Content-Type": "application/json" }
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500 });
       }
     }
-
-    // ==========================================
-    // 前端路由: 返回完整的 HTML SPA 页面
-    // ==========================================
     return new Response(HTML_CONTENT, {
-      headers: { 'Content-Type': 'text/html;charset=UTF-8' }
+      headers: { "Content-Type": "text/html;charset=UTF-8" }
     });
   }
 };
-
-// ==========================================
-// 历史题目数据库 (从 index.html 提取核心知识点)
-// ==========================================
-const historyQuestions = [
+var historyQuestions = [
   {
     id: 1,
     year: "2015",
-    tag: "儒学发展",
-    title: "汉代儒学与孔孟儒学的不同之处",
-    question: "汉代儒学与孔孟儒学的不同之处是什么？宋代理学在哪些方面对儒学有所发展？",
-    keyPoint: "孔孟讲仁礼民本；汉儒讲大一统、天人感应、君权神授；宋代理学吸收佛道，思辨化、哲学化，提出存天理灭人欲",
-    commonError: "词汇匮乏，漏掉大一统思想，概念缺失",
-    explanation: "汉代儒学在孔孟基础上吸纳法家、道家、阴阳家思想，形成天人感应理论；宋代理学使儒学哲学化，朱熹提出存天理灭人欲。"
+    tag: "\u5112\u5B66\u53D1\u5C55",
+    title: "\u6C49\u4EE3\u5112\u5B66\u4E0E\u5B54\u5B5F\u5112\u5B66\u7684\u4E0D\u540C\u4E4B\u5904",
+    question: "\u6C49\u4EE3\u5112\u5B66\u4E0E\u5B54\u5B5F\u5112\u5B66\u7684\u4E0D\u540C\u4E4B\u5904\u662F\u4EC0\u4E48\uFF1F\u5B8B\u4EE3\u7406\u5B66\u5728\u54EA\u4E9B\u65B9\u9762\u5BF9\u5112\u5B66\u6709\u6240\u53D1\u5C55\uFF1F",
+    keyPoint: "\u5B54\u5B5F\u8BB2\u4EC1\u793C\u6C11\u672C\uFF1B\u6C49\u5112\u8BB2\u5927\u4E00\u7EDF\u3001\u5929\u4EBA\u611F\u5E94\u3001\u541B\u6743\u795E\u6388\uFF1B\u5B8B\u4EE3\u7406\u5B66\u5438\u6536\u4F5B\u9053\uFF0C\u601D\u8FA8\u5316\u3001\u54F2\u5B66\u5316\uFF0C\u63D0\u51FA\u5B58\u5929\u7406\u706D\u4EBA\u6B32",
+    commonError: "\u8BCD\u6C47\u532E\u4E4F\uFF0C\u6F0F\u6389\u5927\u4E00\u7EDF\u601D\u60F3\uFF0C\u6982\u5FF5\u7F3A\u5931",
+    explanation: "\u6C49\u4EE3\u5112\u5B66\u5728\u5B54\u5B5F\u57FA\u7840\u4E0A\u5438\u7EB3\u6CD5\u5BB6\u3001\u9053\u5BB6\u3001\u9634\u9633\u5BB6\u601D\u60F3\uFF0C\u5F62\u6210\u5929\u4EBA\u611F\u5E94\u7406\u8BBA\uFF1B\u5B8B\u4EE3\u7406\u5B66\u4F7F\u5112\u5B66\u54F2\u5B66\u5316\uFF0C\u6731\u71B9\u63D0\u51FA\u5B58\u5929\u7406\u706D\u4EBA\u6B32\u3002"
   },
   {
     id: 2,
     year: "2015",
-    tag: "工业革命",
-    title: "科学技术与生产力公式探讨",
-    question: "运用世界近现代史史实，对公式（生产力=科学技术×（劳动力+劳动工具+劳动对象+生产管理））进行探讨。",
-    keyPoint: "科技是第一生产力；蒸汽机→电气化→自动化（工具）；工厂→垄断→现代管理（管理）；体力→脑力（劳动力）",
-    commonError: "逻辑断层，未紧扣公式要素，缺少结构",
-    explanation: "三次工业革命分别对应公式中的不同要素：第一次是工具变革（蒸汽机），第二次是管理变革（垄断组织），第三次是劳动力素质提升。"
+    tag: "\u5DE5\u4E1A\u9769\u547D",
+    title: "\u79D1\u5B66\u6280\u672F\u4E0E\u751F\u4EA7\u529B\u516C\u5F0F\u63A2\u8BA8",
+    question: "\u8FD0\u7528\u4E16\u754C\u8FD1\u73B0\u4EE3\u53F2\u53F2\u5B9E\uFF0C\u5BF9\u516C\u5F0F\uFF08\u751F\u4EA7\u529B=\u79D1\u5B66\u6280\u672F\xD7\uFF08\u52B3\u52A8\u529B+\u52B3\u52A8\u5DE5\u5177+\u52B3\u52A8\u5BF9\u8C61+\u751F\u4EA7\u7BA1\u7406\uFF09\uFF09\u8FDB\u884C\u63A2\u8BA8\u3002",
+    keyPoint: "\u79D1\u6280\u662F\u7B2C\u4E00\u751F\u4EA7\u529B\uFF1B\u84B8\u6C7D\u673A\u2192\u7535\u6C14\u5316\u2192\u81EA\u52A8\u5316\uFF08\u5DE5\u5177\uFF09\uFF1B\u5DE5\u5382\u2192\u5784\u65AD\u2192\u73B0\u4EE3\u7BA1\u7406\uFF08\u7BA1\u7406\uFF09\uFF1B\u4F53\u529B\u2192\u8111\u529B\uFF08\u52B3\u52A8\u529B\uFF09",
+    commonError: "\u903B\u8F91\u65AD\u5C42\uFF0C\u672A\u7D27\u6263\u516C\u5F0F\u8981\u7D20\uFF0C\u7F3A\u5C11\u7ED3\u6784",
+    explanation: "\u4E09\u6B21\u5DE5\u4E1A\u9769\u547D\u5206\u522B\u5BF9\u5E94\u516C\u5F0F\u4E2D\u7684\u4E0D\u540C\u8981\u7D20\uFF1A\u7B2C\u4E00\u6B21\u662F\u5DE5\u5177\u53D8\u9769\uFF08\u84B8\u6C7D\u673A\uFF09\uFF0C\u7B2C\u4E8C\u6B21\u662F\u7BA1\u7406\u53D8\u9769\uFF08\u5784\u65AD\u7EC4\u7EC7\uFF09\uFF0C\u7B2C\u4E09\u6B21\u662F\u52B3\u52A8\u529B\u7D20\u8D28\u63D0\u5347\u3002"
   },
   {
     id: 3,
     year: "2015",
-    tag: "唐代经济",
-    title: "唐代币制改革",
-    question: "唐代币制改革的主要内容和意义是什么？",
-    keyPoint: "开创通宝/元宝体制；确立十进位制；结束混乱，确立后世范式，利于商品经济",
-    commonError: "术语不准（应为通宝体制），深度不够",
-    explanation: "唐代废除了以重量命名货币的制度，开创通宝/元宝体制，确立十进位制，成为后世铸币范式。"
+    tag: "\u5510\u4EE3\u7ECF\u6D4E",
+    title: "\u5510\u4EE3\u5E01\u5236\u6539\u9769",
+    question: "\u5510\u4EE3\u5E01\u5236\u6539\u9769\u7684\u4E3B\u8981\u5185\u5BB9\u548C\u610F\u4E49\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u5F00\u521B\u901A\u5B9D/\u5143\u5B9D\u4F53\u5236\uFF1B\u786E\u7ACB\u5341\u8FDB\u4F4D\u5236\uFF1B\u7ED3\u675F\u6DF7\u4E71\uFF0C\u786E\u7ACB\u540E\u4E16\u8303\u5F0F\uFF0C\u5229\u4E8E\u5546\u54C1\u7ECF\u6D4E",
+    commonError: "\u672F\u8BED\u4E0D\u51C6\uFF08\u5E94\u4E3A\u901A\u5B9D\u4F53\u5236\uFF09\uFF0C\u6DF1\u5EA6\u4E0D\u591F",
+    explanation: "\u5510\u4EE3\u5E9F\u9664\u4E86\u4EE5\u91CD\u91CF\u547D\u540D\u8D27\u5E01\u7684\u5236\u5EA6\uFF0C\u5F00\u521B\u901A\u5B9D/\u5143\u5B9D\u4F53\u5236\uFF0C\u786E\u7ACB\u5341\u8FDB\u4F4D\u5236\uFF0C\u6210\u4E3A\u540E\u4E16\u94F8\u5E01\u8303\u5F0F\u3002"
   },
   {
     id: 4,
     year: "2015",
-    tag: "抗战历史",
-    title: "抗战前后党派地位变化",
-    question: "抗战胜利前后各党派地位发生了什么变化？原因及影响是什么？",
-    keyPoint: "国民党一党专政→各党派法律上平等；原因：团结抗战、中共增强、民心所向、国际制约；影响：促成政协会议",
-    commonError: "严重漏答影响部分，原因不全",
-    explanation: "抗战胜利后，各民主党派力量壮大，政治协商会议召开，打破了国民党一党专政局面。"
+    tag: "\u6297\u6218\u5386\u53F2",
+    title: "\u6297\u6218\u524D\u540E\u515A\u6D3E\u5730\u4F4D\u53D8\u5316",
+    question: "\u6297\u6218\u80DC\u5229\u524D\u540E\u5404\u515A\u6D3E\u5730\u4F4D\u53D1\u751F\u4E86\u4EC0\u4E48\u53D8\u5316\uFF1F\u539F\u56E0\u53CA\u5F71\u54CD\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u56FD\u6C11\u515A\u4E00\u515A\u4E13\u653F\u2192\u5404\u515A\u6D3E\u6CD5\u5F8B\u4E0A\u5E73\u7B49\uFF1B\u539F\u56E0\uFF1A\u56E2\u7ED3\u6297\u6218\u3001\u4E2D\u5171\u589E\u5F3A\u3001\u6C11\u5FC3\u6240\u5411\u3001\u56FD\u9645\u5236\u7EA6\uFF1B\u5F71\u54CD\uFF1A\u4FC3\u6210\u653F\u534F\u4F1A\u8BAE",
+    commonError: "\u4E25\u91CD\u6F0F\u7B54\u5F71\u54CD\u90E8\u5206\uFF0C\u539F\u56E0\u4E0D\u5168",
+    explanation: "\u6297\u6218\u80DC\u5229\u540E\uFF0C\u5404\u6C11\u4E3B\u515A\u6D3E\u529B\u91CF\u58EE\u5927\uFF0C\u653F\u6CBB\u534F\u5546\u4F1A\u8BAE\u53EC\u5F00\uFF0C\u6253\u7834\u4E86\u56FD\u6C11\u515A\u4E00\u515A\u4E13\u653F\u5C40\u9762\u3002"
   },
   {
     id: 5,
     year: "2015",
-    tag: "二战历史",
-    title: "戴高乐与法国复兴",
-    question: "戴高乐号召抵抗的理由是什么？法国复兴的历史经验有哪些？",
-    keyPoint: "理由：胜败未定、有殖民地后盾、有盟友支持、正义必胜；经验：坚持独立主权、依靠人民、国际合作",
-    commonError: "幻视（答成古代史），脱离材料",
-    explanation: "戴高乐在1940年法国沦陷后，依靠殖民地和英美盟友，坚持自由法国运动，最终赢得胜利。"
+    tag: "\u4E8C\u6218\u5386\u53F2",
+    title: "\u6234\u9AD8\u4E50\u4E0E\u6CD5\u56FD\u590D\u5174",
+    question: "\u6234\u9AD8\u4E50\u53F7\u53EC\u62B5\u6297\u7684\u7406\u7531\u662F\u4EC0\u4E48\uFF1F\u6CD5\u56FD\u590D\u5174\u7684\u5386\u53F2\u7ECF\u9A8C\u6709\u54EA\u4E9B\uFF1F",
+    keyPoint: "\u7406\u7531\uFF1A\u80DC\u8D25\u672A\u5B9A\u3001\u6709\u6B96\u6C11\u5730\u540E\u76FE\u3001\u6709\u76DF\u53CB\u652F\u6301\u3001\u6B63\u4E49\u5FC5\u80DC\uFF1B\u7ECF\u9A8C\uFF1A\u575A\u6301\u72EC\u7ACB\u4E3B\u6743\u3001\u4F9D\u9760\u4EBA\u6C11\u3001\u56FD\u9645\u5408\u4F5C",
+    commonError: "\u5E7B\u89C6\uFF08\u7B54\u6210\u53E4\u4EE3\u53F2\uFF09\uFF0C\u8131\u79BB\u6750\u6599",
+    explanation: "\u6234\u9AD8\u4E50\u57281940\u5E74\u6CD5\u56FD\u6CA6\u9677\u540E\uFF0C\u4F9D\u9760\u6B96\u6C11\u5730\u548C\u82F1\u7F8E\u76DF\u53CB\uFF0C\u575A\u6301\u81EA\u7531\u6CD5\u56FD\u8FD0\u52A8\uFF0C\u6700\u7EC8\u8D62\u5F97\u80DC\u5229\u3002"
   },
   {
     id: 6,
     year: "2016",
-    tag: "清代人口",
-    title: "清中期人口膨胀与近代主张",
-    question: "清中期人口膨胀的原因及影响是什么？近代学者有何主张？",
-    keyPoint: "原因：政治稳定、税改、高产作物；影响：人地矛盾、生态恶化、收入下降；主张：移民、实业、节育",
-    commonError: "细节丢失，评价空泛",
-    explanation: "清代人口从1亿增至4亿，引发严重人地矛盾；近代学者提出多种解决方案，各有优劣。"
+    tag: "\u6E05\u4EE3\u4EBA\u53E3",
+    title: "\u6E05\u4E2D\u671F\u4EBA\u53E3\u81A8\u80C0\u4E0E\u8FD1\u4EE3\u4E3B\u5F20",
+    question: "\u6E05\u4E2D\u671F\u4EBA\u53E3\u81A8\u80C0\u7684\u539F\u56E0\u53CA\u5F71\u54CD\u662F\u4EC0\u4E48\uFF1F\u8FD1\u4EE3\u5B66\u8005\u6709\u4F55\u4E3B\u5F20\uFF1F",
+    keyPoint: "\u539F\u56E0\uFF1A\u653F\u6CBB\u7A33\u5B9A\u3001\u7A0E\u6539\u3001\u9AD8\u4EA7\u4F5C\u7269\uFF1B\u5F71\u54CD\uFF1A\u4EBA\u5730\u77DB\u76FE\u3001\u751F\u6001\u6076\u5316\u3001\u6536\u5165\u4E0B\u964D\uFF1B\u4E3B\u5F20\uFF1A\u79FB\u6C11\u3001\u5B9E\u4E1A\u3001\u8282\u80B2",
+    commonError: "\u7EC6\u8282\u4E22\u5931\uFF0C\u8BC4\u4EF7\u7A7A\u6CDB",
+    explanation: "\u6E05\u4EE3\u4EBA\u53E3\u4ECE1\u4EBF\u589E\u81F34\u4EBF\uFF0C\u5F15\u53D1\u4E25\u91CD\u4EBA\u5730\u77DB\u76FE\uFF1B\u8FD1\u4EE3\u5B66\u8005\u63D0\u51FA\u591A\u79CD\u89E3\u51B3\u65B9\u6848\uFF0C\u5404\u6709\u4F18\u52A3\u3002"
   },
   {
     id: 7,
     year: "2016",
-    tag: "启蒙思想",
-    title: "卢梭思想与制度构想",
-    question: "围绕'制度构想与实践'，结合卢梭思想拟定论题并阐述。",
-    keyPoint: "卢梭主张直接民主（理想性），代议制是现实选择（现实性）；体现理想与现实的张力",
-    commonError: "格式错误（未写论题），缺乏思辨",
-    explanation: "卢梭批判代议制，主张人民主权；但大国实行直接民主困难，代议制成为现代政治的现实选择。"
+    tag: "\u542F\u8499\u601D\u60F3",
+    title: "\u5362\u68AD\u601D\u60F3\u4E0E\u5236\u5EA6\u6784\u60F3",
+    question: "\u56F4\u7ED5'\u5236\u5EA6\u6784\u60F3\u4E0E\u5B9E\u8DF5'\uFF0C\u7ED3\u5408\u5362\u68AD\u601D\u60F3\u62DF\u5B9A\u8BBA\u9898\u5E76\u9610\u8FF0\u3002",
+    keyPoint: "\u5362\u68AD\u4E3B\u5F20\u76F4\u63A5\u6C11\u4E3B\uFF08\u7406\u60F3\u6027\uFF09\uFF0C\u4EE3\u8BAE\u5236\u662F\u73B0\u5B9E\u9009\u62E9\uFF08\u73B0\u5B9E\u6027\uFF09\uFF1B\u4F53\u73B0\u7406\u60F3\u4E0E\u73B0\u5B9E\u7684\u5F20\u529B",
+    commonError: "\u683C\u5F0F\u9519\u8BEF\uFF08\u672A\u5199\u8BBA\u9898\uFF09\uFF0C\u7F3A\u4E4F\u601D\u8FA8",
+    explanation: "\u5362\u68AD\u6279\u5224\u4EE3\u8BAE\u5236\uFF0C\u4E3B\u5F20\u4EBA\u6C11\u4E3B\u6743\uFF1B\u4F46\u5927\u56FD\u5B9E\u884C\u76F4\u63A5\u6C11\u4E3B\u56F0\u96BE\uFF0C\u4EE3\u8BAE\u5236\u6210\u4E3A\u73B0\u4EE3\u653F\u6CBB\u7684\u73B0\u5B9E\u9009\u62E9\u3002"
   },
   {
     id: 8,
     year: "2018",
-    tag: "基层治理",
-    title: "乡约制度的变化",
-    question: "宋代到明清时期乡约制度有何变化？积极作用是什么？",
-    keyPoint: "变化：民间自发→官府主导，道德教化→宣讲圣谕，自我管理→国家控制；作用：维护秩序、道德教化、弥补行政不足",
-    commonError: "变化答不完整，混入负面评价",
-    explanation: "宋代乡约是民间士绅自发组织；明清时期成为官府推行圣谕、控制基层的工具。"
+    tag: "\u57FA\u5C42\u6CBB\u7406",
+    title: "\u4E61\u7EA6\u5236\u5EA6\u7684\u53D8\u5316",
+    question: "\u5B8B\u4EE3\u5230\u660E\u6E05\u65F6\u671F\u4E61\u7EA6\u5236\u5EA6\u6709\u4F55\u53D8\u5316\uFF1F\u79EF\u6781\u4F5C\u7528\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u53D8\u5316\uFF1A\u6C11\u95F4\u81EA\u53D1\u2192\u5B98\u5E9C\u4E3B\u5BFC\uFF0C\u9053\u5FB7\u6559\u5316\u2192\u5BA3\u8BB2\u5723\u8C15\uFF0C\u81EA\u6211\u7BA1\u7406\u2192\u56FD\u5BB6\u63A7\u5236\uFF1B\u4F5C\u7528\uFF1A\u7EF4\u62A4\u79E9\u5E8F\u3001\u9053\u5FB7\u6559\u5316\u3001\u5F25\u8865\u884C\u653F\u4E0D\u8DB3",
+    commonError: "\u53D8\u5316\u7B54\u4E0D\u5B8C\u6574\uFF0C\u6DF7\u5165\u8D1F\u9762\u8BC4\u4EF7",
+    explanation: "\u5B8B\u4EE3\u4E61\u7EA6\u662F\u6C11\u95F4\u58EB\u7EC5\u81EA\u53D1\u7EC4\u7EC7\uFF1B\u660E\u6E05\u65F6\u671F\u6210\u4E3A\u5B98\u5E9C\u63A8\u884C\u5723\u8C15\u3001\u63A7\u5236\u57FA\u5C42\u7684\u5DE5\u5177\u3002"
   },
   {
     id: 9,
     year: "2018",
-    tag: "清末新政",
-    title: "清末城镇乡地方自治的历史背景",
-    question: "简述清末城镇乡地方自治的历史背景。",
-    keyPoint: "民族危机、清末新政、西方民主思想传入、士绅推动、戊戌变法影响",
-    commonError: "过于简略，缺乏展开",
-    explanation: "清末在内忧外患下推行新政，地方自治被视为强国之基，受到西方思想和士绅阶层推动。"
+    tag: "\u6E05\u672B\u65B0\u653F",
+    title: "\u6E05\u672B\u57CE\u9547\u4E61\u5730\u65B9\u81EA\u6CBB\u7684\u5386\u53F2\u80CC\u666F",
+    question: "\u7B80\u8FF0\u6E05\u672B\u57CE\u9547\u4E61\u5730\u65B9\u81EA\u6CBB\u7684\u5386\u53F2\u80CC\u666F\u3002",
+    keyPoint: "\u6C11\u65CF\u5371\u673A\u3001\u6E05\u672B\u65B0\u653F\u3001\u897F\u65B9\u6C11\u4E3B\u601D\u60F3\u4F20\u5165\u3001\u58EB\u7EC5\u63A8\u52A8\u3001\u620A\u620C\u53D8\u6CD5\u5F71\u54CD",
+    commonError: "\u8FC7\u4E8E\u7B80\u7565\uFF0C\u7F3A\u4E4F\u5C55\u5F00",
+    explanation: "\u6E05\u672B\u5728\u5185\u5FE7\u5916\u60A3\u4E0B\u63A8\u884C\u65B0\u653F\uFF0C\u5730\u65B9\u81EA\u6CBB\u88AB\u89C6\u4E3A\u5F3A\u56FD\u4E4B\u57FA\uFF0C\u53D7\u5230\u897F\u65B9\u601D\u60F3\u548C\u58EB\u7EC5\u9636\u5C42\u63A8\u52A8\u3002"
   },
   {
     id: 10,
     year: "2018",
-    tag: "现代政治",
-    title: "村民自治的意义",
-    question: "村民自治的意义是什么？",
-    keyPoint: "扩大基层民主、加强基层政权建设、推动民主政治进程、为基层治理现代化提供保障",
-    commonError: "未展开，遗漏法治建设等角度",
-    explanation: "村民自治是中国特色社会主义民主政治的重要组成部分，扩大了基层民主权利。"
+    tag: "\u73B0\u4EE3\u653F\u6CBB",
+    title: "\u6751\u6C11\u81EA\u6CBB\u7684\u610F\u4E49",
+    question: "\u6751\u6C11\u81EA\u6CBB\u7684\u610F\u4E49\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u6269\u5927\u57FA\u5C42\u6C11\u4E3B\u3001\u52A0\u5F3A\u57FA\u5C42\u653F\u6743\u5EFA\u8BBE\u3001\u63A8\u52A8\u6C11\u4E3B\u653F\u6CBB\u8FDB\u7A0B\u3001\u4E3A\u57FA\u5C42\u6CBB\u7406\u73B0\u4EE3\u5316\u63D0\u4F9B\u4FDD\u969C",
+    commonError: "\u672A\u5C55\u5F00\uFF0C\u9057\u6F0F\u6CD5\u6CBB\u5EFA\u8BBE\u7B49\u89D2\u5EA6",
+    explanation: "\u6751\u6C11\u81EA\u6CBB\u662F\u4E2D\u56FD\u7279\u8272\u793E\u4F1A\u4E3B\u4E49\u6C11\u4E3B\u653F\u6CBB\u7684\u91CD\u8981\u7EC4\u6210\u90E8\u5206\uFF0C\u6269\u5927\u4E86\u57FA\u5C42\u6C11\u4E3B\u6743\u5229\u3002"
   },
   {
     id: 11,
     year: "2018",
-    tag: "殖民扩张",
-    title: "黑奴贸易的历史现象",
-    question: "《鲁滨逊漂流记》中鲁滨逊贩卖黑奴的情节反映了什么历史现象？",
-    keyPoint: "三角贸易/黑奴贸易；为欧洲提供资本积累，给非洲带来灾难，要批判其罪恶",
-    commonError: "未点出情节，笼统说殖民扩张，评价不全面",
-    explanation: "15-19世纪欧洲殖民者掳掠非洲黑人贩卖到美洲，是原始积累的重要手段，也是人类历史上的罪恶。"
+    tag: "\u6B96\u6C11\u6269\u5F20",
+    title: "\u9ED1\u5974\u8D38\u6613\u7684\u5386\u53F2\u73B0\u8C61",
+    question: "\u300A\u9C81\u6EE8\u900A\u6F02\u6D41\u8BB0\u300B\u4E2D\u9C81\u6EE8\u900A\u8D29\u5356\u9ED1\u5974\u7684\u60C5\u8282\u53CD\u6620\u4E86\u4EC0\u4E48\u5386\u53F2\u73B0\u8C61\uFF1F",
+    keyPoint: "\u4E09\u89D2\u8D38\u6613/\u9ED1\u5974\u8D38\u6613\uFF1B\u4E3A\u6B27\u6D32\u63D0\u4F9B\u8D44\u672C\u79EF\u7D2F\uFF0C\u7ED9\u975E\u6D32\u5E26\u6765\u707E\u96BE\uFF0C\u8981\u6279\u5224\u5176\u7F6A\u6076",
+    commonError: "\u672A\u70B9\u51FA\u60C5\u8282\uFF0C\u7B3C\u7EDF\u8BF4\u6B96\u6C11\u6269\u5F20\uFF0C\u8BC4\u4EF7\u4E0D\u5168\u9762",
+    explanation: "15-19\u4E16\u7EAA\u6B27\u6D32\u6B96\u6C11\u8005\u63B3\u63A0\u975E\u6D32\u9ED1\u4EBA\u8D29\u5356\u5230\u7F8E\u6D32\uFF0C\u662F\u539F\u59CB\u79EF\u7D2F\u7684\u91CD\u8981\u624B\u6BB5\uFF0C\u4E5F\u662F\u4EBA\u7C7B\u5386\u53F2\u4E0A\u7684\u7F6A\u6076\u3002"
   },
   {
     id: 12,
     year: "2018",
-    tag: "古代制度",
-    title: "年号纪年制的区别与影响",
-    question: "年号纪年制与之前纪年制度的区别是什么？有何影响？",
-    keyPoint: "区别：之前诸侯各自纪年，年号制统一全国通用；影响：强化皇权、维护统一、影响周边国家",
-    commonError: "表述不完整",
-    explanation: "汉武帝创立年号制，以皇帝年号纪年，全国统一使用，体现中央集权，影响朝鲜日本越南等国。"
+    tag: "\u53E4\u4EE3\u5236\u5EA6",
+    title: "\u5E74\u53F7\u7EAA\u5E74\u5236\u7684\u533A\u522B\u4E0E\u5F71\u54CD",
+    question: "\u5E74\u53F7\u7EAA\u5E74\u5236\u4E0E\u4E4B\u524D\u7EAA\u5E74\u5236\u5EA6\u7684\u533A\u522B\u662F\u4EC0\u4E48\uFF1F\u6709\u4F55\u5F71\u54CD\uFF1F",
+    keyPoint: "\u533A\u522B\uFF1A\u4E4B\u524D\u8BF8\u4FAF\u5404\u81EA\u7EAA\u5E74\uFF0C\u5E74\u53F7\u5236\u7EDF\u4E00\u5168\u56FD\u901A\u7528\uFF1B\u5F71\u54CD\uFF1A\u5F3A\u5316\u7687\u6743\u3001\u7EF4\u62A4\u7EDF\u4E00\u3001\u5F71\u54CD\u5468\u8FB9\u56FD\u5BB6",
+    commonError: "\u8868\u8FF0\u4E0D\u5B8C\u6574",
+    explanation: "\u6C49\u6B66\u5E1D\u521B\u7ACB\u5E74\u53F7\u5236\uFF0C\u4EE5\u7687\u5E1D\u5E74\u53F7\u7EAA\u5E74\uFF0C\u5168\u56FD\u7EDF\u4E00\u4F7F\u7528\uFF0C\u4F53\u73B0\u4E2D\u592E\u96C6\u6743\uFF0C\u5F71\u54CD\u671D\u9C9C\u65E5\u672C\u8D8A\u5357\u7B49\u56FD\u3002"
   },
   {
     id: 13,
     year: "2018",
-    tag: "两次世界大战",
-    title: "一战与二战性质的不同认识",
-    question: "1939年和1945年人们对一战与二战性质的两种不同认识是什么？",
-    keyPoint: "1939年：都是帝国主义战争；1945年：二战是反法西斯的正义战争",
-    commonError: "无",
-    explanation: "二战初期英法绥靖，苏德条约，战争性质不明；反法西斯同盟形成后，战争性质明确为正义对邪恶。"
+    tag: "\u4E24\u6B21\u4E16\u754C\u5927\u6218",
+    title: "\u4E00\u6218\u4E0E\u4E8C\u6218\u6027\u8D28\u7684\u4E0D\u540C\u8BA4\u8BC6",
+    question: "1939\u5E74\u548C1945\u5E74\u4EBA\u4EEC\u5BF9\u4E00\u6218\u4E0E\u4E8C\u6218\u6027\u8D28\u7684\u4E24\u79CD\u4E0D\u540C\u8BA4\u8BC6\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "1939\u5E74\uFF1A\u90FD\u662F\u5E1D\u56FD\u4E3B\u4E49\u6218\u4E89\uFF1B1945\u5E74\uFF1A\u4E8C\u6218\u662F\u53CD\u6CD5\u897F\u65AF\u7684\u6B63\u4E49\u6218\u4E89",
+    commonError: "\u65E0",
+    explanation: "\u4E8C\u6218\u521D\u671F\u82F1\u6CD5\u7EE5\u9756\uFF0C\u82CF\u5FB7\u6761\u7EA6\uFF0C\u6218\u4E89\u6027\u8D28\u4E0D\u660E\uFF1B\u53CD\u6CD5\u897F\u65AF\u540C\u76DF\u5F62\u6210\u540E\uFF0C\u6218\u4E89\u6027\u8D28\u660E\u786E\u4E3A\u6B63\u4E49\u5BF9\u90AA\u6076\u3002"
   },
   {
     id: 14,
     year: "2018",
-    tag: "美国外交",
-    title: "美国对拉美政策的变化",
-    question: "20世纪30年代前后美国两种对拉美政策的不同特征是什么？",
-    keyPoint: "30年代前：武力干涉、强权政策（大棒政策）；30年代后：睦邻友好、经济合作代替武力",
-    commonError: "严重失分，未说明不同特征",
-    explanation: "罗斯福推行睦邻政策，以经济援助代替武力干涉，但实质仍是维护美国在拉美的霸权。"
+    tag: "\u7F8E\u56FD\u5916\u4EA4",
+    title: "\u7F8E\u56FD\u5BF9\u62C9\u7F8E\u653F\u7B56\u7684\u53D8\u5316",
+    question: "20\u4E16\u7EAA30\u5E74\u4EE3\u524D\u540E\u7F8E\u56FD\u4E24\u79CD\u5BF9\u62C9\u7F8E\u653F\u7B56\u7684\u4E0D\u540C\u7279\u5F81\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "30\u5E74\u4EE3\u524D\uFF1A\u6B66\u529B\u5E72\u6D89\u3001\u5F3A\u6743\u653F\u7B56\uFF08\u5927\u68D2\u653F\u7B56\uFF09\uFF1B30\u5E74\u4EE3\u540E\uFF1A\u7766\u90BB\u53CB\u597D\u3001\u7ECF\u6D4E\u5408\u4F5C\u4EE3\u66FF\u6B66\u529B",
+    commonError: "\u4E25\u91CD\u5931\u5206\uFF0C\u672A\u8BF4\u660E\u4E0D\u540C\u7279\u5F81",
+    explanation: "\u7F57\u65AF\u798F\u63A8\u884C\u7766\u90BB\u653F\u7B56\uFF0C\u4EE5\u7ECF\u6D4E\u63F4\u52A9\u4EE3\u66FF\u6B66\u529B\u5E72\u6D89\uFF0C\u4F46\u5B9E\u8D28\u4ECD\u662F\u7EF4\u62A4\u7F8E\u56FD\u5728\u62C9\u7F8E\u7684\u9738\u6743\u3002"
   },
   {
     id: 15,
     year: "2019",
-    tag: "战后经济",
-    title: "四国钢产量趋势及原因",
-    question: "1950-1980年美国、苏联、日本、中国钢产量的总体发展趋势及基本原因。",
-    keyPoint: "美国：战后繁荣→70年代滞胀下滑；苏联：持续增长→后期僵化；日本：高速增长→石油危机放缓；中国：快速增长但有波动",
-    commonError: "原因笼统、缺乏条理、表述错误",
-    explanation: "四国钢产量变化反映了各自经济体制和国际环境的影响，1970年代石油危机是共同转折点。"
+    tag: "\u6218\u540E\u7ECF\u6D4E",
+    title: "\u56DB\u56FD\u94A2\u4EA7\u91CF\u8D8B\u52BF\u53CA\u539F\u56E0",
+    question: "1950-1980\u5E74\u7F8E\u56FD\u3001\u82CF\u8054\u3001\u65E5\u672C\u3001\u4E2D\u56FD\u94A2\u4EA7\u91CF\u7684\u603B\u4F53\u53D1\u5C55\u8D8B\u52BF\u53CA\u57FA\u672C\u539F\u56E0\u3002",
+    keyPoint: "\u7F8E\u56FD\uFF1A\u6218\u540E\u7E41\u8363\u219270\u5E74\u4EE3\u6EDE\u80C0\u4E0B\u6ED1\uFF1B\u82CF\u8054\uFF1A\u6301\u7EED\u589E\u957F\u2192\u540E\u671F\u50F5\u5316\uFF1B\u65E5\u672C\uFF1A\u9AD8\u901F\u589E\u957F\u2192\u77F3\u6CB9\u5371\u673A\u653E\u7F13\uFF1B\u4E2D\u56FD\uFF1A\u5FEB\u901F\u589E\u957F\u4F46\u6709\u6CE2\u52A8",
+    commonError: "\u539F\u56E0\u7B3C\u7EDF\u3001\u7F3A\u4E4F\u6761\u7406\u3001\u8868\u8FF0\u9519\u8BEF",
+    explanation: "\u56DB\u56FD\u94A2\u4EA7\u91CF\u53D8\u5316\u53CD\u6620\u4E86\u5404\u81EA\u7ECF\u6D4E\u4F53\u5236\u548C\u56FD\u9645\u73AF\u5883\u7684\u5F71\u54CD\uFF0C1970\u5E74\u4EE3\u77F3\u6CB9\u5371\u673A\u662F\u5171\u540C\u8F6C\u6298\u70B9\u3002"
   },
   {
     id: 16,
     year: "2019",
-    tag: "改革开放",
-    title: "改革开放后中国钢铁业发展原因",
-    question: "改革开放以来中国钢铁业发展的主要原因是什么？",
-    keyPoint: "改革开放政策、体制改革、资金投入、科技创新、国内需求旺盛、加入WTO",
-    commonError: "答案简短、未结合材料、方向有误",
-    explanation: "改革开放后钢铁业发展是政策、体制、资金、科技、需求等多因素共同作用的结果。"
+    tag: "\u6539\u9769\u5F00\u653E",
+    title: "\u6539\u9769\u5F00\u653E\u540E\u4E2D\u56FD\u94A2\u94C1\u4E1A\u53D1\u5C55\u539F\u56E0",
+    question: "\u6539\u9769\u5F00\u653E\u4EE5\u6765\u4E2D\u56FD\u94A2\u94C1\u4E1A\u53D1\u5C55\u7684\u4E3B\u8981\u539F\u56E0\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u6539\u9769\u5F00\u653E\u653F\u7B56\u3001\u4F53\u5236\u6539\u9769\u3001\u8D44\u91D1\u6295\u5165\u3001\u79D1\u6280\u521B\u65B0\u3001\u56FD\u5185\u9700\u6C42\u65FA\u76DB\u3001\u52A0\u5165WTO",
+    commonError: "\u7B54\u6848\u7B80\u77ED\u3001\u672A\u7ED3\u5408\u6750\u6599\u3001\u65B9\u5411\u6709\u8BEF",
+    explanation: "\u6539\u9769\u5F00\u653E\u540E\u94A2\u94C1\u4E1A\u53D1\u5C55\u662F\u653F\u7B56\u3001\u4F53\u5236\u3001\u8D44\u91D1\u3001\u79D1\u6280\u3001\u9700\u6C42\u7B49\u591A\u56E0\u7D20\u5171\u540C\u4F5C\u7528\u7684\u7ED3\u679C\u3002"
   },
   {
     id: 17,
     year: "2019",
-    tag: "史学思想",
-    title: "钱穆《国史大纲》观点评析",
-    question: "评析钱穆'对本国历史应有温情与敬意'的观点。",
-    keyPoint: "积极：增强民族凝聚力、激励抗战；局限：可能压抑批判性反思；结论：既要认同又要理性批判",
-    commonError: "用词错误、结论重复材料、缺乏辩证评析",
-    explanation: "钱穆观点在抗战时期有积极意义，但过分强调温情可能不利于客观认识历史。"
+    tag: "\u53F2\u5B66\u601D\u60F3",
+    title: "\u94B1\u7A46\u300A\u56FD\u53F2\u5927\u7EB2\u300B\u89C2\u70B9\u8BC4\u6790",
+    question: "\u8BC4\u6790\u94B1\u7A46'\u5BF9\u672C\u56FD\u5386\u53F2\u5E94\u6709\u6E29\u60C5\u4E0E\u656C\u610F'\u7684\u89C2\u70B9\u3002",
+    keyPoint: "\u79EF\u6781\uFF1A\u589E\u5F3A\u6C11\u65CF\u51DD\u805A\u529B\u3001\u6FC0\u52B1\u6297\u6218\uFF1B\u5C40\u9650\uFF1A\u53EF\u80FD\u538B\u6291\u6279\u5224\u6027\u53CD\u601D\uFF1B\u7ED3\u8BBA\uFF1A\u65E2\u8981\u8BA4\u540C\u53C8\u8981\u7406\u6027\u6279\u5224",
+    commonError: "\u7528\u8BCD\u9519\u8BEF\u3001\u7ED3\u8BBA\u91CD\u590D\u6750\u6599\u3001\u7F3A\u4E4F\u8FA9\u8BC1\u8BC4\u6790",
+    explanation: "\u94B1\u7A46\u89C2\u70B9\u5728\u6297\u6218\u65F6\u671F\u6709\u79EF\u6781\u610F\u4E49\uFF0C\u4F46\u8FC7\u5206\u5F3A\u8C03\u6E29\u60C5\u53EF\u80FD\u4E0D\u5229\u4E8E\u5BA2\u89C2\u8BA4\u8BC6\u5386\u53F2\u3002"
   },
   {
     id: 18,
     year: "2019",
-    tag: "秦汉制度",
-    title: "秦二十等爵与曹魏五等爵",
-    question: "秦二十等爵和曹魏五等爵反映的思想流派、授予对象和作用是什么？",
-    keyPoint: "二十等爵：法家，军功授爵，打破世袭；五等爵：儒家，授予官员，笼络臣僚",
-    commonError: "过于简单、缺乏说明",
-    explanation: "商鞅变法以军功定爵位，体现法家思想；曹魏五等爵仿周礼，体现儒家复古理念。"
+    tag: "\u79E6\u6C49\u5236\u5EA6",
+    title: "\u79E6\u4E8C\u5341\u7B49\u7235\u4E0E\u66F9\u9B4F\u4E94\u7B49\u7235",
+    question: "\u79E6\u4E8C\u5341\u7B49\u7235\u548C\u66F9\u9B4F\u4E94\u7B49\u7235\u53CD\u6620\u7684\u601D\u60F3\u6D41\u6D3E\u3001\u6388\u4E88\u5BF9\u8C61\u548C\u4F5C\u7528\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u4E8C\u5341\u7B49\u7235\uFF1A\u6CD5\u5BB6\uFF0C\u519B\u529F\u6388\u7235\uFF0C\u6253\u7834\u4E16\u88AD\uFF1B\u4E94\u7B49\u7235\uFF1A\u5112\u5BB6\uFF0C\u6388\u4E88\u5B98\u5458\uFF0C\u7B3C\u7EDC\u81E3\u50DA",
+    commonError: "\u8FC7\u4E8E\u7B80\u5355\u3001\u7F3A\u4E4F\u8BF4\u660E",
+    explanation: "\u5546\u9785\u53D8\u6CD5\u4EE5\u519B\u529F\u5B9A\u7235\u4F4D\uFF0C\u4F53\u73B0\u6CD5\u5BB6\u601D\u60F3\uFF1B\u66F9\u9B4F\u4E94\u7B49\u7235\u4EFF\u5468\u793C\uFF0C\u4F53\u73B0\u5112\u5BB6\u590D\u53E4\u7406\u5FF5\u3002"
   },
   {
     id: 19,
     year: "2020",
-    tag: "中德关系",
-    title: "中国与两德关系变化及原因",
-    question: "20世纪50～70年代中国与民主德国、联邦德国关系的变化及其原因。",
-    keyPoint: "与民德：50年代密切→60年代冷淡；与西德：对立→建交；原因：阵营对立→中苏破裂→中美缓和",
-    commonError: "原因逻辑混乱、遗漏新东方政策",
-    explanation: "中德关系演变受冷战格局、中苏关系、中美关系等多重因素影响。"
+    tag: "\u4E2D\u5FB7\u5173\u7CFB",
+    title: "\u4E2D\u56FD\u4E0E\u4E24\u5FB7\u5173\u7CFB\u53D8\u5316\u53CA\u539F\u56E0",
+    question: "20\u4E16\u7EAA50\uFF5E70\u5E74\u4EE3\u4E2D\u56FD\u4E0E\u6C11\u4E3B\u5FB7\u56FD\u3001\u8054\u90A6\u5FB7\u56FD\u5173\u7CFB\u7684\u53D8\u5316\u53CA\u5176\u539F\u56E0\u3002",
+    keyPoint: "\u4E0E\u6C11\u5FB7\uFF1A50\u5E74\u4EE3\u5BC6\u5207\u219260\u5E74\u4EE3\u51B7\u6DE1\uFF1B\u4E0E\u897F\u5FB7\uFF1A\u5BF9\u7ACB\u2192\u5EFA\u4EA4\uFF1B\u539F\u56E0\uFF1A\u9635\u8425\u5BF9\u7ACB\u2192\u4E2D\u82CF\u7834\u88C2\u2192\u4E2D\u7F8E\u7F13\u548C",
+    commonError: "\u539F\u56E0\u903B\u8F91\u6DF7\u4E71\u3001\u9057\u6F0F\u65B0\u4E1C\u65B9\u653F\u7B56",
+    explanation: "\u4E2D\u5FB7\u5173\u7CFB\u6F14\u53D8\u53D7\u51B7\u6218\u683C\u5C40\u3001\u4E2D\u82CF\u5173\u7CFB\u3001\u4E2D\u7F8E\u5173\u7CFB\u7B49\u591A\u91CD\u56E0\u7D20\u5F71\u54CD\u3002"
   },
   {
     id: 20,
     year: "2020",
-    tag: "明清特征",
-    title: "明清历史特征论述",
-    question: "自拟书名并论证明清时期的时代特征。",
-    keyPoint: "书名：《由盛转衰：明清中国的历史转型》；论证：君主专制强化、资本主义萌芽受压制、闭关锁国",
-    commonError: "书名不规范、史实空洞、逻辑矛盾",
-    explanation: "明清时期是中国传统社会由盛转衰的关键时期，政治专制强化，经济发展受阻，逐渐落后于世界。"
+    tag: "\u660E\u6E05\u7279\u5F81",
+    title: "\u660E\u6E05\u5386\u53F2\u7279\u5F81\u8BBA\u8FF0",
+    question: "\u81EA\u62DF\u4E66\u540D\u5E76\u8BBA\u8BC1\u660E\u6E05\u65F6\u671F\u7684\u65F6\u4EE3\u7279\u5F81\u3002",
+    keyPoint: "\u4E66\u540D\uFF1A\u300A\u7531\u76DB\u8F6C\u8870\uFF1A\u660E\u6E05\u4E2D\u56FD\u7684\u5386\u53F2\u8F6C\u578B\u300B\uFF1B\u8BBA\u8BC1\uFF1A\u541B\u4E3B\u4E13\u5236\u5F3A\u5316\u3001\u8D44\u672C\u4E3B\u4E49\u840C\u82BD\u53D7\u538B\u5236\u3001\u95ED\u5173\u9501\u56FD",
+    commonError: "\u4E66\u540D\u4E0D\u89C4\u8303\u3001\u53F2\u5B9E\u7A7A\u6D1E\u3001\u903B\u8F91\u77DB\u76FE",
+    explanation: "\u660E\u6E05\u65F6\u671F\u662F\u4E2D\u56FD\u4F20\u7EDF\u793E\u4F1A\u7531\u76DB\u8F6C\u8870\u7684\u5173\u952E\u65F6\u671F\uFF0C\u653F\u6CBB\u4E13\u5236\u5F3A\u5316\uFF0C\u7ECF\u6D4E\u53D1\u5C55\u53D7\u963B\uFF0C\u9010\u6E10\u843D\u540E\u4E8E\u4E16\u754C\u3002"
   },
   {
     id: 21,
     year: "2021",
-    tag: "史学比较",
-    title: "希罗多德与司马迁的比较",
-    question: "希罗多德《历史》与司马迁《史记》的共同点、产生背景及撰史要素。",
-    keyPoint: "共同点：私人撰史、实地考察、广泛收集史料、客观记录、兼顾周边民族；要素：史料真实、体例完备、客观公正",
-    commonError: "表述不准、遗漏重点",
-    explanation: "两位史学家都开创了纪传体史学传统，重视实地考察和史料收集，为后世史学奠定基础。"
+    tag: "\u53F2\u5B66\u6BD4\u8F83",
+    title: "\u5E0C\u7F57\u591A\u5FB7\u4E0E\u53F8\u9A6C\u8FC1\u7684\u6BD4\u8F83",
+    question: "\u5E0C\u7F57\u591A\u5FB7\u300A\u5386\u53F2\u300B\u4E0E\u53F8\u9A6C\u8FC1\u300A\u53F2\u8BB0\u300B\u7684\u5171\u540C\u70B9\u3001\u4EA7\u751F\u80CC\u666F\u53CA\u64B0\u53F2\u8981\u7D20\u3002",
+    keyPoint: "\u5171\u540C\u70B9\uFF1A\u79C1\u4EBA\u64B0\u53F2\u3001\u5B9E\u5730\u8003\u5BDF\u3001\u5E7F\u6CDB\u6536\u96C6\u53F2\u6599\u3001\u5BA2\u89C2\u8BB0\u5F55\u3001\u517C\u987E\u5468\u8FB9\u6C11\u65CF\uFF1B\u8981\u7D20\uFF1A\u53F2\u6599\u771F\u5B9E\u3001\u4F53\u4F8B\u5B8C\u5907\u3001\u5BA2\u89C2\u516C\u6B63",
+    commonError: "\u8868\u8FF0\u4E0D\u51C6\u3001\u9057\u6F0F\u91CD\u70B9",
+    explanation: "\u4E24\u4F4D\u53F2\u5B66\u5BB6\u90FD\u5F00\u521B\u4E86\u7EAA\u4F20\u4F53\u53F2\u5B66\u4F20\u7EDF\uFF0C\u91CD\u89C6\u5B9E\u5730\u8003\u5BDF\u548C\u53F2\u6599\u6536\u96C6\uFF0C\u4E3A\u540E\u4E16\u53F2\u5B66\u5960\u5B9A\u57FA\u7840\u3002"
   },
   {
     id: 22,
     year: "2021",
-    tag: "中共党史",
-    title: "建党至建国的重要会议",
-    question: "从建党至建国的重要会议中任选两次，分析两次会议间共产党的发展及原因。",
-    keyPoint: "发展：组织壮大、思想成熟、军事壮大、政治成熟；原因：马列主义结合实际、纠正错误、群众支持",
-    commonError: "格式不符、角度不清、缺少原因",
-    explanation: "从一大到遵义会议，中国共产党从幼年到成熟，逐步找到正确的革命道路。"
+    tag: "\u4E2D\u5171\u515A\u53F2",
+    title: "\u5EFA\u515A\u81F3\u5EFA\u56FD\u7684\u91CD\u8981\u4F1A\u8BAE",
+    question: "\u4ECE\u5EFA\u515A\u81F3\u5EFA\u56FD\u7684\u91CD\u8981\u4F1A\u8BAE\u4E2D\u4EFB\u9009\u4E24\u6B21\uFF0C\u5206\u6790\u4E24\u6B21\u4F1A\u8BAE\u95F4\u5171\u4EA7\u515A\u7684\u53D1\u5C55\u53CA\u539F\u56E0\u3002",
+    keyPoint: "\u53D1\u5C55\uFF1A\u7EC4\u7EC7\u58EE\u5927\u3001\u601D\u60F3\u6210\u719F\u3001\u519B\u4E8B\u58EE\u5927\u3001\u653F\u6CBB\u6210\u719F\uFF1B\u539F\u56E0\uFF1A\u9A6C\u5217\u4E3B\u4E49\u7ED3\u5408\u5B9E\u9645\u3001\u7EA0\u6B63\u9519\u8BEF\u3001\u7FA4\u4F17\u652F\u6301",
+    commonError: "\u683C\u5F0F\u4E0D\u7B26\u3001\u89D2\u5EA6\u4E0D\u6E05\u3001\u7F3A\u5C11\u539F\u56E0",
+    explanation: "\u4ECE\u4E00\u5927\u5230\u9075\u4E49\u4F1A\u8BAE\uFF0C\u4E2D\u56FD\u5171\u4EA7\u515A\u4ECE\u5E7C\u5E74\u5230\u6210\u719F\uFF0C\u9010\u6B65\u627E\u5230\u6B63\u786E\u7684\u9769\u547D\u9053\u8DEF\u3002"
   },
   {
     id: 23,
     year: "2022",
-    tag: "科技引进",
-    title: "中日技术引进特点比较",
-    question: "20世纪五六十年代中日技术引进的特点、背景及中国科技发展的历史经验。",
-    keyPoint: "日本：立法管理→逐步放宽，欧美来源；中国：国家主导，苏联来源，转向自力更生；经验：统一规划、引进与自研结合",
-    commonError: "特点遗漏、背景分析浅、经验笼统",
-    explanation: "中日技术引进的不同路径反映了两国不同的政治体制和国际环境。"
+    tag: "\u79D1\u6280\u5F15\u8FDB",
+    title: "\u4E2D\u65E5\u6280\u672F\u5F15\u8FDB\u7279\u70B9\u6BD4\u8F83",
+    question: "20\u4E16\u7EAA\u4E94\u516D\u5341\u5E74\u4EE3\u4E2D\u65E5\u6280\u672F\u5F15\u8FDB\u7684\u7279\u70B9\u3001\u80CC\u666F\u53CA\u4E2D\u56FD\u79D1\u6280\u53D1\u5C55\u7684\u5386\u53F2\u7ECF\u9A8C\u3002",
+    keyPoint: "\u65E5\u672C\uFF1A\u7ACB\u6CD5\u7BA1\u7406\u2192\u9010\u6B65\u653E\u5BBD\uFF0C\u6B27\u7F8E\u6765\u6E90\uFF1B\u4E2D\u56FD\uFF1A\u56FD\u5BB6\u4E3B\u5BFC\uFF0C\u82CF\u8054\u6765\u6E90\uFF0C\u8F6C\u5411\u81EA\u529B\u66F4\u751F\uFF1B\u7ECF\u9A8C\uFF1A\u7EDF\u4E00\u89C4\u5212\u3001\u5F15\u8FDB\u4E0E\u81EA\u7814\u7ED3\u5408",
+    commonError: "\u7279\u70B9\u9057\u6F0F\u3001\u80CC\u666F\u5206\u6790\u6D45\u3001\u7ECF\u9A8C\u7B3C\u7EDF",
+    explanation: "\u4E2D\u65E5\u6280\u672F\u5F15\u8FDB\u7684\u4E0D\u540C\u8DEF\u5F84\u53CD\u6620\u4E86\u4E24\u56FD\u4E0D\u540C\u7684\u653F\u6CBB\u4F53\u5236\u548C\u56FD\u9645\u73AF\u5883\u3002"
   },
   {
     id: 24,
     year: "2022",
-    tag: "儒家思想",
-    title: "东汉地方官治虎患的历史现象",
-    question: "东汉地方官治虎患反映的历史现象是什么？",
-    keyPoint: "现象：修德政→虎患息；结论：儒家仁政理念影响官吏施政，史书推崇德政",
-    commonError: "归纳不够全面、结论层次较浅",
-    explanation: "《后汉书》记载地方官以修德政治理虎患，体现儒家德治理念对东汉政治的影响。"
+    tag: "\u5112\u5BB6\u601D\u60F3",
+    title: "\u4E1C\u6C49\u5730\u65B9\u5B98\u6CBB\u864E\u60A3\u7684\u5386\u53F2\u73B0\u8C61",
+    question: "\u4E1C\u6C49\u5730\u65B9\u5B98\u6CBB\u864E\u60A3\u53CD\u6620\u7684\u5386\u53F2\u73B0\u8C61\u662F\u4EC0\u4E48\uFF1F",
+    keyPoint: "\u73B0\u8C61\uFF1A\u4FEE\u5FB7\u653F\u2192\u864E\u60A3\u606F\uFF1B\u7ED3\u8BBA\uFF1A\u5112\u5BB6\u4EC1\u653F\u7406\u5FF5\u5F71\u54CD\u5B98\u540F\u65BD\u653F\uFF0C\u53F2\u4E66\u63A8\u5D07\u5FB7\u653F",
+    commonError: "\u5F52\u7EB3\u4E0D\u591F\u5168\u9762\u3001\u7ED3\u8BBA\u5C42\u6B21\u8F83\u6D45",
+    explanation: "\u300A\u540E\u6C49\u4E66\u300B\u8BB0\u8F7D\u5730\u65B9\u5B98\u4EE5\u4FEE\u5FB7\u653F\u6CBB\u7406\u864E\u60A3\uFF0C\u4F53\u73B0\u5112\u5BB6\u5FB7\u6CBB\u7406\u5FF5\u5BF9\u4E1C\u6C49\u653F\u6CBB\u7684\u5F71\u54CD\u3002"
   },
   {
     id: 25,
     year: "2022",
-    tag: "军事改革",
-    title: "商鞅军事改革评价",
-    question: "荀子为何称商鞅变法后的秦军为'盗兵'？如何评价商鞅军事改革？",
-    keyPoint: "原因：荀子儒家立场，秦军求赏逐利无礼义；评价：积极（提升战力、打击贵族）、消极（功利驱动、精神凝聚不足）",
-    commonError: "审题失误、严重跑题",
-    explanation: "荀子从儒家礼义角度批评秦军以功利为驱动，缺乏道德教化，称之为'盗兵'。"
+    tag: "\u519B\u4E8B\u6539\u9769",
+    title: "\u5546\u9785\u519B\u4E8B\u6539\u9769\u8BC4\u4EF7",
+    question: "\u8340\u5B50\u4E3A\u4F55\u79F0\u5546\u9785\u53D8\u6CD5\u540E\u7684\u79E6\u519B\u4E3A'\u76D7\u5175'\uFF1F\u5982\u4F55\u8BC4\u4EF7\u5546\u9785\u519B\u4E8B\u6539\u9769\uFF1F",
+    keyPoint: "\u539F\u56E0\uFF1A\u8340\u5B50\u5112\u5BB6\u7ACB\u573A\uFF0C\u79E6\u519B\u6C42\u8D4F\u9010\u5229\u65E0\u793C\u4E49\uFF1B\u8BC4\u4EF7\uFF1A\u79EF\u6781\uFF08\u63D0\u5347\u6218\u529B\u3001\u6253\u51FB\u8D35\u65CF\uFF09\u3001\u6D88\u6781\uFF08\u529F\u5229\u9A71\u52A8\u3001\u7CBE\u795E\u51DD\u805A\u4E0D\u8DB3\uFF09",
+    commonError: "\u5BA1\u9898\u5931\u8BEF\u3001\u4E25\u91CD\u8DD1\u9898",
+    explanation: "\u8340\u5B50\u4ECE\u5112\u5BB6\u793C\u4E49\u89D2\u5EA6\u6279\u8BC4\u79E6\u519B\u4EE5\u529F\u5229\u4E3A\u9A71\u52A8\uFF0C\u7F3A\u4E4F\u9053\u5FB7\u6559\u5316\uFF0C\u79F0\u4E4B\u4E3A'\u76D7\u5175'\u3002"
   },
   {
     id: 26,
     year: "2023",
-    tag: "抗战胜利",
-    title: "日本对华投降问题",
-    question: "共产党、国民党、美国在日本对华投降问题上的主张、措施及评价。",
-    keyPoint: "共产党：迅速解除敌伪武装，收复失地；国民党：只能向蒋介石投降，抢占要地；美国：助蒋反共",
-    commonError: "严重缺失要点、评价缺乏辩证",
-    explanation: "受降问题是战后国共争夺政权合法性的关键，美国明显偏袒国民党，加剧了中国内战。"
+    tag: "\u6297\u6218\u80DC\u5229",
+    title: "\u65E5\u672C\u5BF9\u534E\u6295\u964D\u95EE\u9898",
+    question: "\u5171\u4EA7\u515A\u3001\u56FD\u6C11\u515A\u3001\u7F8E\u56FD\u5728\u65E5\u672C\u5BF9\u534E\u6295\u964D\u95EE\u9898\u4E0A\u7684\u4E3B\u5F20\u3001\u63AA\u65BD\u53CA\u8BC4\u4EF7\u3002",
+    keyPoint: "\u5171\u4EA7\u515A\uFF1A\u8FC5\u901F\u89E3\u9664\u654C\u4F2A\u6B66\u88C5\uFF0C\u6536\u590D\u5931\u5730\uFF1B\u56FD\u6C11\u515A\uFF1A\u53EA\u80FD\u5411\u848B\u4ECB\u77F3\u6295\u964D\uFF0C\u62A2\u5360\u8981\u5730\uFF1B\u7F8E\u56FD\uFF1A\u52A9\u848B\u53CD\u5171",
+    commonError: "\u4E25\u91CD\u7F3A\u5931\u8981\u70B9\u3001\u8BC4\u4EF7\u7F3A\u4E4F\u8FA9\u8BC1",
+    explanation: "\u53D7\u964D\u95EE\u9898\u662F\u6218\u540E\u56FD\u5171\u4E89\u593A\u653F\u6743\u5408\u6CD5\u6027\u7684\u5173\u952E\uFF0C\u7F8E\u56FD\u660E\u663E\u504F\u8892\u56FD\u6C11\u515A\uFF0C\u52A0\u5267\u4E86\u4E2D\u56FD\u5185\u6218\u3002"
   },
   {
     id: 27,
     year: "2020",
-    tag: "中德关系",
-    title: "中德战略伙伴关系的历史条件",
-    question: "根据材料并结合所学知识，简述中德建立战略伙伴关系的历史条件。",
-    keyPoint: "冷战结束两极格局瓦解；中国改革开放市场巨大；德国统一经济发达；双方推动多极化共同利益",
-    commonError: "未提冷战结束、遗漏多极化、表述方向有误",
-    explanation: "1990年代冷战结束后，中德在各自改革开放和统一后，基于共同战略诉求建立战略伙伴关系。"
+    tag: "\u4E2D\u5FB7\u5173\u7CFB",
+    title: "\u4E2D\u5FB7\u6218\u7565\u4F19\u4F34\u5173\u7CFB\u7684\u5386\u53F2\u6761\u4EF6",
+    question: "\u6839\u636E\u6750\u6599\u5E76\u7ED3\u5408\u6240\u5B66\u77E5\u8BC6\uFF0C\u7B80\u8FF0\u4E2D\u5FB7\u5EFA\u7ACB\u6218\u7565\u4F19\u4F34\u5173\u7CFB\u7684\u5386\u53F2\u6761\u4EF6\u3002",
+    keyPoint: "\u51B7\u6218\u7ED3\u675F\u4E24\u6781\u683C\u5C40\u74E6\u89E3\uFF1B\u4E2D\u56FD\u6539\u9769\u5F00\u653E\u5E02\u573A\u5DE8\u5927\uFF1B\u5FB7\u56FD\u7EDF\u4E00\u7ECF\u6D4E\u53D1\u8FBE\uFF1B\u53CC\u65B9\u63A8\u52A8\u591A\u6781\u5316\u5171\u540C\u5229\u76CA",
+    commonError: "\u672A\u63D0\u51B7\u6218\u7ED3\u675F\u3001\u9057\u6F0F\u591A\u6781\u5316\u3001\u8868\u8FF0\u65B9\u5411\u6709\u8BEF",
+    explanation: "1990\u5E74\u4EE3\u51B7\u6218\u7ED3\u675F\u540E\uFF0C\u4E2D\u5FB7\u5728\u5404\u81EA\u6539\u9769\u5F00\u653E\u548C\u7EDF\u4E00\u540E\uFF0C\u57FA\u4E8E\u5171\u540C\u6218\u7565\u8BC9\u6C42\u5EFA\u7ACB\u6218\u7565\u4F19\u4F34\u5173\u7CFB\u3002"
   },
   {
     id: 28,
     year: "2020",
-    tag: "中德关系",
-    title: "中德关系发展的历史启示",
-    question: "根据材料并结合所学知识，简析20世纪70年代以来中德关系发展的历史启示。",
-    keyPoint: "国家利益是外交核心驱动力；经济合作是关系发展纽带；坚持独立自主灵活调整",
-    commonError: "启示未贴材料、遗漏核心要点",
-    explanation: "中德关系发展表明，国家利益和共同利益是推动外交关系的根本动力，经济合作是深化关系的重要纽带。"
+    tag: "\u4E2D\u5FB7\u5173\u7CFB",
+    title: "\u4E2D\u5FB7\u5173\u7CFB\u53D1\u5C55\u7684\u5386\u53F2\u542F\u793A",
+    question: "\u6839\u636E\u6750\u6599\u5E76\u7ED3\u5408\u6240\u5B66\u77E5\u8BC6\uFF0C\u7B80\u679020\u4E16\u7EAA70\u5E74\u4EE3\u4EE5\u6765\u4E2D\u5FB7\u5173\u7CFB\u53D1\u5C55\u7684\u5386\u53F2\u542F\u793A\u3002",
+    keyPoint: "\u56FD\u5BB6\u5229\u76CA\u662F\u5916\u4EA4\u6838\u5FC3\u9A71\u52A8\u529B\uFF1B\u7ECF\u6D4E\u5408\u4F5C\u662F\u5173\u7CFB\u53D1\u5C55\u7EBD\u5E26\uFF1B\u575A\u6301\u72EC\u7ACB\u81EA\u4E3B\u7075\u6D3B\u8C03\u6574",
+    commonError: "\u542F\u793A\u672A\u8D34\u6750\u6599\u3001\u9057\u6F0F\u6838\u5FC3\u8981\u70B9",
+    explanation: "\u4E2D\u5FB7\u5173\u7CFB\u53D1\u5C55\u8868\u660E\uFF0C\u56FD\u5BB6\u5229\u76CA\u548C\u5171\u540C\u5229\u76CA\u662F\u63A8\u52A8\u5916\u4EA4\u5173\u7CFB\u7684\u6839\u672C\u52A8\u529B\uFF0C\u7ECF\u6D4E\u5408\u4F5C\u662F\u6DF1\u5316\u5173\u7CFB\u7684\u91CD\u8981\u7EBD\u5E26\u3002"
   },
   {
     id: 29,
     year: "2020",
-    tag: "清末新政",
-    title: "清政府奖励商业的主要措施",
-    question: "根据材料，概括清政府奖励商业的主要措施。",
-    keyPoint: "制定商业法律；建立商会组织；给予商人官衔；奖励创新制造；规范公司形式",
-    commonError: "遗漏奖励创新、表述简略",
-    explanation: "清末新政期间，清政府通过立法、设商会、授荣誉、奖创新等措施，改变了传统抑商政策。"
+    tag: "\u6E05\u672B\u65B0\u653F",
+    title: "\u6E05\u653F\u5E9C\u5956\u52B1\u5546\u4E1A\u7684\u4E3B\u8981\u63AA\u65BD",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u6982\u62EC\u6E05\u653F\u5E9C\u5956\u52B1\u5546\u4E1A\u7684\u4E3B\u8981\u63AA\u65BD\u3002",
+    keyPoint: "\u5236\u5B9A\u5546\u4E1A\u6CD5\u5F8B\uFF1B\u5EFA\u7ACB\u5546\u4F1A\u7EC4\u7EC7\uFF1B\u7ED9\u4E88\u5546\u4EBA\u5B98\u8854\uFF1B\u5956\u52B1\u521B\u65B0\u5236\u9020\uFF1B\u89C4\u8303\u516C\u53F8\u5F62\u5F0F",
+    commonError: "\u9057\u6F0F\u5956\u52B1\u521B\u65B0\u3001\u8868\u8FF0\u7B80\u7565",
+    explanation: "\u6E05\u672B\u65B0\u653F\u671F\u95F4\uFF0C\u6E05\u653F\u5E9C\u901A\u8FC7\u7ACB\u6CD5\u3001\u8BBE\u5546\u4F1A\u3001\u6388\u8363\u8A89\u3001\u5956\u521B\u65B0\u7B49\u63AA\u65BD\uFF0C\u6539\u53D8\u4E86\u4F20\u7EDF\u6291\u5546\u653F\u7B56\u3002"
   },
   {
     id: 30,
     year: "2020",
-    tag: "清末新政",
-    title: "清政府商业改革的历史意义",
-    question: "根据材料并结合所学知识，简析清政府商业改革的历史意义。",
-    keyPoint: "否定抑商政策提高商人地位；引进近代公司制度；为民族资本主义提供法律保障；推动商业近代化",
-    commonError: "表述模糊、遗漏核心意义、答题过短",
-    explanation: "清末商业改革是晚清经济政策的重要转变，为民族工商业发展提供了制度和法律保障。"
+    tag: "\u6E05\u672B\u65B0\u653F",
+    title: "\u6E05\u653F\u5E9C\u5546\u4E1A\u6539\u9769\u7684\u5386\u53F2\u610F\u4E49",
+    question: "\u6839\u636E\u6750\u6599\u5E76\u7ED3\u5408\u6240\u5B66\u77E5\u8BC6\uFF0C\u7B80\u6790\u6E05\u653F\u5E9C\u5546\u4E1A\u6539\u9769\u7684\u5386\u53F2\u610F\u4E49\u3002",
+    keyPoint: "\u5426\u5B9A\u6291\u5546\u653F\u7B56\u63D0\u9AD8\u5546\u4EBA\u5730\u4F4D\uFF1B\u5F15\u8FDB\u8FD1\u4EE3\u516C\u53F8\u5236\u5EA6\uFF1B\u4E3A\u6C11\u65CF\u8D44\u672C\u4E3B\u4E49\u63D0\u4F9B\u6CD5\u5F8B\u4FDD\u969C\uFF1B\u63A8\u52A8\u5546\u4E1A\u8FD1\u4EE3\u5316",
+    commonError: "\u8868\u8FF0\u6A21\u7CCA\u3001\u9057\u6F0F\u6838\u5FC3\u610F\u4E49\u3001\u7B54\u9898\u8FC7\u77ED",
+    explanation: "\u6E05\u672B\u5546\u4E1A\u6539\u9769\u662F\u665A\u6E05\u7ECF\u6D4E\u653F\u7B56\u7684\u91CD\u8981\u8F6C\u53D8\uFF0C\u4E3A\u6C11\u65CF\u5DE5\u5546\u4E1A\u53D1\u5C55\u63D0\u4F9B\u4E86\u5236\u5EA6\u548C\u6CD5\u5F8B\u4FDD\u969C\u3002"
   },
   {
     id: 31,
     year: "2021",
-    tag: "清末新政",
-    title: "江楚会奏与洋务运动的相同点",
-    question: "根据材料，指出江楚会奏与洋务运动的相同点。",
-    keyPoint: "都是自上而下改革；都向西方学习；都维护清朝统治；都涉及经济军事近代化；都未触动封建根本",
-    commonError: "都以失败告终表述不当",
-    explanation: "江楚会奏（清末新政）与洋务运动都是清政府自上而下的改革，旨在维护统治并向西方学习。"
+    tag: "\u6E05\u672B\u65B0\u653F",
+    title: "\u6C5F\u695A\u4F1A\u594F\u4E0E\u6D0B\u52A1\u8FD0\u52A8\u7684\u76F8\u540C\u70B9",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u6307\u51FA\u6C5F\u695A\u4F1A\u594F\u4E0E\u6D0B\u52A1\u8FD0\u52A8\u7684\u76F8\u540C\u70B9\u3002",
+    keyPoint: "\u90FD\u662F\u81EA\u4E0A\u800C\u4E0B\u6539\u9769\uFF1B\u90FD\u5411\u897F\u65B9\u5B66\u4E60\uFF1B\u90FD\u7EF4\u62A4\u6E05\u671D\u7EDF\u6CBB\uFF1B\u90FD\u6D89\u53CA\u7ECF\u6D4E\u519B\u4E8B\u8FD1\u4EE3\u5316\uFF1B\u90FD\u672A\u89E6\u52A8\u5C01\u5EFA\u6839\u672C",
+    commonError: "\u90FD\u4EE5\u5931\u8D25\u544A\u7EC8\u8868\u8FF0\u4E0D\u5F53",
+    explanation: "\u6C5F\u695A\u4F1A\u594F\uFF08\u6E05\u672B\u65B0\u653F\uFF09\u4E0E\u6D0B\u52A1\u8FD0\u52A8\u90FD\u662F\u6E05\u653F\u5E9C\u81EA\u4E0A\u800C\u4E0B\u7684\u6539\u9769\uFF0C\u65E8\u5728\u7EF4\u62A4\u7EDF\u6CBB\u5E76\u5411\u897F\u65B9\u5B66\u4E60\u3002"
   },
   {
     id: 32,
     year: "2021",
-    tag: "清末新政",
-    title: "评价江楚会奏变法方案",
-    question: "根据材料，评价江楚会奏变法方案。",
-    keyPoint: "积极：推动教育近代化、多领域改革、促进思想解放；局限：维护封建统治、治标不治本",
-    commonError: "语句不通、评价不全、遗漏要点",
-    explanation: "江楚会奏是较为全面的改革方案，推动近代化但根本目的是维护清朝统治，未能挽救清朝灭亡。"
+    tag: "\u6E05\u672B\u65B0\u653F",
+    title: "\u8BC4\u4EF7\u6C5F\u695A\u4F1A\u594F\u53D8\u6CD5\u65B9\u6848",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u8BC4\u4EF7\u6C5F\u695A\u4F1A\u594F\u53D8\u6CD5\u65B9\u6848\u3002",
+    keyPoint: "\u79EF\u6781\uFF1A\u63A8\u52A8\u6559\u80B2\u8FD1\u4EE3\u5316\u3001\u591A\u9886\u57DF\u6539\u9769\u3001\u4FC3\u8FDB\u601D\u60F3\u89E3\u653E\uFF1B\u5C40\u9650\uFF1A\u7EF4\u62A4\u5C01\u5EFA\u7EDF\u6CBB\u3001\u6CBB\u6807\u4E0D\u6CBB\u672C",
+    commonError: "\u8BED\u53E5\u4E0D\u901A\u3001\u8BC4\u4EF7\u4E0D\u5168\u3001\u9057\u6F0F\u8981\u70B9",
+    explanation: "\u6C5F\u695A\u4F1A\u594F\u662F\u8F83\u4E3A\u5168\u9762\u7684\u6539\u9769\u65B9\u6848\uFF0C\u63A8\u52A8\u8FD1\u4EE3\u5316\u4F46\u6839\u672C\u76EE\u7684\u662F\u7EF4\u62A4\u6E05\u671D\u7EDF\u6CBB\uFF0C\u672A\u80FD\u633D\u6551\u6E05\u671D\u706D\u4EA1\u3002"
   },
   {
     id: 33,
     year: "2021",
-    tag: "越南战争",
-    title: "美国放弃使用化学剂的原因",
-    question: "根据材料，说明美国放弃在越战中使用化学剂的原因。",
-    keyPoint: "科学界反对；联合国重视环境；国内反战运动；未达到战争目的；对美军士兵造成伤害",
-    commonError: "可补充国际舆论压力",
-    explanation: "美国因国内外多方压力和化学剂未能达到预期效果，最终放弃在越战中使用化学剂。"
+    tag: "\u8D8A\u5357\u6218\u4E89",
+    title: "\u7F8E\u56FD\u653E\u5F03\u4F7F\u7528\u5316\u5B66\u5242\u7684\u539F\u56E0",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u8BF4\u660E\u7F8E\u56FD\u653E\u5F03\u5728\u8D8A\u6218\u4E2D\u4F7F\u7528\u5316\u5B66\u5242\u7684\u539F\u56E0\u3002",
+    keyPoint: "\u79D1\u5B66\u754C\u53CD\u5BF9\uFF1B\u8054\u5408\u56FD\u91CD\u89C6\u73AF\u5883\uFF1B\u56FD\u5185\u53CD\u6218\u8FD0\u52A8\uFF1B\u672A\u8FBE\u5230\u6218\u4E89\u76EE\u7684\uFF1B\u5BF9\u7F8E\u519B\u58EB\u5175\u9020\u6210\u4F24\u5BB3",
+    commonError: "\u53EF\u8865\u5145\u56FD\u9645\u8206\u8BBA\u538B\u529B",
+    explanation: "\u7F8E\u56FD\u56E0\u56FD\u5185\u5916\u591A\u65B9\u538B\u529B\u548C\u5316\u5B66\u5242\u672A\u80FD\u8FBE\u5230\u9884\u671F\u6548\u679C\uFF0C\u6700\u7EC8\u653E\u5F03\u5728\u8D8A\u6218\u4E2D\u4F7F\u7528\u5316\u5B66\u5242\u3002"
   },
   {
     id: 34,
     year: "2021",
-    tag: "越南战争",
-    title: "使用化学剂的后果",
-    question: "根据材料，说明美国在越战中使用化学剂的后果。",
-    keyPoint: "生态环境破坏；越南人民健康受损；美军士兵患病；美国国际形象受损；推动环保立法",
-    commonError: "国内经济破坏无依据、答案过于简略",
-    explanation: "越战化学剂造成生态灾难和人员伤害，严重损害美国国际形象，推动了国际环保立法进程。"
+    tag: "\u8D8A\u5357\u6218\u4E89",
+    title: "\u4F7F\u7528\u5316\u5B66\u5242\u7684\u540E\u679C",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u8BF4\u660E\u7F8E\u56FD\u5728\u8D8A\u6218\u4E2D\u4F7F\u7528\u5316\u5B66\u5242\u7684\u540E\u679C\u3002",
+    keyPoint: "\u751F\u6001\u73AF\u5883\u7834\u574F\uFF1B\u8D8A\u5357\u4EBA\u6C11\u5065\u5EB7\u53D7\u635F\uFF1B\u7F8E\u519B\u58EB\u5175\u60A3\u75C5\uFF1B\u7F8E\u56FD\u56FD\u9645\u5F62\u8C61\u53D7\u635F\uFF1B\u63A8\u52A8\u73AF\u4FDD\u7ACB\u6CD5",
+    commonError: "\u56FD\u5185\u7ECF\u6D4E\u7834\u574F\u65E0\u4F9D\u636E\u3001\u7B54\u6848\u8FC7\u4E8E\u7B80\u7565",
+    explanation: "\u8D8A\u6218\u5316\u5B66\u5242\u9020\u6210\u751F\u6001\u707E\u96BE\u548C\u4EBA\u5458\u4F24\u5BB3\uFF0C\u4E25\u91CD\u635F\u5BB3\u7F8E\u56FD\u56FD\u9645\u5F62\u8C61\uFF0C\u63A8\u52A8\u4E86\u56FD\u9645\u73AF\u4FDD\u7ACB\u6CD5\u8FDB\u7A0B\u3002"
   },
   {
     id: 35,
     year: "2021",
-    tag: "史学评价",
-    title: "三则材料对冯道的评价",
-    question: "根据材料，分别概括三则材料对冯道的评价。",
-    keyPoint: "评价一：学识渊博品行端正；评价二：肯定风度但质疑忠节；评价三：批判无礼无耻无气节",
-    commonError: "评价二有误忽略质疑、评价三未补充儒家忠义观",
-    explanation: "三则材料从不同立场评价冯道：《旧五代史》肯定其才学，史臣质疑其忠诚，欧阳修严厉批判。"
+    tag: "\u53F2\u5B66\u8BC4\u4EF7",
+    title: "\u4E09\u5219\u6750\u6599\u5BF9\u51AF\u9053\u7684\u8BC4\u4EF7",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u5206\u522B\u6982\u62EC\u4E09\u5219\u6750\u6599\u5BF9\u51AF\u9053\u7684\u8BC4\u4EF7\u3002",
+    keyPoint: "\u8BC4\u4EF7\u4E00\uFF1A\u5B66\u8BC6\u6E0A\u535A\u54C1\u884C\u7AEF\u6B63\uFF1B\u8BC4\u4EF7\u4E8C\uFF1A\u80AF\u5B9A\u98CE\u5EA6\u4F46\u8D28\u7591\u5FE0\u8282\uFF1B\u8BC4\u4EF7\u4E09\uFF1A\u6279\u5224\u65E0\u793C\u65E0\u803B\u65E0\u6C14\u8282",
+    commonError: "\u8BC4\u4EF7\u4E8C\u6709\u8BEF\u5FFD\u7565\u8D28\u7591\u3001\u8BC4\u4EF7\u4E09\u672A\u8865\u5145\u5112\u5BB6\u5FE0\u4E49\u89C2",
+    explanation: "\u4E09\u5219\u6750\u6599\u4ECE\u4E0D\u540C\u7ACB\u573A\u8BC4\u4EF7\u51AF\u9053\uFF1A\u300A\u65E7\u4E94\u4EE3\u53F2\u300B\u80AF\u5B9A\u5176\u624D\u5B66\uFF0C\u53F2\u81E3\u8D28\u7591\u5176\u5FE0\u8BDA\uFF0C\u6B27\u9633\u4FEE\u4E25\u5389\u6279\u5224\u3002"
   },
   {
     id: 36,
     year: "2021",
-    tag: "史学评价",
-    title: "影响人物评价的因素",
-    question: "根据材料，说明影响人物评价的因素。",
-    keyPoint: "评价者立场；时代背景；传统观念；史料掌握；政治环境；评价标准差异",
-    commonError: "三点均正确但可补充更多维度",
-    explanation: "历史人物评价受多种因素影响，包括评价者的价值观、所处时代、掌握史料、政治环境等。"
+    tag: "\u53F2\u5B66\u8BC4\u4EF7",
+    title: "\u5F71\u54CD\u4EBA\u7269\u8BC4\u4EF7\u7684\u56E0\u7D20",
+    question: "\u6839\u636E\u6750\u6599\uFF0C\u8BF4\u660E\u5F71\u54CD\u4EBA\u7269\u8BC4\u4EF7\u7684\u56E0\u7D20\u3002",
+    keyPoint: "\u8BC4\u4EF7\u8005\u7ACB\u573A\uFF1B\u65F6\u4EE3\u80CC\u666F\uFF1B\u4F20\u7EDF\u89C2\u5FF5\uFF1B\u53F2\u6599\u638C\u63E1\uFF1B\u653F\u6CBB\u73AF\u5883\uFF1B\u8BC4\u4EF7\u6807\u51C6\u5DEE\u5F02",
+    commonError: "\u4E09\u70B9\u5747\u6B63\u786E\u4F46\u53EF\u8865\u5145\u66F4\u591A\u7EF4\u5EA6",
+    explanation: "\u5386\u53F2\u4EBA\u7269\u8BC4\u4EF7\u53D7\u591A\u79CD\u56E0\u7D20\u5F71\u54CD\uFF0C\u5305\u62EC\u8BC4\u4EF7\u8005\u7684\u4EF7\u503C\u89C2\u3001\u6240\u5904\u65F6\u4EE3\u3001\u638C\u63E1\u53F2\u6599\u3001\u653F\u6CBB\u73AF\u5883\u7B49\u3002"
   },
   {
     id: 37,
     year: "2022",
-    tag: "苏伊士运河战争",
-    title: "美国对英国态度变化及目的",
-    question: "简析苏伊士运河战争爆发前后美国对英国的态度变化及其目的。",
-    keyPoint: "变化：撤援激化矛盾→联合苏联施压停火；目的：削弱英法、扩大美国势力、防止苏联渗透",
-    commonError: "态度变化描述有误、目的分析过浅",
-    explanation: "美国借苏伊士运河战争削弱英法在中东的传统影响力，填补权力真空，扩大自身势力范围。"
+    tag: "\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89",
+    title: "\u7F8E\u56FD\u5BF9\u82F1\u56FD\u6001\u5EA6\u53D8\u5316\u53CA\u76EE\u7684",
+    question: "\u7B80\u6790\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89\u7206\u53D1\u524D\u540E\u7F8E\u56FD\u5BF9\u82F1\u56FD\u7684\u6001\u5EA6\u53D8\u5316\u53CA\u5176\u76EE\u7684\u3002",
+    keyPoint: "\u53D8\u5316\uFF1A\u64A4\u63F4\u6FC0\u5316\u77DB\u76FE\u2192\u8054\u5408\u82CF\u8054\u65BD\u538B\u505C\u706B\uFF1B\u76EE\u7684\uFF1A\u524A\u5F31\u82F1\u6CD5\u3001\u6269\u5927\u7F8E\u56FD\u52BF\u529B\u3001\u9632\u6B62\u82CF\u8054\u6E17\u900F",
+    commonError: "\u6001\u5EA6\u53D8\u5316\u63CF\u8FF0\u6709\u8BEF\u3001\u76EE\u7684\u5206\u6790\u8FC7\u6D45",
+    explanation: "\u7F8E\u56FD\u501F\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89\u524A\u5F31\u82F1\u6CD5\u5728\u4E2D\u4E1C\u7684\u4F20\u7EDF\u5F71\u54CD\u529B\uFF0C\u586B\u8865\u6743\u529B\u771F\u7A7A\uFF0C\u6269\u5927\u81EA\u8EAB\u52BF\u529B\u8303\u56F4\u3002"
   },
   {
     id: 38,
     year: "2022",
-    tag: "苏伊士运河战争",
-    title: "苏伊士运河战争对西方阵营的影响",
-    question: "说明苏伊士运河战争对当时西方阵营的影响。",
-    keyPoint: "英法大国地位受挫；加速殖民体系瓦解；西方阵营裂痕；推动欧洲一体化；美国扩大中东影响",
-    commonError: "深度不足、可补充更多要点",
-    explanation: "苏伊士运河战争严重打击英法地位，加剧西方阵营分裂，客观上推动欧洲一体化进程。"
+    tag: "\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89",
+    title: "\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89\u5BF9\u897F\u65B9\u9635\u8425\u7684\u5F71\u54CD",
+    question: "\u8BF4\u660E\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89\u5BF9\u5F53\u65F6\u897F\u65B9\u9635\u8425\u7684\u5F71\u54CD\u3002",
+    keyPoint: "\u82F1\u6CD5\u5927\u56FD\u5730\u4F4D\u53D7\u632B\uFF1B\u52A0\u901F\u6B96\u6C11\u4F53\u7CFB\u74E6\u89E3\uFF1B\u897F\u65B9\u9635\u8425\u88C2\u75D5\uFF1B\u63A8\u52A8\u6B27\u6D32\u4E00\u4F53\u5316\uFF1B\u7F8E\u56FD\u6269\u5927\u4E2D\u4E1C\u5F71\u54CD",
+    commonError: "\u6DF1\u5EA6\u4E0D\u8DB3\u3001\u53EF\u8865\u5145\u66F4\u591A\u8981\u70B9",
+    explanation: "\u82CF\u4F0A\u58EB\u8FD0\u6CB3\u6218\u4E89\u4E25\u91CD\u6253\u51FB\u82F1\u6CD5\u5730\u4F4D\uFF0C\u52A0\u5267\u897F\u65B9\u9635\u8425\u5206\u88C2\uFF0C\u5BA2\u89C2\u4E0A\u63A8\u52A8\u6B27\u6D32\u4E00\u4F53\u5316\u8FDB\u7A0B\u3002"
   },
   {
     id: 39,
     year: "2022",
-    tag: "新中国政治",
-    title: "毛泽东高度重视各界人民代表会议的原因",
-    question: "说明毛泽东高度重视各界人民代表会议的原因。",
-    keyPoint: "党的性质宗旨；为人大制度做准备；团结各界壮大统一战线；巩固新解放城市政权；贯彻群众路线",
-    commonError: "推翻国民党的需要史实错误、原因不完整",
-    explanation: "1949年毛泽东重视各界人民代表会议，是为建立人大制度做准备，巩固新政权，发扬人民民主。"
+    tag: "\u65B0\u4E2D\u56FD\u653F\u6CBB",
+    title: "\u6BDB\u6CFD\u4E1C\u9AD8\u5EA6\u91CD\u89C6\u5404\u754C\u4EBA\u6C11\u4EE3\u8868\u4F1A\u8BAE\u7684\u539F\u56E0",
+    question: "\u8BF4\u660E\u6BDB\u6CFD\u4E1C\u9AD8\u5EA6\u91CD\u89C6\u5404\u754C\u4EBA\u6C11\u4EE3\u8868\u4F1A\u8BAE\u7684\u539F\u56E0\u3002",
+    keyPoint: "\u515A\u7684\u6027\u8D28\u5B97\u65E8\uFF1B\u4E3A\u4EBA\u5927\u5236\u5EA6\u505A\u51C6\u5907\uFF1B\u56E2\u7ED3\u5404\u754C\u58EE\u5927\u7EDF\u4E00\u6218\u7EBF\uFF1B\u5DE9\u56FA\u65B0\u89E3\u653E\u57CE\u5E02\u653F\u6743\uFF1B\u8D2F\u5F7B\u7FA4\u4F17\u8DEF\u7EBF",
+    commonError: "\u63A8\u7FFB\u56FD\u6C11\u515A\u7684\u9700\u8981\u53F2\u5B9E\u9519\u8BEF\u3001\u539F\u56E0\u4E0D\u5B8C\u6574",
+    explanation: "1949\u5E74\u6BDB\u6CFD\u4E1C\u91CD\u89C6\u5404\u754C\u4EBA\u6C11\u4EE3\u8868\u4F1A\u8BAE\uFF0C\u662F\u4E3A\u5EFA\u7ACB\u4EBA\u5927\u5236\u5EA6\u505A\u51C6\u5907\uFF0C\u5DE9\u56FA\u65B0\u653F\u6743\uFF0C\u53D1\u626C\u4EBA\u6C11\u6C11\u4E3B\u3002"
   },
   {
     id: 40,
     year: "2022",
-    tag: "新中国政治",
-    title: "各界人民代表会议的历史意义",
-    question: "简析毛泽东督促召开各界人民代表会议的历史意义。",
-    keyPoint: "体现人民当家作主；为人大制度积累经验；巩固新生政权；推动民主政治建设；彰显党的历史担当",
-    commonError: "意义较空洞、缺乏具体展开",
-    explanation: "各界人民代表会议是新中国民主政治的重要实践，为人民代表大会制度的建立积累了宝贵经验。"
+    tag: "\u65B0\u4E2D\u56FD\u653F\u6CBB",
+    title: "\u5404\u754C\u4EBA\u6C11\u4EE3\u8868\u4F1A\u8BAE\u7684\u5386\u53F2\u610F\u4E49",
+    question: "\u7B80\u6790\u6BDB\u6CFD\u4E1C\u7763\u4FC3\u53EC\u5F00\u5404\u754C\u4EBA\u6C11\u4EE3\u8868\u4F1A\u8BAE\u7684\u5386\u53F2\u610F\u4E49\u3002",
+    keyPoint: "\u4F53\u73B0\u4EBA\u6C11\u5F53\u5BB6\u4F5C\u4E3B\uFF1B\u4E3A\u4EBA\u5927\u5236\u5EA6\u79EF\u7D2F\u7ECF\u9A8C\uFF1B\u5DE9\u56FA\u65B0\u751F\u653F\u6743\uFF1B\u63A8\u52A8\u6C11\u4E3B\u653F\u6CBB\u5EFA\u8BBE\uFF1B\u5F70\u663E\u515A\u7684\u5386\u53F2\u62C5\u5F53",
+    commonError: "\u610F\u4E49\u8F83\u7A7A\u6D1E\u3001\u7F3A\u4E4F\u5177\u4F53\u5C55\u5F00",
+    explanation: "\u5404\u754C\u4EBA\u6C11\u4EE3\u8868\u4F1A\u8BAE\u662F\u65B0\u4E2D\u56FD\u6C11\u4E3B\u653F\u6CBB\u7684\u91CD\u8981\u5B9E\u8DF5\uFF0C\u4E3A\u4EBA\u6C11\u4EE3\u8868\u5927\u4F1A\u5236\u5EA6\u7684\u5EFA\u7ACB\u79EF\u7D2F\u4E86\u5B9D\u8D35\u7ECF\u9A8C\u3002"
   },
   {
     id: 41,
     year: "2023",
-    tag: "东汉儒学",
-    title: "东汉儒学与民德（梁启超观点）",
-    question: "选取中国古代史，对梁启超'东汉民德较优'观点提出看法并阐述。",
-    keyPoint: "认同：东汉儒学浓厚、察举孝廉引导道德、士大夫清议气节、党锢之祸殉道精神",
-    commonError: "论点模糊、史实错误刘秀结束西汉、史论脱节",
-    explanation: "东汉光武帝崇尚儒学，察举制以孝廉为标准，士大夫形成清议风气，民德确实达到较高水准。"
+    tag: "\u4E1C\u6C49\u5112\u5B66",
+    title: "\u4E1C\u6C49\u5112\u5B66\u4E0E\u6C11\u5FB7\uFF08\u6881\u542F\u8D85\u89C2\u70B9\uFF09",
+    question: "\u9009\u53D6\u4E2D\u56FD\u53E4\u4EE3\u53F2\uFF0C\u5BF9\u6881\u542F\u8D85'\u4E1C\u6C49\u6C11\u5FB7\u8F83\u4F18'\u89C2\u70B9\u63D0\u51FA\u770B\u6CD5\u5E76\u9610\u8FF0\u3002",
+    keyPoint: "\u8BA4\u540C\uFF1A\u4E1C\u6C49\u5112\u5B66\u6D53\u539A\u3001\u5BDF\u4E3E\u5B5D\u5EC9\u5F15\u5BFC\u9053\u5FB7\u3001\u58EB\u5927\u592B\u6E05\u8BAE\u6C14\u8282\u3001\u515A\u9522\u4E4B\u7978\u6B89\u9053\u7CBE\u795E",
+    commonError: "\u8BBA\u70B9\u6A21\u7CCA\u3001\u53F2\u5B9E\u9519\u8BEF\u5218\u79C0\u7ED3\u675F\u897F\u6C49\u3001\u53F2\u8BBA\u8131\u8282",
+    explanation: "\u4E1C\u6C49\u5149\u6B66\u5E1D\u5D07\u5C1A\u5112\u5B66\uFF0C\u5BDF\u4E3E\u5236\u4EE5\u5B5D\u5EC9\u4E3A\u6807\u51C6\uFF0C\u58EB\u5927\u592B\u5F62\u6210\u6E05\u8BAE\u98CE\u6C14\uFF0C\u6C11\u5FB7\u786E\u5B9E\u8FBE\u5230\u8F83\u9AD8\u6C34\u51C6\u3002"
   },
   {
     id: 42,
     year: "2023",
-    tag: "一战历史",
-    title: "飞机在一战中使用情况的变化",
-    question: "概括飞机在第一次世界大战中使用情况的变化。",
-    keyPoint: "侦察→空战→配置机枪→编队作战（空中马戏团）→全金属飞机→数量优势掌握制空权",
-    commonError: "一战前民用无中生有、技术演变过程缺失",
-    explanation: "一战初期飞机仅用于侦察，后逐步发展为空战武器，1918年协约国凭借空中优势掌握制空权。"
+    tag: "\u4E00\u6218\u5386\u53F2",
+    title: "\u98DE\u673A\u5728\u4E00\u6218\u4E2D\u4F7F\u7528\u60C5\u51B5\u7684\u53D8\u5316",
+    question: "\u6982\u62EC\u98DE\u673A\u5728\u7B2C\u4E00\u6B21\u4E16\u754C\u5927\u6218\u4E2D\u4F7F\u7528\u60C5\u51B5\u7684\u53D8\u5316\u3002",
+    keyPoint: "\u4FA6\u5BDF\u2192\u7A7A\u6218\u2192\u914D\u7F6E\u673A\u67AA\u2192\u7F16\u961F\u4F5C\u6218\uFF08\u7A7A\u4E2D\u9A6C\u620F\u56E2\uFF09\u2192\u5168\u91D1\u5C5E\u98DE\u673A\u2192\u6570\u91CF\u4F18\u52BF\u638C\u63E1\u5236\u7A7A\u6743",
+    commonError: "\u4E00\u6218\u524D\u6C11\u7528\u65E0\u4E2D\u751F\u6709\u3001\u6280\u672F\u6F14\u53D8\u8FC7\u7A0B\u7F3A\u5931",
+    explanation: "\u4E00\u6218\u521D\u671F\u98DE\u673A\u4EC5\u7528\u4E8E\u4FA6\u5BDF\uFF0C\u540E\u9010\u6B65\u53D1\u5C55\u4E3A\u7A7A\u6218\u6B66\u5668\uFF0C1918\u5E74\u534F\u7EA6\u56FD\u51ED\u501F\u7A7A\u4E2D\u4F18\u52BF\u638C\u63E1\u5236\u7A7A\u6743\u3002"
   },
   {
     id: 43,
     year: "2023",
-    tag: "一战历史",
-    title: "飞机应用于一战所产生的影响",
-    question: "简析飞机应用于第一次世界大战所产生的影响。",
-    keyPoint: "改变战争形态（平面→立体）；推动制空权理论；加速战争结束；刺激飞机制造业；平民伤亡加剧",
-    commonError: "为出行便利不贴切时间范围、严重缺失核心影响",
-    explanation: "飞机使战争从平面扩展到立体空间，推动制空权理论形成，加剧战争残酷性，刺激航空技术发展。"
+    tag: "\u4E00\u6218\u5386\u53F2",
+    title: "\u98DE\u673A\u5E94\u7528\u4E8E\u4E00\u6218\u6240\u4EA7\u751F\u7684\u5F71\u54CD",
+    question: "\u7B80\u6790\u98DE\u673A\u5E94\u7528\u4E8E\u7B2C\u4E00\u6B21\u4E16\u754C\u5927\u6218\u6240\u4EA7\u751F\u7684\u5F71\u54CD\u3002",
+    keyPoint: "\u6539\u53D8\u6218\u4E89\u5F62\u6001\uFF08\u5E73\u9762\u2192\u7ACB\u4F53\uFF09\uFF1B\u63A8\u52A8\u5236\u7A7A\u6743\u7406\u8BBA\uFF1B\u52A0\u901F\u6218\u4E89\u7ED3\u675F\uFF1B\u523A\u6FC0\u98DE\u673A\u5236\u9020\u4E1A\uFF1B\u5E73\u6C11\u4F24\u4EA1\u52A0\u5267",
+    commonError: "\u4E3A\u51FA\u884C\u4FBF\u5229\u4E0D\u8D34\u5207\u65F6\u95F4\u8303\u56F4\u3001\u4E25\u91CD\u7F3A\u5931\u6838\u5FC3\u5F71\u54CD",
+    explanation: "\u98DE\u673A\u4F7F\u6218\u4E89\u4ECE\u5E73\u9762\u6269\u5C55\u5230\u7ACB\u4F53\u7A7A\u95F4\uFF0C\u63A8\u52A8\u5236\u7A7A\u6743\u7406\u8BBA\u5F62\u6210\uFF0C\u52A0\u5267\u6218\u4E89\u6B8B\u9177\u6027\uFF0C\u523A\u6FC0\u822A\u7A7A\u6280\u672F\u53D1\u5C55\u3002"
   },
   {
     id: 44,
     year: "2024",
-    tag: "古代农业",
-    title: "中国与西欧古代农业土地利用方式差异",
-    question: "概括中国与西欧古代农业在土地利用方式上的主要差异。",
-    keyPoint: "中国：连作制、精耕细作、水利粪肥、圩田梯田；西欧：休耕轮作、二圃三圃制、敞地制度、农牧结合",
-    commonError: "未点明最核心差异、淤田笔误、遗漏敞地制度",
-    explanation: "中国以连作制和精耕细作为主，西欧以休耕轮作和敞地制度为特征，形成不同农业文明路径。"
+    tag: "\u53E4\u4EE3\u519C\u4E1A",
+    title: "\u4E2D\u56FD\u4E0E\u897F\u6B27\u53E4\u4EE3\u519C\u4E1A\u571F\u5730\u5229\u7528\u65B9\u5F0F\u5DEE\u5F02",
+    question: "\u6982\u62EC\u4E2D\u56FD\u4E0E\u897F\u6B27\u53E4\u4EE3\u519C\u4E1A\u5728\u571F\u5730\u5229\u7528\u65B9\u5F0F\u4E0A\u7684\u4E3B\u8981\u5DEE\u5F02\u3002",
+    keyPoint: "\u4E2D\u56FD\uFF1A\u8FDE\u4F5C\u5236\u3001\u7CBE\u8015\u7EC6\u4F5C\u3001\u6C34\u5229\u7CAA\u80A5\u3001\u5729\u7530\u68AF\u7530\uFF1B\u897F\u6B27\uFF1A\u4F11\u8015\u8F6E\u4F5C\u3001\u4E8C\u5703\u4E09\u5703\u5236\u3001\u655E\u5730\u5236\u5EA6\u3001\u519C\u7267\u7ED3\u5408",
+    commonError: "\u672A\u70B9\u660E\u6700\u6838\u5FC3\u5DEE\u5F02\u3001\u6DE4\u7530\u7B14\u8BEF\u3001\u9057\u6F0F\u655E\u5730\u5236\u5EA6",
+    explanation: "\u4E2D\u56FD\u4EE5\u8FDE\u4F5C\u5236\u548C\u7CBE\u8015\u7EC6\u4F5C\u4E3A\u4E3B\uFF0C\u897F\u6B27\u4EE5\u4F11\u8015\u8F6E\u4F5C\u548C\u655E\u5730\u5236\u5EA6\u4E3A\u7279\u5F81\uFF0C\u5F62\u6210\u4E0D\u540C\u519C\u4E1A\u6587\u660E\u8DEF\u5F84\u3002"
   },
   {
     id: 45,
     year: "2024",
-    tag: "古代农业",
-    title: "古代农业对文明发展的影响",
-    question: "分别说明中国和西欧古代农业对文明发展的影响。",
-    keyPoint: "中国：养活庞大人口、支撑统一多民族国家、孕育繁荣文明；西欧：封建庄园基础、推动城镇化、为资本主义萌芽奠基",
-    commonError: "重复表述、遗漏材料核心、过于笼统",
-    explanation: "中国农业支撑了统一多民族国家和中华文明延续；西欧农业推动了封建制度和近代资本主义发展。"
+    tag: "\u53E4\u4EE3\u519C\u4E1A",
+    title: "\u53E4\u4EE3\u519C\u4E1A\u5BF9\u6587\u660E\u53D1\u5C55\u7684\u5F71\u54CD",
+    question: "\u5206\u522B\u8BF4\u660E\u4E2D\u56FD\u548C\u897F\u6B27\u53E4\u4EE3\u519C\u4E1A\u5BF9\u6587\u660E\u53D1\u5C55\u7684\u5F71\u54CD\u3002",
+    keyPoint: "\u4E2D\u56FD\uFF1A\u517B\u6D3B\u5E9E\u5927\u4EBA\u53E3\u3001\u652F\u6491\u7EDF\u4E00\u591A\u6C11\u65CF\u56FD\u5BB6\u3001\u5B55\u80B2\u7E41\u8363\u6587\u660E\uFF1B\u897F\u6B27\uFF1A\u5C01\u5EFA\u5E84\u56ED\u57FA\u7840\u3001\u63A8\u52A8\u57CE\u9547\u5316\u3001\u4E3A\u8D44\u672C\u4E3B\u4E49\u840C\u82BD\u5960\u57FA",
+    commonError: "\u91CD\u590D\u8868\u8FF0\u3001\u9057\u6F0F\u6750\u6599\u6838\u5FC3\u3001\u8FC7\u4E8E\u7B3C\u7EDF",
+    explanation: "\u4E2D\u56FD\u519C\u4E1A\u652F\u6491\u4E86\u7EDF\u4E00\u591A\u6C11\u65CF\u56FD\u5BB6\u548C\u4E2D\u534E\u6587\u660E\u5EF6\u7EED\uFF1B\u897F\u6B27\u519C\u4E1A\u63A8\u52A8\u4E86\u5C01\u5EFA\u5236\u5EA6\u548C\u8FD1\u4EE3\u8D44\u672C\u4E3B\u4E49\u53D1\u5C55\u3002"
   },
   {
     id: 46,
     year: "2024",
-    tag: "抗日战争",
-    title: "1932年中华民族抗战短评",
-    question: "根据1932年新闻报道，拟定主题写一篇短评。",
-    keyPoint: "主题：1932年民族危亡与多方应对；史实：一二八事变、伪满洲国、十九路军抗战、国共对立",
-    commonError: "引入1935年一二九运动超时间范围、主题过大、未运用材料新闻标题",
-    explanation: "1932年外有日本侵略步步紧逼，内有国共武装对立，国民政府妥协与人民抗争形成鲜明对比。"
+    tag: "\u6297\u65E5\u6218\u4E89",
+    title: "1932\u5E74\u4E2D\u534E\u6C11\u65CF\u6297\u6218\u77ED\u8BC4",
+    question: "\u6839\u636E1932\u5E74\u65B0\u95FB\u62A5\u9053\uFF0C\u62DF\u5B9A\u4E3B\u9898\u5199\u4E00\u7BC7\u77ED\u8BC4\u3002",
+    keyPoint: "\u4E3B\u9898\uFF1A1932\u5E74\u6C11\u65CF\u5371\u4EA1\u4E0E\u591A\u65B9\u5E94\u5BF9\uFF1B\u53F2\u5B9E\uFF1A\u4E00\u4E8C\u516B\u4E8B\u53D8\u3001\u4F2A\u6EE1\u6D32\u56FD\u3001\u5341\u4E5D\u8DEF\u519B\u6297\u6218\u3001\u56FD\u5171\u5BF9\u7ACB",
+    commonError: "\u5F15\u51651935\u5E74\u4E00\u4E8C\u4E5D\u8FD0\u52A8\u8D85\u65F6\u95F4\u8303\u56F4\u3001\u4E3B\u9898\u8FC7\u5927\u3001\u672A\u8FD0\u7528\u6750\u6599\u65B0\u95FB\u6807\u9898",
+    explanation: "1932\u5E74\u5916\u6709\u65E5\u672C\u4FB5\u7565\u6B65\u6B65\u7D27\u903C\uFF0C\u5185\u6709\u56FD\u5171\u6B66\u88C5\u5BF9\u7ACB\uFF0C\u56FD\u6C11\u653F\u5E9C\u59A5\u534F\u4E0E\u4EBA\u6C11\u6297\u4E89\u5F62\u6210\u9C9C\u660E\u5BF9\u6BD4\u3002"
   },
   {
     id: 47,
     year: "2024",
-    tag: "现代工业",
-    title: "新中国成立以来装备制造业的发展",
-    question: "概述新中国成立以来装备制造业的发展。",
-    keyPoint: "奠基阶段一五计划建立新部门；发展阶段改革开放形成制造基地；腾飞阶段新时代自给率85%世界第一",
-    commonError: "无阶段性概述、未提具体成就、地域布局未提及",
-    explanation: "中国装备制造业从一五计划奠基，到改革开放发展，再到新时代高质量发展，成为世界第一制造大国。"
+    tag: "\u73B0\u4EE3\u5DE5\u4E1A",
+    title: "\u65B0\u4E2D\u56FD\u6210\u7ACB\u4EE5\u6765\u88C5\u5907\u5236\u9020\u4E1A\u7684\u53D1\u5C55",
+    question: "\u6982\u8FF0\u65B0\u4E2D\u56FD\u6210\u7ACB\u4EE5\u6765\u88C5\u5907\u5236\u9020\u4E1A\u7684\u53D1\u5C55\u3002",
+    keyPoint: "\u5960\u57FA\u9636\u6BB5\u4E00\u4E94\u8BA1\u5212\u5EFA\u7ACB\u65B0\u90E8\u95E8\uFF1B\u53D1\u5C55\u9636\u6BB5\u6539\u9769\u5F00\u653E\u5F62\u6210\u5236\u9020\u57FA\u5730\uFF1B\u817E\u98DE\u9636\u6BB5\u65B0\u65F6\u4EE3\u81EA\u7ED9\u738785%\u4E16\u754C\u7B2C\u4E00",
+    commonError: "\u65E0\u9636\u6BB5\u6027\u6982\u8FF0\u3001\u672A\u63D0\u5177\u4F53\u6210\u5C31\u3001\u5730\u57DF\u5E03\u5C40\u672A\u63D0\u53CA",
+    explanation: "\u4E2D\u56FD\u88C5\u5907\u5236\u9020\u4E1A\u4ECE\u4E00\u4E94\u8BA1\u5212\u5960\u57FA\uFF0C\u5230\u6539\u9769\u5F00\u653E\u53D1\u5C55\uFF0C\u518D\u5230\u65B0\u65F6\u4EE3\u9AD8\u8D28\u91CF\u53D1\u5C55\uFF0C\u6210\u4E3A\u4E16\u754C\u7B2C\u4E00\u5236\u9020\u5927\u56FD\u3002"
   },
   {
     id: 48,
     year: "2024",
-    tag: "现代工业",
-    title: "新时代推动装备制造业发展的主要因素",
-    question: "概括新时代推动中国装备制造业发展的主要因素。",
-    keyPoint: "党中央领导；产业政策支持；自主创新加大科研投入；数字化智能化转型升级；完整产业体系基础；科技工作者奉献精神",
-    commonError: "语义重复、未提数字化智能化转型、表述不够精准",
-    explanation: "新时代装备制造业发展得益于党的领导、自主创新战略、数字化转型和完整工业体系支撑。"
+    tag: "\u73B0\u4EE3\u5DE5\u4E1A",
+    title: "\u65B0\u65F6\u4EE3\u63A8\u52A8\u88C5\u5907\u5236\u9020\u4E1A\u53D1\u5C55\u7684\u4E3B\u8981\u56E0\u7D20",
+    question: "\u6982\u62EC\u65B0\u65F6\u4EE3\u63A8\u52A8\u4E2D\u56FD\u88C5\u5907\u5236\u9020\u4E1A\u53D1\u5C55\u7684\u4E3B\u8981\u56E0\u7D20\u3002",
+    keyPoint: "\u515A\u4E2D\u592E\u9886\u5BFC\uFF1B\u4EA7\u4E1A\u653F\u7B56\u652F\u6301\uFF1B\u81EA\u4E3B\u521B\u65B0\u52A0\u5927\u79D1\u7814\u6295\u5165\uFF1B\u6570\u5B57\u5316\u667A\u80FD\u5316\u8F6C\u578B\u5347\u7EA7\uFF1B\u5B8C\u6574\u4EA7\u4E1A\u4F53\u7CFB\u57FA\u7840\uFF1B\u79D1\u6280\u5DE5\u4F5C\u8005\u5949\u732E\u7CBE\u795E",
+    commonError: "\u8BED\u4E49\u91CD\u590D\u3001\u672A\u63D0\u6570\u5B57\u5316\u667A\u80FD\u5316\u8F6C\u578B\u3001\u8868\u8FF0\u4E0D\u591F\u7CBE\u51C6",
+    explanation: "\u65B0\u65F6\u4EE3\u88C5\u5907\u5236\u9020\u4E1A\u53D1\u5C55\u5F97\u76CA\u4E8E\u515A\u7684\u9886\u5BFC\u3001\u81EA\u4E3B\u521B\u65B0\u6218\u7565\u3001\u6570\u5B57\u5316\u8F6C\u578B\u548C\u5B8C\u6574\u5DE5\u4E1A\u4F53\u7CFB\u652F\u6491\u3002"
   },
   {
     id: 49,
     year: "2025",
-    tag: "魏晋医学",
-    title: "魏晋南北朝时期医学发展的特点",
-    question: "概括魏晋南北朝时期医学发展的特点。",
-    keyPoint: "官方医政体系完备；医学典籍整理编撰成就突出；服务对象兼顾贵族与平民体现仁爱；对外医学交流活跃",
-    commonError: "遗漏服务对象多元、表述模糊",
-    explanation: "魏晋南北朝时期医学在官方管理、典籍整理、对外交流和人文关怀等方面取得显著发展。"
+    tag: "\u9B4F\u664B\u533B\u5B66",
+    title: "\u9B4F\u664B\u5357\u5317\u671D\u65F6\u671F\u533B\u5B66\u53D1\u5C55\u7684\u7279\u70B9",
+    question: "\u6982\u62EC\u9B4F\u664B\u5357\u5317\u671D\u65F6\u671F\u533B\u5B66\u53D1\u5C55\u7684\u7279\u70B9\u3002",
+    keyPoint: "\u5B98\u65B9\u533B\u653F\u4F53\u7CFB\u5B8C\u5907\uFF1B\u533B\u5B66\u5178\u7C4D\u6574\u7406\u7F16\u64B0\u6210\u5C31\u7A81\u51FA\uFF1B\u670D\u52A1\u5BF9\u8C61\u517C\u987E\u8D35\u65CF\u4E0E\u5E73\u6C11\u4F53\u73B0\u4EC1\u7231\uFF1B\u5BF9\u5916\u533B\u5B66\u4EA4\u6D41\u6D3B\u8DC3",
+    commonError: "\u9057\u6F0F\u670D\u52A1\u5BF9\u8C61\u591A\u5143\u3001\u8868\u8FF0\u6A21\u7CCA",
+    explanation: "\u9B4F\u664B\u5357\u5317\u671D\u65F6\u671F\u533B\u5B66\u5728\u5B98\u65B9\u7BA1\u7406\u3001\u5178\u7C4D\u6574\u7406\u3001\u5BF9\u5916\u4EA4\u6D41\u548C\u4EBA\u6587\u5173\u6000\u7B49\u65B9\u9762\u53D6\u5F97\u663E\u8457\u53D1\u5C55\u3002"
   },
   {
     id: 50,
     year: "2025",
-    tag: "魏晋医学",
-    title: "魏晋南北朝医学发展的意义",
-    question: "分析魏晋南北朝时期医学发展的意义。",
-    keyPoint: "丰富系统化中医理论；为隋唐医学繁荣奠定基础；体现仁爱救世人文精神；促进中外文化交流",
-    commonError: "方向正确但偏空泛、遗漏具体表述",
-    explanation: "魏晋医学发展为后世中医理论体系完善和中外医学交流奠定了重要基础。"
+    tag: "\u9B4F\u664B\u533B\u5B66",
+    title: "\u9B4F\u664B\u5357\u5317\u671D\u533B\u5B66\u53D1\u5C55\u7684\u610F\u4E49",
+    question: "\u5206\u6790\u9B4F\u664B\u5357\u5317\u671D\u65F6\u671F\u533B\u5B66\u53D1\u5C55\u7684\u610F\u4E49\u3002",
+    keyPoint: "\u4E30\u5BCC\u7CFB\u7EDF\u5316\u4E2D\u533B\u7406\u8BBA\uFF1B\u4E3A\u968B\u5510\u533B\u5B66\u7E41\u8363\u5960\u5B9A\u57FA\u7840\uFF1B\u4F53\u73B0\u4EC1\u7231\u6551\u4E16\u4EBA\u6587\u7CBE\u795E\uFF1B\u4FC3\u8FDB\u4E2D\u5916\u6587\u5316\u4EA4\u6D41",
+    commonError: "\u65B9\u5411\u6B63\u786E\u4F46\u504F\u7A7A\u6CDB\u3001\u9057\u6F0F\u5177\u4F53\u8868\u8FF0",
+    explanation: "\u9B4F\u664B\u533B\u5B66\u53D1\u5C55\u4E3A\u540E\u4E16\u4E2D\u533B\u7406\u8BBA\u4F53\u7CFB\u5B8C\u5584\u548C\u4E2D\u5916\u533B\u5B66\u4EA4\u6D41\u5960\u5B9A\u4E86\u91CD\u8981\u57FA\u7840\u3002"
   },
   {
     id: 51,
     year: "2025",
-    tag: "中共党史",
-    title: "中共不同时期的调查研究",
-    question: "从材料中任选三则调查研究内容，结合中共不同时期任务与举措加以阐释。",
-    keyPoint: "新时代精准扶贫因地制宜；土地革命时期调查农村为土地政策和扩红提供依据；社会主义改造时期调查工商业为三大改造提供数据",
-    commonError: "阐释深度严重不足仅罗列关键词、有错别字",
-    explanation: "调查研究是党制定正确路线政策的重要前提，贯穿各个历史时期，体现实事求是和群众路线。"
+    tag: "\u4E2D\u5171\u515A\u53F2",
+    title: "\u4E2D\u5171\u4E0D\u540C\u65F6\u671F\u7684\u8C03\u67E5\u7814\u7A76",
+    question: "\u4ECE\u6750\u6599\u4E2D\u4EFB\u9009\u4E09\u5219\u8C03\u67E5\u7814\u7A76\u5185\u5BB9\uFF0C\u7ED3\u5408\u4E2D\u5171\u4E0D\u540C\u65F6\u671F\u4EFB\u52A1\u4E0E\u4E3E\u63AA\u52A0\u4EE5\u9610\u91CA\u3002",
+    keyPoint: "\u65B0\u65F6\u4EE3\u7CBE\u51C6\u6276\u8D2B\u56E0\u5730\u5236\u5B9C\uFF1B\u571F\u5730\u9769\u547D\u65F6\u671F\u8C03\u67E5\u519C\u6751\u4E3A\u571F\u5730\u653F\u7B56\u548C\u6269\u7EA2\u63D0\u4F9B\u4F9D\u636E\uFF1B\u793E\u4F1A\u4E3B\u4E49\u6539\u9020\u65F6\u671F\u8C03\u67E5\u5DE5\u5546\u4E1A\u4E3A\u4E09\u5927\u6539\u9020\u63D0\u4F9B\u6570\u636E",
+    commonError: "\u9610\u91CA\u6DF1\u5EA6\u4E25\u91CD\u4E0D\u8DB3\u4EC5\u7F57\u5217\u5173\u952E\u8BCD\u3001\u6709\u9519\u522B\u5B57",
+    explanation: "\u8C03\u67E5\u7814\u7A76\u662F\u515A\u5236\u5B9A\u6B63\u786E\u8DEF\u7EBF\u653F\u7B56\u7684\u91CD\u8981\u524D\u63D0\uFF0C\u8D2F\u7A7F\u5404\u4E2A\u5386\u53F2\u65F6\u671F\uFF0C\u4F53\u73B0\u5B9E\u4E8B\u6C42\u662F\u548C\u7FA4\u4F17\u8DEF\u7EBF\u3002"
   },
   {
     id: 52,
     year: "2025",
-    tag: "中共党史",
-    title: "中共调查研究的历史启示",
-    question: "简析中共调查研究的历史启示。",
-    keyPoint: "调查研究是制定正确路线政策的前提；坚持实事求是理论联系实际；贯彻群众路线深入基层",
-    commonError: "可补充更多要点",
-    explanation: "调查研究是党的优良传统，是保持先进性和制定正确决策的关键方法。"
+    tag: "\u4E2D\u5171\u515A\u53F2",
+    title: "\u4E2D\u5171\u8C03\u67E5\u7814\u7A76\u7684\u5386\u53F2\u542F\u793A",
+    question: "\u7B80\u6790\u4E2D\u5171\u8C03\u67E5\u7814\u7A76\u7684\u5386\u53F2\u542F\u793A\u3002",
+    keyPoint: "\u8C03\u67E5\u7814\u7A76\u662F\u5236\u5B9A\u6B63\u786E\u8DEF\u7EBF\u653F\u7B56\u7684\u524D\u63D0\uFF1B\u575A\u6301\u5B9E\u4E8B\u6C42\u662F\u7406\u8BBA\u8054\u7CFB\u5B9E\u9645\uFF1B\u8D2F\u5F7B\u7FA4\u4F17\u8DEF\u7EBF\u6DF1\u5165\u57FA\u5C42",
+    commonError: "\u53EF\u8865\u5145\u66F4\u591A\u8981\u70B9",
+    explanation: "\u8C03\u67E5\u7814\u7A76\u662F\u515A\u7684\u4F18\u826F\u4F20\u7EDF\uFF0C\u662F\u4FDD\u6301\u5148\u8FDB\u6027\u548C\u5236\u5B9A\u6B63\u786E\u51B3\u7B56\u7684\u5173\u952E\u65B9\u6CD5\u3002"
   },
   {
     id: 53,
     year: "2025",
-    tag: "近代财税",
-    title: "近代中英地方财税体制的差异",
-    question: "比较近代中英两国地方财税体制的差异。",
-    keyPoint: "形成方式：中国被动战乱、英国主动立法；税收性质：中国非正式杂税、英国专项税法律保障；中央地方关系：中国争夺、英国协作；监督机制：中国缺乏、英国多元监督",
-    commonError: "遗漏税收性质和监督机制差异",
-    explanation: "近代中英财税体制差异反映了两国政治制度和现代化路径的根本不同。"
+    tag: "\u8FD1\u4EE3\u8D22\u7A0E",
+    title: "\u8FD1\u4EE3\u4E2D\u82F1\u5730\u65B9\u8D22\u7A0E\u4F53\u5236\u7684\u5DEE\u5F02",
+    question: "\u6BD4\u8F83\u8FD1\u4EE3\u4E2D\u82F1\u4E24\u56FD\u5730\u65B9\u8D22\u7A0E\u4F53\u5236\u7684\u5DEE\u5F02\u3002",
+    keyPoint: "\u5F62\u6210\u65B9\u5F0F\uFF1A\u4E2D\u56FD\u88AB\u52A8\u6218\u4E71\u3001\u82F1\u56FD\u4E3B\u52A8\u7ACB\u6CD5\uFF1B\u7A0E\u6536\u6027\u8D28\uFF1A\u4E2D\u56FD\u975E\u6B63\u5F0F\u6742\u7A0E\u3001\u82F1\u56FD\u4E13\u9879\u7A0E\u6CD5\u5F8B\u4FDD\u969C\uFF1B\u4E2D\u592E\u5730\u65B9\u5173\u7CFB\uFF1A\u4E2D\u56FD\u4E89\u593A\u3001\u82F1\u56FD\u534F\u4F5C\uFF1B\u76D1\u7763\u673A\u5236\uFF1A\u4E2D\u56FD\u7F3A\u4E4F\u3001\u82F1\u56FD\u591A\u5143\u76D1\u7763",
+    commonError: "\u9057\u6F0F\u7A0E\u6536\u6027\u8D28\u548C\u76D1\u7763\u673A\u5236\u5DEE\u5F02",
+    explanation: "\u8FD1\u4EE3\u4E2D\u82F1\u8D22\u7A0E\u4F53\u5236\u5DEE\u5F02\u53CD\u6620\u4E86\u4E24\u56FD\u653F\u6CBB\u5236\u5EA6\u548C\u73B0\u4EE3\u5316\u8DEF\u5F84\u7684\u6839\u672C\u4E0D\u540C\u3002"
   },
   {
     id: 54,
     year: "2025",
-    tag: "近代财税",
-    title: "近代中英财税体制的影响",
-    question: "分别说明近代中英地方财税体制的影响。",
-    keyPoint: "中国：加剧地方离心、阻碍商品流通、但为洋务运动提供财力；英国：推动城市化工业化、完善代议制、为福利国家奠基",
-    commonError: "中国影响遗漏洋务运动财力、英国影响可补充福利国家",
-    explanation: "中英财税体制对各自近代化进程产生了深远但截然不同的影响。"
+    tag: "\u8FD1\u4EE3\u8D22\u7A0E",
+    title: "\u8FD1\u4EE3\u4E2D\u82F1\u8D22\u7A0E\u4F53\u5236\u7684\u5F71\u54CD",
+    question: "\u5206\u522B\u8BF4\u660E\u8FD1\u4EE3\u4E2D\u82F1\u5730\u65B9\u8D22\u7A0E\u4F53\u5236\u7684\u5F71\u54CD\u3002",
+    keyPoint: "\u4E2D\u56FD\uFF1A\u52A0\u5267\u5730\u65B9\u79BB\u5FC3\u3001\u963B\u788D\u5546\u54C1\u6D41\u901A\u3001\u4F46\u4E3A\u6D0B\u52A1\u8FD0\u52A8\u63D0\u4F9B\u8D22\u529B\uFF1B\u82F1\u56FD\uFF1A\u63A8\u52A8\u57CE\u5E02\u5316\u5DE5\u4E1A\u5316\u3001\u5B8C\u5584\u4EE3\u8BAE\u5236\u3001\u4E3A\u798F\u5229\u56FD\u5BB6\u5960\u57FA",
+    commonError: "\u4E2D\u56FD\u5F71\u54CD\u9057\u6F0F\u6D0B\u52A1\u8FD0\u52A8\u8D22\u529B\u3001\u82F1\u56FD\u5F71\u54CD\u53EF\u8865\u5145\u798F\u5229\u56FD\u5BB6",
+    explanation: "\u4E2D\u82F1\u8D22\u7A0E\u4F53\u5236\u5BF9\u5404\u81EA\u8FD1\u4EE3\u5316\u8FDB\u7A0B\u4EA7\u751F\u4E86\u6DF1\u8FDC\u4F46\u622A\u7136\u4E0D\u540C\u7684\u5F71\u54CD\u3002"
   }
 ];
-
-// ==========================================
-// 前端 HTML / CSS / JS 代码
-// ==========================================
-const HTML_CONTENT = `<!DOCTYPE html>
+var HTML_CONTENT = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高考历史特训 - 艾宾浩斯记忆系统</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>\u9AD8\u8003\u5386\u53F2\u7279\u8BAD - \u827E\u5BBE\u6D69\u65AF\u8BB0\u5FC6\u7CFB\u7EDF</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         body { font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
@@ -716,14 +663,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center">
                     <i class="fa-solid fa-scroll text-amber-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">高考历史特训 <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2 border">v1.0.0</span></h1>
+                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">\u9AD8\u8003\u5386\u53F2\u7279\u8BAD <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2 border">v1.0.0</span></h1>
                 </div>
                 <div class="flex space-x-2 sm:space-x-8 overflow-x-auto hide-scrollbar">
                     <button onclick="window.switchTab('home')" id="tab-home" class="tab-active whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
-                        <i class="fa-solid fa-house mr-1"></i> 首页
+                        <i class="fa-solid fa-house mr-1"></i> \u9996\u9875
                     </button>
                     <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
-                        <i class="fa-solid fa-brain mr-2"></i> 挑战复习
+                        <i class="fa-solid fa-brain mr-2"></i> \u6311\u6218\u590D\u4E60
                     </button>
                 </div>
             </div>
@@ -737,22 +684,22 @@ const HTML_CONTENT = `<!DOCTYPE html>
             <!-- Home: Question List -->
             <div id="view-home" class="fade-in space-y-6">
                 <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
-                    <h2 class="text-lg font-bold text-gray-900 mb-2"><i class="fa-solid fa-graduation-cap mr-2 text-amber-600"></i>高考历史 · 艾宾浩斯记忆特训</h2>
+                    <h2 class="text-lg font-bold text-gray-900 mb-2"><i class="fa-solid fa-graduation-cap mr-2 text-amber-600"></i>\u9AD8\u8003\u5386\u53F2 \xB7 \u827E\u5BBE\u6D69\u65AF\u8BB0\u5FC6\u7279\u8BAD</h2>
                     <p class="text-gray-600 text-sm mb-4">
-                        本系统收录 ${historyQuestions.length} 道高考历史真题核心知识点，采用艾宾浩斯遗忘曲线算法，
-                        自动安排复习计划，帮助你高效掌握历史知识。
+                        \u672C\u7CFB\u7EDF\u6536\u5F55 ${historyQuestions.length} \u9053\u9AD8\u8003\u5386\u53F2\u771F\u9898\u6838\u5FC3\u77E5\u8BC6\u70B9\uFF0C\u91C7\u7528\u827E\u5BBE\u6D69\u65AF\u9057\u5FD8\u66F2\u7EBF\u7B97\u6CD5\uFF0C
+                        \u81EA\u52A8\u5B89\u6392\u590D\u4E60\u8BA1\u5212\uFF0C\u5E2E\u52A9\u4F60\u9AD8\u6548\u638C\u63E1\u5386\u53F2\u77E5\u8BC6\u3002
                     </p>
                     <div class="flex items-center space-x-4 text-sm text-gray-500">
-                        <span><i class="fa-solid fa-database mr-1"></i> Cloudflare D1 云端同步</span>
-                        <span><i class="fa-solid fa-clock mr-1"></i> 智能复习提醒</span>
-                        <span><i class="fa-solid fa-chart-line mr-1"></i> 进度追踪</span>
+                        <span><i class="fa-solid fa-database mr-1"></i> Cloudflare D1 \u4E91\u7AEF\u540C\u6B65</span>
+                        <span><i class="fa-solid fa-clock mr-1"></i> \u667A\u80FD\u590D\u4E60\u63D0\u9192</span>
+                        <span><i class="fa-solid fa-chart-line mr-1"></i> \u8FDB\u5EA6\u8FFD\u8E2A</span>
                     </div>
                 </div>
 
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">题目库概览</h3>
-                        <span class="text-sm text-gray-500">共 ${historyQuestions.length} 题</span>
+                        <h3 class="font-bold text-gray-800">\u9898\u76EE\u5E93\u6982\u89C8</h3>
+                        <span class="text-sm text-gray-500">\u5171 ${historyQuestions.length} \u9898</span>
                     </div>
                     <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto" id="question-list">
                         <!-- Questions will be injected here -->
@@ -769,49 +716,49 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         <div class="bg-amber-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
                             <i class="fa-solid fa-scroll text-amber-600 text-3xl sm:text-4xl"></i>
                         </div>
-                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">历史知识突击检查</h2>
-                        <p class="text-gray-600 mb-2 text-sm sm:text-base">系统题库共收录 <span class="font-bold text-amber-600" id="total-questions-count">0</span> 个知识点。</p>
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">\u5386\u53F2\u77E5\u8BC6\u7A81\u51FB\u68C0\u67E5</h2>
+                        <p class="text-gray-600 mb-2 text-sm sm:text-base">\u7CFB\u7EDF\u9898\u5E93\u5171\u6536\u5F55 <span class="font-bold text-amber-600" id="total-questions-count">0</span> \u4E2A\u77E5\u8BC6\u70B9\u3002</p>
                         
                         <div id="ebbinghaus-status" class="mb-4 sm:mb-6">
                             <div class="inline-block bg-purple-50 text-purple-700 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm border border-purple-100">
-                                <i class="fa-solid fa-hourglass-half mr-1"></i> <span id="sync-status">正在连接 Cloudflare D1...</span>
+                                <i class="fa-solid fa-hourglass-half mr-1"></i> <span id="sync-status">\u6B63\u5728\u8FDE\u63A5 Cloudflare D1...</span>
                             </div>
                         </div>
 
                         <!-- User Selection -->
                         <div class="mb-4 text-left bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fa-solid fa-users mr-1 text-gray-500"></i> 选择学习账号 (独立记忆池):
+                                <i class="fa-solid fa-users mr-1 text-gray-500"></i> \u9009\u62E9\u5B66\u4E60\u8D26\u53F7 (\u72EC\u7ACB\u8BB0\u5FC6\u6C60):
                             </label>
                             <select id="user-profile" onchange="window.changeProfile()" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
-                                <option value="user1">👤 User 1 (账号一)</option>
-                                <option value="user2">👤 User 2 (账号二)</option>
-                                <option value="user3">👤 User 3 (账号三)</option>
-                                <option value="user4">👤 User 4 (账号四)</option>
+                                <option value="user1">\u{1F464} User 1 (\u8D26\u53F7\u4E00)</option>
+                                <option value="user2">\u{1F464} User 2 (\u8D26\u53F7\u4E8C)</option>
+                                <option value="user3">\u{1F464} User 3 (\u8D26\u53F7\u4E09)</option>
+                                <option value="user4">\u{1F464} User 4 (\u8D26\u53F7\u56DB)</option>
                             </select>
                         </div>
                         
                         <!-- Daily Limit Setting -->
                         <div class="mb-6 text-left bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
                             <label for="daily-limit" class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fa-solid fa-calendar-day mr-1 text-gray-500"></i> 今日目标题数:
+                                <i class="fa-solid fa-calendar-day mr-1 text-gray-500"></i> \u4ECA\u65E5\u76EE\u6807\u9898\u6570:
                             </label>
                             <div class="flex items-center space-x-3">
                                 <select id="daily-limit" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
-                                    <option value="5">5 题</option>
-                                    <option value="10" selected>10 题</option>
-                                    <option value="20">20 题</option>
-                                    <option value="999">全部错题</option>
+                                    <option value="5">5 \u9898</option>
+                                    <option value="10" selected>10 \u9898</option>
+                                    <option value="20">20 \u9898</option>
+                                    <option value="999">\u5168\u90E8\u9519\u9898</option>
                                 </select>
                             </div>
                         </div>
 
                         <button id="btn-start" onclick="window.prepareQuiz()" class="w-full bg-amber-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-amber-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:opacity-50">
-                            开始今日复习
+                            \u5F00\u59CB\u4ECA\u65E5\u590D\u4E60
                         </button>
                         
                         <button onclick="window.showMemoryDashboard()" class="w-full mt-3 bg-white text-purple-600 border border-purple-200 py-3 px-6 rounded-lg font-bold hover:bg-purple-50 transition shadow-sm">
-                            <i class="fa-solid fa-database mr-1"></i> 查看当前账号 SQL 记忆库
+                            <i class="fa-solid fa-database mr-1"></i> \u67E5\u770B\u5F53\u524D\u8D26\u53F7 SQL \u8BB0\u5FC6\u5E93
                         </button>
                     </div>
                 </div>
@@ -820,16 +767,16 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 <div id="quiz-pre-review" class="hidden w-full max-w-2xl px-4">
                     <div class="bg-white rounded-xl shadow-xl border-t-4 border-yellow-400 overflow-hidden flex flex-col max-h-[85vh]">
                         <div class="p-4 bg-yellow-50 border-b border-yellow-100 flex items-center justify-between sticky top-0">
-                            <h3 class="text-lg font-bold text-yellow-800"><i class="fa-solid fa-bolt mr-2"></i> 记忆突击: 提前复习</h3>
-                            <span class="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full font-bold">艾宾浩斯算法拦截</span>
+                            <h3 class="text-lg font-bold text-yellow-800"><i class="fa-solid fa-bolt mr-2"></i> \u8BB0\u5FC6\u7A81\u51FB: \u63D0\u524D\u590D\u4E60</h3>
+                            <span class="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full font-bold">\u827E\u5BBE\u6D69\u65AF\u7B97\u6CD5\u62E6\u622A</span>
                         </div>
                         <div class="p-6 overflow-y-auto flex-1">
-                            <p class="text-gray-600 mb-4 text-sm font-medium">系统检测到以下 <span id="pre-review-count" class="text-red-500 font-bold"></span> 个知识点已达到遗忘临界点。请在正式挑战前进行复习：</p>
+                            <p class="text-gray-600 mb-4 text-sm font-medium">\u7CFB\u7EDF\u68C0\u6D4B\u5230\u4EE5\u4E0B <span id="pre-review-count" class="text-red-500 font-bold"></span> \u4E2A\u77E5\u8BC6\u70B9\u5DF2\u8FBE\u5230\u9057\u5FD8\u4E34\u754C\u70B9\u3002\u8BF7\u5728\u6B63\u5F0F\u6311\u6218\u524D\u8FDB\u884C\u590D\u4E60\uFF1A</p>
                             <div id="pre-review-list" class="space-y-4"></div>
                         </div>
                         <div class="p-4 bg-gray-50 border-t border-gray-100 mt-auto">
                             <button onclick="window.enterQuizContext()" class="w-full bg-yellow-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-yellow-600 transition shadow-md flex justify-center items-center">
-                                我已复习完毕，开始挑战 <i class="fa-solid fa-arrow-right ml-2"></i>
+                                \u6211\u5DF2\u590D\u4E60\u5B8C\u6BD5\uFF0C\u5F00\u59CB\u6311\u6218 <i class="fa-solid fa-arrow-right ml-2"></i>
                             </button>
                         </div>
                     </div>
@@ -838,7 +785,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 <!-- Quiz Card -->
                 <div id="quiz-container" class="hidden w-full max-w-2xl px-4">
                     <div class="flex justify-between items-center mb-4">
-                        <span class="text-sm font-medium text-gray-500">进度: <span id="current-q">1</span>/<span id="total-q">10</span></span>
+                        <span class="text-sm font-medium text-gray-500">\u8FDB\u5EA6: <span id="current-q">1</span>/<span id="total-q">10</span></span>
                         <div class="h-2 w-48 bg-gray-200 rounded-full">
                             <div id="progress-bar" class="h-2 bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
@@ -850,7 +797,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                                 <span id="q-year" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-gray-100 text-gray-600"></span>
                                 <span id="q-tag" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-700"></span>
                                 <span id="ebbinghaus-badge" class="hidden inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-purple-100 text-purple-600 shadow-sm border border-purple-200">
-                                    <i class="fa-solid fa-brain mr-1"></i> 艾宾浩斯复习题
+                                    <i class="fa-solid fa-brain mr-1"></i> \u827E\u5BBE\u6D69\u65AF\u590D\u4E60\u9898
                                 </span>
                             </div>
 
@@ -858,7 +805,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                             <p class="text-gray-600 mb-4 text-sm italic bg-gray-50 p-3 rounded" id="q-question"></p>
                             
                             <div class="mb-6">
-                                <p class="text-sm text-gray-500 mb-2">请选择正确的核心知识点：</p>
+                                <p class="text-sm text-gray-500 mb-2">\u8BF7\u9009\u62E9\u6B63\u786E\u7684\u6838\u5FC3\u77E5\u8BC6\u70B9\uFF1A</p>
                                 <div id="options-container" class="space-y-3"></div>
                             </div>
                         </div>
@@ -870,12 +817,12 @@ const HTML_CONTENT = `<!DOCTYPE html>
                                 <div class="flex-1">
                                     <h4 id="feedback-title" class="font-bold text-base sm:text-lg mb-1"></h4>
                                     <div id="feedback-content" class="text-gray-600 text-sm space-y-2">
-                                        <p><strong class="text-amber-700">核心要点：</strong><span id="feedback-keypoint"></span></p>
-                                        <p><strong class="text-red-700">常见错误：</strong><span id="feedback-error"></span></p>
-                                        <p><strong class="text-blue-700">详细解析：</strong><span id="feedback-explanation"></span></p>
+                                        <p><strong class="text-amber-700">\u6838\u5FC3\u8981\u70B9\uFF1A</strong><span id="feedback-keypoint"></span></p>
+                                        <p><strong class="text-red-700">\u5E38\u89C1\u9519\u8BEF\uFF1A</strong><span id="feedback-error"></span></p>
+                                        <p><strong class="text-blue-700">\u8BE6\u7EC6\u89E3\u6790\uFF1A</strong><span id="feedback-explanation"></span></p>
                                     </div>
                                     <button onclick="window.nextQuestion()" class="mt-4 bg-gray-900 text-white px-5 py-2 rounded text-sm font-medium hover:bg-gray-800 transition">
-                                        下一题 <i class="fa-solid fa-arrow-right ml-1"></i>
+                                        \u4E0B\u4E00\u9898 <i class="fa-solid fa-arrow-right ml-1"></i>
                                     </button>
                                 </div>
                             </div>
@@ -889,15 +836,15 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         <div id="score-icon" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 text-green-600">
                             <i class="fa-solid fa-trophy text-4xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">复习完成!</h2>
-                        <p class="text-gray-600 mb-6">今日得分: <span id="final-score" class="text-3xl font-bold text-amber-600"></span></p>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">\u590D\u4E60\u5B8C\u6210!</h2>
+                        <p class="text-gray-600 mb-6">\u4ECA\u65E5\u5F97\u5206: <span id="final-score" class="text-3xl font-bold text-amber-600"></span></p>
                         
                         <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 justify-center mb-6">
                             <button onclick="window.switchTab('review'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('quiz-start').classList.remove('hidden');" class="bg-amber-100 text-amber-700 py-2 px-6 rounded-lg font-medium hover:bg-amber-200">
-                                返回面板
+                                \u8FD4\u56DE\u9762\u677F
                             </button>
                             <button onclick="window.showMemoryDashboard()" class="bg-purple-100 text-purple-700 py-2 px-6 rounded-lg font-medium hover:bg-purple-200">
-                                查看数据库变化
+                                \u67E5\u770B\u6570\u636E\u5E93\u53D8\u5316
                             </button>
                         </div>
                     </div>
@@ -913,11 +860,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
             <div class="flex justify-between items-center p-5 bg-gray-900 text-white border-b border-gray-800">
                 <h3 class="text-lg font-bold flex items-center">
                     <i class="fa-solid fa-database mr-3 text-purple-400"></i>
-                    <span id="memory-modal-title">Cloudflare D1 记忆库 (真实连接)</span>
+                    <span id="memory-modal-title">Cloudflare D1 \u8BB0\u5FC6\u5E93 (\u771F\u5B9E\u8FDE\u63A5)</span>
                 </h3>
                 <div class="flex items-center space-x-4">
                     <button onclick="window.clearAllMemory()" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 hover:text-red-300 px-3 py-1.5 rounded text-sm font-bold transition flex items-center border border-red-500/30">
-                        <i class="fa-solid fa-trash-can mr-1"></i> 全部清除
+                        <i class="fa-solid fa-trash-can mr-1"></i> \u5168\u90E8\u6E05\u9664
                     </button>
                     <button onclick="document.getElementById('memory-modal').classList.add('hidden')" class="text-gray-400 hover:text-white transition">
                         <i class="fa-solid fa-xmark text-xl"></i>
@@ -934,10 +881,10 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 <table class="min-w-full db-table text-left border-collapse">
                     <thead class="sticky top-0 bg-gray-50 shadow-sm">
                         <tr>
-                            <th class="px-4 py-3 border-b">题目信息</th>
-                            <th class="px-4 py-3 border-b text-center">状态</th>
-                            <th class="px-4 py-3 border-b text-center">掌握等级</th>
-                            <th class="px-4 py-3 border-b">下次复习时间</th>
+                            <th class="px-4 py-3 border-b">\u9898\u76EE\u4FE1\u606F</th>
+                            <th class="px-4 py-3 border-b text-center">\u72B6\u6001</th>
+                            <th class="px-4 py-3 border-b text-center">\u638C\u63E1\u7B49\u7EA7</th>
+                            <th class="px-4 py-3 border-b">\u4E0B\u6B21\u590D\u4E60\u65F6\u95F4</th>
                         </tr>
                     </thead>
                     <tbody id="db-table-body" class="divide-y divide-gray-100">
@@ -948,7 +895,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         </div>
     </div>
 
-    <!-- 前端逻辑 -->
+    <!-- \u524D\u7AEF\u903B\u8F91 -->
     <script>
         let userRecords = []; 
         let currentProfile = 'user1';
@@ -957,32 +904,32 @@ const HTML_CONTENT = `<!DOCTYPE html>
         let quizData = [];
         let isAnswered = false;
 
-        // 艾宾浩斯遗忘曲线间隔 (毫秒)
+        // \u827E\u5BBE\u6D69\u65AF\u9057\u5FD8\u66F2\u7EBF\u95F4\u9694 (\u6BEB\u79D2)
         const EBBINGHAUS_INTERVALS = [
             0, 
-            5 * 60 * 1000,           // Lv.1: 5分钟
-            30 * 60 * 1000,          // Lv.2: 30分钟
-            12 * 60 * 60 * 1000,     // Lv.3: 12小时
-            24 * 60 * 60 * 1000,     // Lv.4: 1天
-            2 * 24 * 60 * 60 * 1000, // Lv.5: 2天
-            4 * 24 * 60 * 60 * 1000, // Lv.6: 4天
-            7 * 24 * 60 * 60 * 1000, // Lv.7: 7天
-            15 * 24 * 60 * 60 * 1000,// Lv.8: 15天
-            30 * 24 * 60 * 60 * 1000 // Lv.9: 30天 (Mastered)
+            5 * 60 * 1000,           // Lv.1: 5\u5206\u949F
+            30 * 60 * 1000,          // Lv.2: 30\u5206\u949F
+            12 * 60 * 60 * 1000,     // Lv.3: 12\u5C0F\u65F6
+            24 * 60 * 60 * 1000,     // Lv.4: 1\u5929
+            2 * 24 * 60 * 60 * 1000, // Lv.5: 2\u5929
+            4 * 24 * 60 * 60 * 1000, // Lv.6: 4\u5929
+            7 * 24 * 60 * 60 * 1000, // Lv.7: 7\u5929
+            15 * 24 * 60 * 60 * 1000,// Lv.8: 15\u5929
+            30 * 24 * 60 * 60 * 1000 // Lv.9: 30\u5929 (Mastered)
         ];
 
-        // 历史题目数据库
+        // \u5386\u53F2\u9898\u76EE\u6570\u636E\u5E93
         const mistakeDatabase = ${JSON.stringify(historyQuestions)};
 
         document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
 
-        // 初始化环境与数据库连接
+        // \u521D\u59CB\u5316\u73AF\u5883\u4E0E\u6570\u636E\u5E93\u8FDE\u63A5
         async function initApp() {
             await fetchMemoryRecords();
             renderQuestionList();
         }
 
-        // 渲染题目列表
+        // \u6E32\u67D3\u9898\u76EE\u5217\u8868
         function renderQuestionList() {
             const container = document.getElementById('question-list');
             let html = '';
@@ -1004,7 +951,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             container.innerHTML = html;
         }
 
-        // 调用 Cloudflare API: 拉取记忆记录
+        // \u8C03\u7528 Cloudflare API: \u62C9\u53D6\u8BB0\u5FC6\u8BB0\u5F55
         async function fetchMemoryRecords() {
             try {
                 const response = await fetch('/api/memory/get?userProfile=' + currentProfile);
@@ -1013,7 +960,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 updateSyncUI();
             } catch(e) {
                 console.error("Fetch Data Error", e);
-                document.getElementById('sync-status').innerHTML = '<span class="text-red-500"><i class="fa-solid fa-xmark"></i> 连接后端 API 失败</span>';
+                document.getElementById('sync-status').innerHTML = '<span class="text-red-500"><i class="fa-solid fa-xmark"></i> \u8FDE\u63A5\u540E\u7AEF API \u5931\u8D25</span>';
             }
         }
 
@@ -1021,11 +968,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
             const now = Date.now();
             const dueCount = userRecords.filter(r => r.nextReviewTime <= now).length;
             const syncUI = document.getElementById('sync-status');
-            syncUI.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-cloud-arrow-down"></i> D1 Sync OK (' + currentProfile.toUpperCase() + ') | <b class="text-purple-700">' + dueCount + '</b> 题待复习</span>';
+            syncUI.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-cloud-arrow-down"></i> D1 Sync OK (' + currentProfile.toUpperCase() + ') | <b class="text-purple-700">' + dueCount + '</b> \u9898\u5F85\u590D\u4E60</span>';
             document.getElementById('sql-user-id').innerText = currentProfile;
         }
 
-        // 调用 Cloudflare API: 触发算法更新数据库
+        // \u8C03\u7528 Cloudflare API: \u89E6\u53D1\u7B97\u6CD5\u66F4\u65B0\u6570\u636E\u5E93
         async function updateMemoryRecord(questionId, isCorrect) {
             try {
                 const existingIndex = userRecords.findIndex(r => r.questionId === questionId);
@@ -1047,14 +994,14 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 }
 
                 if (newData) {
-                    // 更新本地内存
+                    // \u66F4\u65B0\u672C\u5730\u5185\u5B58
                     if (existingIndex !== -1) {
                         userRecords[existingIndex] = newData;
                     } else {
                         userRecords.push(newData);
                     }
                     
-                    // 发送 POST 到同源 Cloudflare API
+                    // \u53D1\u9001 POST \u5230\u540C\u6E90 Cloudflare API
                     await fetch('/api/memory/upsert', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -1071,13 +1018,13 @@ const HTML_CONTENT = `<!DOCTYPE html>
             }
         }
 
-        // 生成干扰选项
+        // \u751F\u6210\u5E72\u6270\u9009\u9879
         function generateDistractors(correctAnswer, questionId) {
-            // 从其他题目的keyPoint中选取作为干扰项
+            // \u4ECE\u5176\u4ED6\u9898\u76EE\u7684keyPoint\u4E2D\u9009\u53D6\u4F5C\u4E3A\u5E72\u6270\u9879
             const otherQuestions = mistakeDatabase.filter(q => q.id !== questionId);
             const distractors = [];
             
-            // 随机选取2个干扰项
+            // \u968F\u673A\u9009\u53D62\u4E2A\u5E72\u6270\u9879
             const indices = [];
             while (indices.length < 2 && indices.length < otherQuestions.length) {
                 const r = Math.floor(Math.random() * otherQuestions.length);
@@ -1085,7 +1032,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             }
             
             indices.forEach(i => {
-                // 截取前50个字符作为干扰项
+                // \u622A\u53D6\u524D50\u4E2A\u5B57\u7B26\u4F5C\u4E3A\u5E72\u6270\u9879
                 let text = otherQuestions[i].keyPoint.substring(0, 50);
                 if (otherQuestions[i].keyPoint.length > 50) text += '...';
                 distractors.push(text);
@@ -1097,7 +1044,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         window.changeProfile = async function() {
             const profileSelect = document.getElementById('user-profile');
             currentProfile = profileSelect.value;
-            document.getElementById('sync-status').innerHTML = '<span class="text-purple-600"><i class="fa-solid fa-spinner fa-spin"></i> 拉取 ' + currentProfile + ' 数据...</span>';
+            document.getElementById('sync-status').innerHTML = '<span class="text-purple-600"><i class="fa-solid fa-spinner fa-spin"></i> \u62C9\u53D6 ' + currentProfile + ' \u6570\u636E...</span>';
             await fetchMemoryRecords();
         };
 
@@ -1113,7 +1060,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
         };
 
         window.clearAllMemory = async function() {
-            if (!confirm('确定要清除账号 ' + currentProfile + ' 的所有历史记忆数据吗？此操作不可恢复！')) return;
+            if (!confirm('\u786E\u5B9A\u8981\u6E05\u9664\u8D26\u53F7 ' + currentProfile + ' \u7684\u6240\u6709\u5386\u53F2\u8BB0\u5FC6\u6570\u636E\u5417\uFF1F\u6B64\u64CD\u4F5C\u4E0D\u53EF\u6062\u590D\uFF01')) return;
             
             try {
                 const response = await fetch('/api/memory/clear', {
@@ -1127,10 +1074,10 @@ const HTML_CONTENT = `<!DOCTYPE html>
                 userRecords = [];
                 updateSyncUI();
                 window.showMemoryDashboard();
-                alert('数据已全部清除！');
+                alert('\u6570\u636E\u5DF2\u5168\u90E8\u6E05\u9664\uFF01');
             } catch(e) {
                 console.error(e);
-                alert('清除失败，请检查网络或后端配置。');
+                alert('\u6E05\u9664\u5931\u8D25\uFF0C\u8BF7\u68C0\u67E5\u7F51\u7EDC\u6216\u540E\u7AEF\u914D\u7F6E\u3002');
             }
         };
 
@@ -1186,7 +1133,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                         '<h4 class="font-bold text-gray-800 mb-2">' + q.title + '</h4>' +
                         '<p class="text-sm text-gray-600 mb-2">' + q.question + '</p>' +
                         '<div class="bg-amber-50 p-2 rounded text-sm">' +
-                            '<strong class="text-amber-700">核心要点：</strong>' + q.keyPoint +
+                            '<strong class="text-amber-700">\u6838\u5FC3\u8981\u70B9\uFF1A</strong>' + q.keyPoint +
                         '</div>' +
                     '</div>';
             });
@@ -1213,7 +1160,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             document.getElementById('current-q').innerText = currentQuestionIndex + 1;
             document.getElementById('progress-bar').style.width = (((currentQuestionIndex) / quizData.length) * 100) + '%';
             
-            document.getElementById('q-year').innerText = q.year + '年高考';
+            document.getElementById('q-year').innerText = q.year + '\u5E74\u9AD8\u8003';
             document.getElementById('q-tag').innerText = q.tag;
             document.getElementById('q-title').innerText = q.title;
             document.getElementById('q-question').innerText = q.question;
@@ -1222,7 +1169,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             const optionsDiv = document.getElementById('options-container');
             optionsDiv.innerHTML = '';
 
-            // 生成选项
+            // \u751F\u6210\u9009\u9879
             let options = [
                 { text: q.keyPoint, isCorrect: true },
                 ...generateDistractors(q.keyPoint, q.id).map(d => ({ text: d, isCorrect: false }))
@@ -1281,11 +1228,11 @@ const HTML_CONTENT = `<!DOCTYPE html>
 
             if (isCorrect) {
                 fbIcon.innerHTML = '<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><i class="fa-solid fa-check text-green-600"></i></div>';
-                fbTitle.innerText = "正确! 算法已调高该题掌握层级";
+                fbTitle.innerText = "\u6B63\u786E! \u7B97\u6CD5\u5DF2\u8C03\u9AD8\u8BE5\u9898\u638C\u63E1\u5C42\u7EA7";
                 fbTitle.className = "font-bold text-base sm:text-lg mb-1 text-green-700";
             } else {
                 fbIcon.innerHTML = '<div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><i class="fa-solid fa-xmark text-red-600"></i></div>';
-                fbTitle.innerText = "答错了! 遗忘曲线已重置为Lv.1";
+                fbTitle.innerText = "\u7B54\u9519\u4E86! \u9057\u5FD8\u66F2\u7EBF\u5DF2\u91CD\u7F6E\u4E3ALv.1";
                 fbTitle.className = "font-bold text-base sm:text-lg mb-1 text-red-700";
             }
         }
@@ -1310,7 +1257,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
             const tbody = document.getElementById('db-table-body');
             
             if (userRecords.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">当前账号 (SELECT *) 结果为空。去答题写入数据吧！</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">\u5F53\u524D\u8D26\u53F7 (SELECT *) \u7ED3\u679C\u4E3A\u7A7A\u3002\u53BB\u7B54\u9898\u5199\u5165\u6570\u636E\u5427\uFF01</td></tr>';
             } else {
                 let html = '';
                 const sorted = [...userRecords].sort((a,b) => a.nextReviewTime - b.nextReviewTime);
@@ -1329,7 +1276,7 @@ const HTML_CONTENT = `<!DOCTYPE html>
                     
                     const isDue = record.nextReviewTime <= now;
                     const statusHtml = isDue 
-                        ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">DUE (待复习)</span>' 
+                        ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">DUE (\u5F85\u590D\u4E60)</span>' 
                         : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">RETAINED</span>';
 
                     const timeClass = isDue ? 'text-red-500 font-bold' : 'text-gray-500';
@@ -1357,8 +1304,12 @@ const HTML_CONTENT = `<!DOCTYPE html>
             modal.classList.remove('hidden');
         };
 
-        // 启动应用
+        // \u542F\u52A8\u5E94\u7528
         initApp();
-    </script>
+    <\/script>
 </body>
 </html>`;
+export {
+  worker_default as default
+};
+//# sourceMappingURL=worker.js.map

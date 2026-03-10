@@ -1,24 +1,92 @@
+// worker.js
+var worker_default = {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
+    
+    // 智能兼容不同的数据库绑定名称
+    const db = env.DB || env["politics-review"];
 
+    if (url.pathname === "/api/memory/get" && request.method === "GET") {
+      const userProfile = url.searchParams.get("userProfile");
+      if (!userProfile) return new Response("Missing userProfile", { status: 400 });
+      if (!db) return new Response(JSON.stringify({ error: "Database binding not found" }), { status: 500 });
+      
+      try {
+        const { results } = await db.prepare(
+          "SELECT * FROM ebbinghaus_records WHERE user_profile = ? ORDER BY next_review_time ASC"
+        ).bind(userProfile).all();
+        const formattedResults = results.map((row) => ({
+          id: row.id,
+          questionId: row.question_id,
+          level: row.level,
+          nextReviewTime: row.next_review_time
+        }));
+        return new Response(JSON.stringify(formattedResults), {
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
 
+    if (url.pathname === "/api/memory/upsert" && request.method === "POST") {
+      if (!db) return new Response(JSON.stringify({ error: "Database binding not found" }), { status: 500 });
+      try {
+        const data = await request.json();
+        const { userProfile, questionId, level, nextReviewTime } = data;
+        const id = userProfile + "_" + questionId;
+        const now = Date.now();
+        await db.prepare(`
+          INSERT INTO ebbinghaus_records (id, user_profile, question_id, level, next_review_time, last_updated)
+          VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+          ON CONFLICT(id) DO UPDATE SET 
+          level = excluded.level, 
+          next_review_time = excluded.next_review_time, 
+          last_updated = excluded.last_updated
+        `).bind(id, userProfile, questionId, level, nextReviewTime, now).run();
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
 
-<!DOCTYPE html>
+    if (url.pathname === "/api/memory/clear" && request.method === "POST") {
+      if (!db) return new Response(JSON.stringify({ error: "Database binding not found" }), { status: 500 });
+      try {
+        const data = await request.json();
+        const { userProfile } = data;
+        await db.prepare("DELETE FROM ebbinghaus_records WHERE user_profile = ?").bind(userProfile).run();
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+      }
+    }
+
+    return new Response(HTML_CONTENT, {
+      headers: { "Content-Type": "text/html;charset=UTF-8" }
+    });
+  }
+};
+
+var HTML_CONTENT = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英语作文批改与复习系统</title>
+    <title>高考政治特训 - 艾宾浩斯记忆系统</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- EmailJS SDK -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- 引入 EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
         .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
         .tab-inactive { color: #6b7280; }
         .tab-inactive:hover { color: #374151; }
-        .essay-content { white-space: pre-wrap; line-height: 1.8; }
-        .wrong-text { text-decoration: line-through; color: #ef4444; margin-right: 4px; }
-        .correct-text { color: #10b981; font-weight: bold; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -28,9 +96,47 @@
         .option-selected-correct { border-color: #10b981; background-color: #ecfdf5; }
         .option-selected-wrong { border-color: #ef4444; background-color: #fef2f2; }
         
-        /* Loading spinner */
-        .spinner { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 20px; height: 20px; -webkit-animation: spin 2s linear infinite; animation: spin 2s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;}
+        .spinner { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #3498db; width: 20px; height: 20px; animation: spin 2s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px;}
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Card styles */
+        .history-card { 
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d3748 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .history-tag { 
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Table styles */
+        .db-table th { background-color: #f8fafc; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; }
+        .db-table td { font-size: 0.875rem; color: #334155; }
+        
+        /* Content styles */
+        .content-box { white-space: pre-wrap; line-height: 1.8; }
+        .key-point { background: #fef3c7; padding: 2px 6px; border-radius: 4px; color: #92400e; font-weight: 600; }
+        .error-point { background: #fee2e2; padding: 2px 6px; border-radius: 4px; color: #991b1b; }
+
+        /* 发送邮件时的加载动画 */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); color: white;
+            display: none; justify-content: center; align-items: center; flex-direction: column; z-index: 1000;
+        }
+        .spinner-large {
+            width: 40px; height: 40px; border: 4px solid #fff;
+            border-top: 4px solid transparent; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -40,18 +146,15 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center">
-                    <i class="fa-solid fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900">英语作文批改与复习助手</h1>
+                    <i class="fa-solid fa-scroll text-amber-600 text-2xl mr-3"></i>
+                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">高考政治特训 <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2 border">v1.0.4</span></h1>
                 </div>
-                <div class="flex space-x-8">
-                    <button onclick="window.switchTab('report1')" id="tab-report1" class="tab-active px-3 py-2 text-sm font-medium transition-colors">
-                        AI助力学习报告
+                <div class="flex space-x-2 sm:space-x-8 overflow-x-auto hide-scrollbar">
+                    <button onclick="window.switchTab('home')" id="tab-home" class="tab-active whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
+                        <i class="fa-solid fa-house mr-1"></i> 首页
                     </button>
-                    <button onclick="window.switchTab('report2')" id="tab-report2" class="tab-inactive px-3 py-2 text-sm font-medium transition-colors">
-                        读后续写报告
-                    </button>
-                    <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive px-3 py-2 text-sm font-medium transition-colors flex items-center">
-                        <i class="fa-solid fa-clipboard-check mr-2"></i> 错题复习挑战
+                    <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
+                        <i class="fa-solid fa-brain mr-2"></i> 挑战复习
                     </button>
                 </div>
             </div>
@@ -60,212 +163,157 @@
 
     <!-- Main Content Area -->
     <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-        <div class="max-w-4xl mx-auto">
+        <div class="max-w-4xl mx-auto h-full">
             
-            <!-- Report 1: AI Learning -->
-            <div id="view-report1" class="fade-in space-y-6">
-                <!-- Diagnosis Card -->
-                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-stethoscope mr-2"></i>原文诊断 (Diagnosis)</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div class="bg-green-50 p-3 rounded text-center"><span class="block text-sm text-gray-500">优势 (Advantages)</span><i class="fa-solid fa-check text-green-600 text-xl mt-1"></i></div>
-                        <div class="bg-red-50 p-3 rounded text-center"><span class="block text-sm text-gray-500">潜在问题 (Problems)</span><i class="fa-solid fa-xmark text-red-600 text-xl mt-1"></i> <span class="text-xs text-red-600 block">缺失 (扣分点)</span></div>
-                        <div class="bg-green-50 p-3 rounded text-center"><span class="block text-sm text-gray-500">个人观点 (Opinion)</span><i class="fa-solid fa-check text-green-600 text-xl mt-1"></i></div>
+            <!-- Home: Question List -->
+            <div id="view-home" class="fade-in space-y-6">
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-2"><i class="fa-solid fa-graduation-cap mr-2 text-amber-600"></i>高考政治 · 艾宾浩斯记忆特训</h2>
+                    <p class="text-gray-600 text-sm mb-4">
+                        本系统收录 <span class="font-bold text-amber-600" id="header-total-count">0</span> 道高考政治真题核心知识点，采用艾宾浩斯遗忘曲线算法，
+                        自动安排复习计划，帮助你高效掌握政治知识。
+                    </p>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500 mb-4">
+                        <span><i class="fa-solid fa-database mr-1"></i> Cloudflare D1 云端同步</span>
+                        <span><i class="fa-solid fa-clock mr-1"></i> 智能复习提醒</span>
+                        <span><i class="fa-solid fa-envelope mr-1"></i> 自动复习报告</span>
                     </div>
-                    <div class="bg-gray-50 p-4 rounded text-sm text-gray-700 essay-content">
-                        <span class="font-bold block mb-2">Student Essay (原文标记):</span>
-                        I'm LiHua. Our school will hold an activity about AI in learning. I'm glad to share <span class="wrong-text">some my</span> <span class="correct-text">(some of my)</span> opinions with you. Firstly, <span class="wrong-text">with the development of society.</span> <span class="text-gray-500 text-xs">(incomplete)</span> AI can help <span class="wrong-text">our</span> <span class="correct-text">(us)</span> to <span class="wrong-text">better study</span> <span class="correct-text">(study better)</span>. For example, it can translate <span class="wrong-text">a</span> <span class="correct-text">(an)</span> English text so that we can understand the text. <span class="wrong-text">On the other hand</span> <span class="correct-text">(Besides)</span>, it <span class="wrong-text">show</span> <span class="correct-text">(shows)</span> <span class="wrong-text">a kind video</span> <span class="correct-text">(educational videos)</span> to help <span class="wrong-text">our</span> <span class="correct-text">(us)</span> to learn <span class="wrong-text">knowledges</span> <span class="correct-text">(knowledge)</span>. Finally, AI can make a study plan to <span class="wrong-text">suit yourself</span> <span class="correct-text">(suit us)</span>. It can help you <span class="wrong-text">more great</span> <span class="correct-text">(better)</span> to <span class="wrong-text">catch important knowledges</span> <span class="correct-text">(grasp important knowledge)</span>.
-                    </div>
-                </div>
-
-                <!-- Revisions -->
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">修改建议</h3>
-                        <div class="text-xs text-gray-500">点击切换版本</div>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex space-x-2 mb-4">
-                            <button onclick="window.toggleVersion('ai', 'standard')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200">修正补全版</button>
-                            <button onclick="window.toggleVersion('ai', 'advanced')" class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-200">高分升格版</button>
-                        </div>
-                        
-                        <div id="ai-standard" class="essay-content text-gray-800">
-                            <h4 class="font-bold mb-2 text-blue-600">Standard Version (修正语法，补充缺点)</h4>
-                            I'm Li Hua. Our school will hold an activity about AI in learning, and I'm glad to share my opinions.
-                            Firstly, AI can help <span class="font-bold text-green-600">us study better</span>. For example, it can translate <span class="font-bold text-green-600">an</span> English text so that we can understand it easily. <span class="font-bold text-green-600">Besides</span>, it <span class="font-bold text-green-600">shows</span> educational videos to help <span class="font-bold text-green-600">us learn knowledge</span>. Finally, AI can make a study plan to <span class="font-bold text-green-600">suit our needs</span>, which helps us <span class="font-bold text-green-600">grasp important points better</span>.
-                            <br><br>
-                            <span class="bg-yellow-100 p-1 rounded">However, there are also problems. If we rely on AI too much, we may become lazy and stop thinking independently.</span>
-                            <br><br>
-                            In my opinion, AI is a useful tool, but we should use it wisely.
-                        </div>
-
-                        <div id="ai-advanced" class="hidden essay-content text-gray-800">
-                            <h4 class="font-bold mb-2 text-purple-600">Advanced Version (高分词汇与句式)</h4>
-                            With the rapid development of technology, AI has been widely applied in our daily study.
-                            <br><br>
-                            <span class="font-bold text-purple-600">On the one hand</span>, AI brings great <span class="font-bold text-purple-600">convenience</span>. It can <span class="font-bold text-purple-600">not only</span> translate foreign texts accurately <span class="font-bold text-purple-600">but also</span> provide <span class="font-bold text-purple-600">personalized study plans</span>, helping us learn <span class="font-bold text-purple-600">more efficiently</span>. 
-                            <br><br>
-                            <span class="font-bold text-purple-600">On the other hand</span>, potential problems cannot be ignored. <span class="font-bold text-purple-600">Over-reliance</span> on AI may lead to a lack of independent thinking and creativity.
-                            <br><br>
-                            In my opinion, AI is a <span class="font-bold text-purple-600">double-edged sword</span>. We should make good use of it as a helpful tool rather than depending on it completely. Only in this way can we truly benefit from it.
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Report 2: Strangers' Kindness -->
-            <div id="view-report2" class="hidden fade-in space-y-6">
-                <!-- Diagnosis Card -->
-                 <div class="bg-white rounded-lg shadow p-6 border-l-4 border-orange-500">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-magnifying-glass-chart mr-2"></i>核心错误分析 (Key Errors)</h2>
                     
-                    <div class="space-y-4">
-                        <div class="bg-red-50 p-4 rounded-lg">
-                            <h3 class="font-bold text-red-700 mb-2">语法重灾区</h3>
-                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                                <li>I found some people <span class="wrong-text">stay</span> → <span class="correct-text">staying</span> (分词作宾补)</li>
-                                <li>asked <span class="wrong-text">for</span> them → <span class="correct-text">asked them</span></li>
-                                <li>hurried up <span class="wrong-text">come</span> → <span class="correct-text">hurried to come / hurried over</span></li>
-                                <li>I <span class="wrong-text">with they went</span> → <span class="correct-text">I went with them</span> (中式语序)</li>
-                                <li><span class="wrong-text">kindmans</span> → <span class="correct-text">kind people</span> (单词拼写)</li>
-                            </ul>
-                        </div>
-                        <div class="bg-yellow-50 p-4 rounded-lg">
-                            <h3 class="font-bold text-yellow-700 mb-2">逻辑与情节硬伤</h3>
-                            <p class="text-sm text-gray-700"><strong>误解原文：</strong> 妈妈是摔倒受伤，不是掉进"cracks" (裂缝)。<br><strong>不合常理：</strong> 用"strong stick"救助摔倒的人很奇怪，通常是扶起或检查伤势。</p>
-                        </div>
+                    <!-- 新增的邮箱测试按钮区 -->
+                    <div class="pt-4 border-t border-gray-100 flex items-center">
+                        <button onclick="window.testEmailConfig()" class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 py-1.5 px-3 rounded border border-blue-200 transition inline-flex items-center">
+                            <i class="fa-solid fa-paper-plane mr-1.5"></i> 邮箱发送测试
+                        </button>
+                        <span class="text-xs text-gray-400 ml-3">如果没收到答题邮件，请点击这里测试配置</span>
                     </div>
                 </div>
 
-                <!-- Revisions -->
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">修改与升格</h3>
-                         <div class="flex space-x-2">
-                            <button onclick="window.toggleVersion('kindness', 'revised')" class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-medium hover:bg-orange-200">纠错版</button>
-                            <button onclick="window.toggleVersion('kindness', 'advanced')" class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs font-medium hover:bg-indigo-200">高分版</button>
-                        </div>
+                        <h3 class="font-bold text-gray-800">题目库概览 <span class="text-xs font-normal text-gray-500 ml-2">(点击展开查看答案)</span></h3>
+                        <span class="text-sm text-gray-500">共 <span id="list-total-count">0</span> 题</span>
                     </div>
-                    <div class="p-6">
-                        <div id="kindness-revised" class="essay-content text-gray-800">
-                            <h4 class="font-bold mb-2 text-orange-600">Revised Version (纠正语法与逻辑)</h4>
-                            <p class="mb-4">But while I stood frozen, strangers stepped in without hesitation. A middle-aged man in a work uniform <span class="font-bold text-green-600">rushed over and knelt beside my mother</span>. "Don't move her yet," he said calmly, checking her pulse...</p>
-                            <p>As my mother's breathing steadied, I thanked them again and again. "You don't need to thank us," the man smiled warmly. ... My faith in human nature, once so fragile, was restored by the simple act of people caring.</p>
-                        </div>
-
-                        <div id="kindness-advanced" class="hidden essay-content text-gray-800">
-                            <h4 class="font-bold mb-2 text-indigo-600">Advanced Version (细节描写与情感升华)</h4>
-                            <p class="mb-4">But while I stood frozen, strangers stepped in without hesitation. Before I could even process what was happening, a construction worker... <span class="font-bold text-indigo-600">his calloused hands gently supporting her head</span>. "Ma'am, can you hear me?" he <span class="font-bold text-indigo-600">murmured</span>...</p>
-                            <p>... My cynicism had <span class="font-bold text-indigo-600">crumbled</span> in the face of their <span class="font-bold text-indigo-600">unscripted humanity</span>. These strangers had restored more than my mother's stability; they'd rebuilt my faith in the very essence of human goodness.</p>
-                        </div>
+                    <div class="p-4 space-y-4 max-h-[60vh] overflow-y-auto" id="question-list">
+                        <!-- Questions will be injected here -->
                     </div>
                 </div>
             </div>
 
             <!-- Review Mode: Quiz -->
-            <div id="view-review" class="hidden fade-in h-full flex flex-col items-center justify-center pt-8">
+            <div id="view-review" class="hidden fade-in h-full flex flex-col items-center justify-center pt-2 sm:pt-8">
                 
                 <!-- Start Screen -->
                 <div id="quiz-start" class="text-center max-w-lg w-full px-4">
-                    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-                        <div class="bg-blue-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-                            <i class="fa-solid fa-brain text-blue-600 text-4xl"></i>
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200">
+                        <div class="bg-amber-100 w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                            <i class="fa-solid fa-scroll text-amber-600 text-3xl sm:text-4xl"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-900 mb-2">错题突击检查</h2>
-                        <p class="text-gray-600 mb-2">系统题库共收录 <span class="font-bold text-blue-600" id="total-questions-count">0</span> 个知识点。</p>
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-2">政治知识突击检查</h2>
+                        <p class="text-gray-600 mb-2 text-sm sm:text-base">系统题库共收录 <span class="font-bold text-amber-600" id="total-questions-count">0</span> 个知识点。</p>
                         
-                        <!-- 艾宾浩斯记忆提醒区域 -->
-                        <div id="ebbinghaus-status" class="mb-6">
-                            <div class="inline-block bg-purple-50 text-purple-700 px-4 py-2 rounded-lg font-bold text-sm shadow-sm border border-purple-100">
-                                <i class="fa-solid fa-hourglass-half mr-1"></i> <span id="sync-status">正在连接艾宾浩斯云记忆库...</span>
+                        <div id="ebbinghaus-status" class="mb-4 sm:mb-6">
+                            <div class="inline-block bg-purple-50 text-purple-700 px-3 py-2 rounded-lg font-bold text-xs sm:text-sm shadow-sm border border-purple-100">
+                                <i class="fa-solid fa-hourglass-half mr-1"></i> <span id="sync-status">正在连接 Cloudflare D1...</span>
                             </div>
                         </div>
 
-                        <!-- User Profile Selection -->
-                        <div class="mb-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-100">
+                        <!-- User Selection -->
+                        <div class="mb-4 text-left bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
                             <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fa-solid fa-users mr-1 text-gray-500"></i> 选择学习账号 (独立记忆库):
+                                <i class="fa-solid fa-users mr-1 text-gray-500"></i> 选择学习账号 (独立记忆池):
                             </label>
-                            <select id="user-profile" onchange="window.changeProfile()" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
+                            <select id="user-profile" onchange="window.changeProfile()" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
                                 <option value="user1">👤 User 1 (账号一)</option>
                                 <option value="user2">👤 User 2 (账号二)</option>
                                 <option value="user3">👤 User 3 (账号三)</option>
+                                <option value="user4">👤 User 4 (账号四)</option>
                             </select>
                         </div>
                         
                         <!-- Daily Limit Setting -->
-                        <div class="mb-6 text-left bg-gray-50 p-4 rounded-lg border border-gray-100">
+                        <div class="mb-6 text-left bg-gray-50 p-3 sm:p-4 rounded-lg border border-gray-100">
                             <label for="daily-limit" class="block text-sm font-medium text-gray-700 mb-2">
                                 <i class="fa-solid fa-calendar-day mr-1 text-gray-500"></i> 今日目标题数:
                             </label>
                             <div class="flex items-center space-x-3">
-                                <select id="daily-limit" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
-                                    <option value="5">5</option>
-                                    <option value="10">10</option>
-                                    <option value="20">20</option>
-                                    <option value="30">30</option>
+                                <select id="daily-limit" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-amber-500 focus:ring-amber-500 sm:text-sm p-2 border bg-white font-medium text-gray-700">
+                                    <option value="5">5 题</option>
+                                    <option value="10" selected>10 题</option>
+                                    <option value="20">20 题</option>
                                     <option value="999">全部错题</option>
                                 </select>
-                                <span class="text-sm text-gray-500 whitespace-nowrap">题</span>
                             </div>
-                            <p class="text-xs text-gray-400 mt-2">系统将优先为您推送需要复习的错题记录。</p>
                         </div>
 
-                        <button id="btn-start" onclick="window.startQuiz()" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:opacity-50">
+                        <button id="btn-start" onclick="window.prepareQuiz()" class="w-full bg-amber-600 text-white py-3 px-6 rounded-lg font-bold hover:bg-amber-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-1 disabled:opacity-50">
                             开始今日复习
                         </button>
                         
-                        <!-- 🚀 新增：查看记忆库按钮 -->
                         <button onclick="window.showMemoryDashboard()" class="w-full mt-3 bg-white text-purple-600 border border-purple-200 py-3 px-6 rounded-lg font-bold hover:bg-purple-50 transition shadow-sm">
-                            <i class="fa-solid fa-database mr-1"></i> 查看当前账号记忆库
+                            <i class="fa-solid fa-database mr-1"></i> 查看当前账号 SQL 记忆库
                         </button>
                     </div>
                 </div>
 
+                <!-- Pre-Review Screen -->
+                <div id="quiz-pre-review" class="hidden w-full max-w-2xl px-4">
+                    <div class="bg-white rounded-xl shadow-xl border-t-4 border-yellow-400 overflow-hidden flex flex-col max-h-[85vh]">
+                        <div class="p-4 bg-yellow-50 border-b border-yellow-100 flex items-center justify-between sticky top-0">
+                            <h3 class="text-lg font-bold text-yellow-800"><i class="fa-solid fa-bolt mr-2"></i> 记忆突击: 提前复习</h3>
+                            <span class="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full font-bold">艾宾浩斯算法拦截</span>
+                        </div>
+                        <div class="p-6 overflow-y-auto flex-1">
+                            <p class="text-gray-600 mb-4 text-sm font-medium">系统检测到以下 <span id="pre-review-count" class="text-red-500 font-bold"></span> 个知识点已达到遗忘临界点。请在正式挑战前进行复习：</p>
+                            <div id="pre-review-list" class="space-y-4"></div>
+                        </div>
+                        <div class="p-4 bg-gray-50 border-t border-gray-100 mt-auto">
+                            <button onclick="window.enterQuizContext()" class="w-full bg-yellow-500 text-white py-3 px-6 rounded-lg font-bold hover:bg-yellow-600 transition shadow-md flex justify-center items-center">
+                                我已复习完毕，开始挑战 <i class="fa-solid fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Quiz Card -->
-                <div id="quiz-container" class="hidden w-full max-w-2xl">
+                <div id="quiz-container" class="hidden w-full max-w-2xl px-4">
                     <div class="flex justify-between items-center mb-4">
                         <span class="text-sm font-medium text-gray-500">进度: <span id="current-q">1</span>/<span id="total-q">10</span></span>
                         <div class="h-2 w-48 bg-gray-200 rounded-full">
-                            <div id="progress-bar" class="h-2 bg-blue-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            <div id="progress-bar" class="h-2 bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
                         </div>
                     </div>
 
                     <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden relative min-h-[400px] flex flex-col">
-                        <div class="p-6 md:p-8 flex-1">
-                            <!-- Context Label -->
-                            <div class="mb-4 flex items-center">
-                                <span id="q-tag" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-gray-100 text-gray-600">
-                                    Grammar
-                                </span>
-                                <!-- 艾宾浩斯动态徽章 -->
-                                <span id="ebbinghaus-badge" class="hidden inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-purple-100 text-purple-600 ml-2 shadow-sm border border-purple-200">
-                                    <i class="fa-solid fa-brain mr-1"></i> 艾宾浩斯复习
+                        <div class="p-5 sm:p-8 flex-1">
+                            <div class="mb-4 flex flex-wrap items-center gap-2">
+                                <span id="q-year" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-gray-100 text-gray-600"></span>
+                                <span id="q-tag" class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-700"></span>
+                                <span id="ebbinghaus-badge" class="hidden inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-purple-100 text-purple-600 shadow-sm border border-purple-200">
+                                    <i class="fa-solid fa-brain mr-1"></i> 艾宾浩斯复习题
                                 </span>
                             </div>
 
-                            <!-- Question Text -->
-                            <h3 class="text-xl text-gray-800 mb-6 leading-relaxed">
-                                原句中的错误部分是：<br>
-                                "<span id="q-context" class="font-mono text-red-500 bg-red-50 px-1 rounded"></span>"
-                            </h3>
-                            <p class="text-gray-600 mb-6 text-sm">请选择正确的修正表达：</p>
-
-                            <!-- Options -->
-                            <div id="options-container" class="space-y-3">
-                                <!-- Options injected by JS -->
+                            <h3 class="text-lg sm:text-xl text-gray-800 mb-4 font-bold" id="q-title"></h3>
+                            <p class="text-gray-600 mb-4 text-sm italic bg-gray-50 p-3 rounded" id="q-question"></p>
+                            
+                            <div class="mb-6">
+                                <p class="text-sm text-gray-500 mb-2">请选择正确的核心知识点：</p>
+                                <div id="options-container" class="space-y-3"></div>
                             </div>
                         </div>
 
-                        <!-- Feedback Area (Hidden initially) -->
-                        <div id="feedback-area" class="hidden bg-gray-50 p-6 border-t border-gray-100">
+                        <!-- Feedback Area -->
+                        <div id="feedback-area" class="hidden bg-gray-50 p-5 sm:p-6 border-t border-gray-100">
                             <div class="flex items-start">
                                 <div id="feedback-icon" class="flex-shrink-0 mr-3 mt-1"></div>
-                                <div>
-                                    <h4 id="feedback-title" class="font-bold text-lg mb-1"></h4>
-                                    <p id="feedback-text" class="text-gray-600 text-sm"></p>
-                                    <button onclick="window.nextQuestion()" class="mt-4 bg-gray-900 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-800">
+                                <div class="flex-1">
+                                    <h4 id="feedback-title" class="font-bold text-base sm:text-lg mb-1"></h4>
+                                    <div id="feedback-content" class="text-gray-600 text-sm space-y-2">
+                                        <p><strong class="text-amber-700">核心要点：</strong><span id="feedback-keypoint"></span></p>
+                                        <p><strong class="text-red-700">常见错误：</strong><span id="feedback-error"></span></p>
+                                        <p><strong class="text-blue-700">详细解析：</strong><span id="feedback-explanation"></span></p>
+                                    </div>
+                                    <button onclick="window.nextQuestion()" class="mt-4 bg-gray-900 text-white px-5 py-2 rounded text-sm font-medium hover:bg-gray-800 transition">
                                         下一题 <i class="fa-solid fa-arrow-right ml-1"></i>
                                     </button>
                                 </div>
@@ -275,35 +323,20 @@
                 </div>
 
                 <!-- Results Screen -->
-                <div id="quiz-results" class="hidden text-center max-w-lg w-full">
-                    <div class="bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
+                <div id="quiz-results" class="hidden text-center max-w-lg w-full px-4">
+                    <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-lg border border-gray-200">
                         <div id="score-icon" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 text-green-600">
                             <i class="fa-solid fa-trophy text-4xl"></i>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-900 mb-2">复习完成!</h2>
-                        <p class="text-gray-600 mb-6">今日得分: <span id="final-score" class="text-3xl font-bold text-blue-600"></span></p>
-                        <p id="result-message" class="text-sm text-gray-500 mb-8"></p>
+                        <p class="text-gray-600 mb-6">今日得分: <span id="final-score" class="text-3xl font-bold text-amber-600"></span></p>
                         
-                        <!-- Automatic Email Status Area -->
-                        <div class="mb-6 border-t pt-6 bg-gray-50 rounded-lg p-4">
-                             <!-- Status Text -->
-                            <div id="email-status-container" class="text-center">
-                                <p id="email-status" class="text-sm font-medium text-gray-600 flex items-center justify-center">
-                                    等待发送...
-                                </p>
-                            </div>
-                            <!-- Retry Button (Hidden by default, shown on failure) -->
-                            <button id="btn-retry-email" onclick="window.sendReport()" class="hidden w-full mt-3 bg-red-100 text-red-700 py-2 px-4 rounded hover:bg-red-200 transition text-sm">
-                                <i class="fa-solid fa-rotate-right mr-1"></i> 发送失败，点击重试
+                        <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 justify-center mb-6">
+                            <button onclick="window.switchTab('review'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('quiz-start').classList.remove('hidden');" class="bg-amber-100 text-amber-700 py-2 px-6 rounded-lg font-medium hover:bg-amber-200">
+                                返回面板
                             </button>
-                        </div>
-
-                        <div class="flex space-x-3 justify-center">
-                            <button onclick="window.resetQuiz()" class="bg-blue-100 text-blue-700 py-2 px-6 rounded-lg font-medium hover:bg-blue-200">
-                                再练一组
-                            </button>
-                            <button onclick="window.switchTab('report1')" class="bg-gray-100 text-gray-700 py-2 px-6 rounded-lg font-medium hover:bg-gray-200">
-                                回顾错题
+                            <button onclick="window.showMemoryDashboard()" class="bg-purple-100 text-purple-700 py-2 px-6 rounded-lg font-medium hover:bg-purple-200">
+                                查看数据库变化
                             </button>
                         </div>
                     </div>
@@ -313,46 +346,139 @@
         </div>
     </main>
 
-    <!-- 🚀 新增：记忆库查看弹窗 (Modal) -->
+    <!-- Database Modal -->
     <div id="memory-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl fade-in">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h3 class="text-xl font-bold text-gray-900"><i class="fa-solid fa-database mr-2 text-purple-500"></i><span id="memory-modal-title">账号记忆库</span></h3>
-                <button onclick="document.getElementById('memory-modal').classList.add('hidden')" class="text-gray-400 hover:text-gray-700 transition">
-                    <i class="fa-solid fa-xmark text-2xl"></i>
-                </button>
+        <div class="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl fade-in overflow-hidden">
+            <div class="flex justify-between items-center p-5 bg-gray-900 text-white border-b border-gray-800">
+                <h3 class="text-lg font-bold flex items-center">
+                    <i class="fa-solid fa-database mr-3 text-purple-400"></i>
+                    <span id="memory-modal-title">Cloudflare D1 记忆库 (真实连接)</span>
+                </h3>
+                <div class="flex items-center space-x-4">
+                    <button onclick="window.clearAllMemory()" class="bg-red-500/20 text-red-400 hover:bg-red-500/40 hover:text-red-300 px-3 py-1.5 rounded text-sm font-bold transition flex items-center border border-red-500/30">
+                        <i class="fa-solid fa-trash-can mr-1"></i> 全部清除
+                    </button>
+                    <button onclick="document.getElementById('memory-modal').classList.add('hidden')" class="text-gray-400 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
             </div>
-            <div class="overflow-y-auto flex-1 bg-gray-50 rounded-lg p-3 border border-gray-200" id="memory-list">
-                <!-- Records injected by JS -->
+            
+            <div class="bg-gray-800 p-3 text-xs font-mono text-green-400 overflow-x-auto">
+                <span class="text-gray-500">-- Current Query Executed:</span><br>
+                SELECT * FROM <span class="text-yellow-300">ebbinghaus_records</span> WHERE user_profile = '<span class="text-blue-300" id="sql-user-id"></span>' ORDER BY next_review_time ASC;
+            </div>
+
+            <div class="overflow-y-auto flex-1 bg-white">
+                <table class="min-w-full db-table text-left border-collapse">
+                    <thead class="sticky top-0 bg-gray-50 shadow-sm">
+                        <tr>
+                            <th class="px-4 py-3 border-b">题目信息</th>
+                            <th class="px-4 py-3 border-b text-center">状态</th>
+                            <th class="px-4 py-3 border-b text-center">掌握等级</th>
+                            <th class="px-4 py-3 border-b">下次复习时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="db-table-body" class="divide-y divide-gray-100">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <!-- 🌟 Firebase 云数据库配置 🌟 -->
-    <script type="module">
-        // --- 核心：配置免费云数据库 (Firebase Firestore) ---
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    <!-- 加载中遮罩 (用于发送邮件) -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner-large"></div>
+        <p>正在生成学习报告并发送邮件...</p>
+        <p style="font-size: 0.8rem; opacity: 0.8;">请勿关闭页面</p>
+    </div>
 
-        // 用户提供的 Firebase 配置
-        const isCanvasEnv = typeof __firebase_config !== 'undefined';
-        const firebaseConfig = isCanvasEnv ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyAytwqtNdtryI0V3IXpZ_i1PXnit8_ZLBU",
-            authDomain: "english-62c4b.firebaseapp.com",
-            projectId: "english-62c4b",
-            storageBucket: "english-62c4b.firebasestorage.app",
-            messagingSenderId: "342477459941",
-            appId: "1:342477459941:web:249196c7bdc31fb3095f0c",
-            measurementId: "G-KH7VZZ3XDE"
+    <!-- 前端逻辑 -->
+    <script>
+        // 1. 初始化 EmailJS
+        const EMAIL_CONFIG = {
+            serviceID: "service_j2ak28v",
+            templateID: "template_ol3ws9o",
+            publicKey: "bGbqCw1wlTrkCwfFo"
         };
+        (function() {
+            emailjs.init(EMAIL_CONFIG.publicKey);
+        })();
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'github-english-review-app';
-        let app, auth, db, currentUser;
-        let userRecords = []; // 本地缓存的艾宾浩斯记忆数据
-        let currentProfile = 'user1'; // 当前选择的学习账号
+        // 将政治题库数据直接内置在前端代码中，避免因环境问题解析出错
+        const politicsQuestions = [
+          {
+            id: 1,
+            year: "2025",
+            tag: "政治与法治",
+            title: "法治与科技的“双向奔赴”",
+            question: "背景：某市形成“领军者+小微”格局，硬核科技成为名片。\\n问题：结合材料，运用《政治与法治》知识，说明该市科技创新生态的优化得益于法治与科技的“双向奔赴”。",
+            keyPoint: "党的领导（根本保证）+ 科学立法（完善科技法规）+ 严格执法/公正司法（保护知识产权）+ 全民守法（营造创新氛围）+ 科技赋能（大数据提升法治效能）",
+            commonError: "主体错误：误将立法权赋予政府（立法是人大职权）。漏点：未答出政治大题起手式“党的领导”。未具体结合知识产权保护。",
+            explanation: "政治题“起手式”：党的领导是根本保证。大题结构必备：党 + 立法 + 执法/司法 + 守法 + 材料特色（科技赋能提高法治效能）。"
+          },
+          {
+            id: 2,
+            year: "2025",
+            tag: "哲学与文化",
+            title: "遗产保护中的“实事求是”",
+            question: "背景：开封宋韵、苏州一宅一方案、屏南老屋认租。\\n问题：运用《哲学与文化》知识，分析在历史文化遗产保护传承中如何从实际出发、实事求是。",
+            keyPoint: "尊重客观规律（立足本地古城老宅实际） + 发挥主观能动性（解放思想探索认租新模式） + 二者结合（保护与民生产业结合，主客观具体的历史统一）",
+            commonError: "空洞堆砌原理：只背诵哲学原理，缺乏材料分析。漏点：未答出实事求是的前提是“调查研究”。",
+            explanation: "哲学题公式：原理 + 方法论 + 材料（抄材料里的做法作为论据）。实事求是不等于仅尊重规律，必须点明如何发挥能动性探索新模式。"
+          },
+          {
+            id: 3,
+            year: "2025",
+            tag: "法律与社会",
+            title: "劳动权益与企业负担",
+            question: "(1) 分析“两年不准结婚”合同的不当之处及维权途径。\\n(2) 评析“给骑手交社保加重企业负担，不利于发展”的观点。",
+            keyPoint: "(1) 侵犯婚姻自由、休息权、平等就业权。途径：投诉、仲裁（必经）、起诉。(2) 评析：短期增加成本（合理）；长期微观留住人才，宏观拉动消费（不合理），企业应担社会责任。",
+            commonError: "程序错误：劳动纠纷误以为可直接起诉（必须仲裁前置）。评析题单向思维：只答缺点，忽略了“短期加重负担”的合理面。",
+            explanation: "劳动纠纷维权程序：投诉 -> 仲裁（必经） -> 诉讼。评析题逻辑框架：肯定合理点（短期成本） + 否定不合理点（长期利好） + 总结正确态度。"
+          },
+          {
+            id: 4,
+            year: "2025",
+            tag: "逻辑与思维",
+            title: "周边外交与超前思维",
+            question: "(1) 阐明构建周边命运共同体的原因。\\n(2) 选领域描绘10年后成就，并说明构想方法。",
+            keyPoint: "(1) 国家利益（共同利益）、时代主题（和平发展）、外交政策、多极化趋势。(2) 构想方法：矛盾分析法、推理（因果推断）、创新思维（合理联想）。",
+            commonError: "第二问漏点：题目问的是“构想方法”，考生未列举具体的思维工具（矛盾分析、推理等），误写为小作文。",
+            explanation: "《逻辑与思维》新题型：当题目问“方法”时，必须明确列举思维工具（如矛盾分析、因果推理、创新想象）。超前思维题的核心在方法论落脚。"
+          },
+          {
+            id: 5,
+            year: "2024",
+            tag: "政治与法治",
+            title: "全过程人民民主",
+            question: "背景：某社区设立“板凳议事会”，居民直接参与小区改造方案制定。\\n问题：运用《政治与法治》知识，分析“板凳议事会”是如何体现全过程人民民主的。",
+            keyPoint: "最广泛（主体广泛）+ 最真实（协商民主落实民意）+ 最管用（提升治理效能）+ 制度载体（依托基层群众自治制度）。",
+            commonError: "性质错误：把社区居委会当成“基层政权”（政府）。概念混淆：将协商民主误写为民主选举。",
+            explanation: "居委会/村委会 = 基层群众性自治组织 ≠ 基层政权 ≠ 国家机关。“议事会”核心体现的是“协商民主”，即众人的事情由众人商量。"
+          },
+          {
+            id: 6,
+            year: "2024",
+            tag: "哲学与文化",
+            title: "辩证法的“危”与“机”",
+            question: "背景：数字技术冲击传统就业，但也催生了新职业。\\n问题：运用《哲学与文化》中矛盾的观点，分析如何看待数字技术带来的就业变局。",
+            keyPoint: "矛盾即对立统一（危与机并存） + 矛盾双方在一定条件下相互转化（促使就业难向就业新转化） + 两点论与重点论统一。",
+            commonError: "深度不足：仅仅泛泛而谈“一分为二”。缺方法论：未提及“创造条件，促使危转机”。",
+            explanation: "遇到“双刃剑”或“危机”问题，必答核心点：对立统一 + 矛盾转化。必须强调发挥主观能动性、通过技能培训等手段创造条件，促使转化。"
+          }
+        ];
 
-        // 艾宾浩斯记忆曲线时间间隔配置
+        let userRecords = []; 
+        let currentProfile = 'user1';
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let quizData = [];
+        let isAnswered = false;
+        let sessionLogs = []; // 用于记录本次答题历史以便发送邮件
+
+        // 艾宾浩斯遗忘曲线间隔 (毫秒)
         const EBBINGHAUS_INTERVALS = [
             0, 
             5 * 60 * 1000,           // Lv.1: 5分钟
@@ -362,235 +488,261 @@
             2 * 24 * 60 * 60 * 1000, // Lv.5: 2天
             4 * 24 * 60 * 60 * 1000, // Lv.6: 4天
             7 * 24 * 60 * 60 * 1000, // Lv.7: 7天
-            15 * 24 * 60 * 60 * 1000 // Lv.8: 15天
+            15 * 24 * 60 * 60 * 1000,// Lv.8: 15天
+            30 * 24 * 60 * 60 * 1000 // Lv.9: 30天 (Mastered)
         ];
 
-        // --- EMAIL CONFIGURATION ---
-        const EMAIL_CONFIG = {
-            serviceID: "service_j2ak28v",
-            templateID: "template_ol3ws9o",
-            publicKey: "bGbqCw1wlTrkCwfFo"
-        };
-        emailjs.init(EMAIL_CONFIG.publicKey);
+        // 将全局数据赋给错题库
+        const mistakeDatabase = politicsQuestions;
 
-        // --- DATA ---
-        const mistakeDatabase = [
-            { id: 1, tag: "代词 (Pronoun)", context: "...help our to better study...", incorrect: "help our", correct: "help us", explanation: "Help 是动词，后面应该接宾格 (us)，而 our 是形容词性物主代词。", distractors: ["help ours", "helps our"] },
-            { id: 2, tag: "不可数名词 (Uncountable)", context: "...learn knowledges...", incorrect: "knowledges", correct: "knowledge", explanation: "Knowledge 是不可数名词，不能加 's'。", distractors: ["a knowledge", "many knowledges"] },
-            { id: 3, tag: "冠词 (Article)", context: "...translate a English text...", incorrect: "a English", correct: "an English", explanation: "English 以元音音素开头，不定冠词应用 an。", distractors: ["the English", "English"] },
-            { id: 4, tag: "主谓一致 (Subject-Verb)", context: "...it show a kind video...", incorrect: "it show", correct: "it shows", explanation: "主语 It 是第三人称单数，动词 show 需加 s。", distractors: ["it showing", "it showed"] },
-            { id: 5, tag: "比较级 (Comparative)", context: "...help you more great...", incorrect: "more great", correct: "better", explanation: "Good/Well 的比较级是 better，不是 more great。", distractors: ["greaters", "more good"] },
-            { id: 6, tag: "连接词 (Logic)", context: "(Listing advantages) ...On the other hand, it shows...", incorrect: "On the other hand", correct: "Besides / In addition", explanation: "'On the other hand' 用于对比（相反方面）。这里是列举另一个优点，应用 'Besides'。", distractors: ["However", "Therefore"] },
-            { id: 7, tag: "搭配 (Collocation)", context: "...plan to suit yourself...", incorrect: "suit yourself", correct: "suit our needs / suit us", explanation: "'Suit yourself' 通常意为'随你的便'（略带贬义或口语化）。", distractors: ["suit for us", "fit yourself"] },
-            { id: 8, tag: "非谓语动词 (Participle)", context: "I found some people stay...", incorrect: "found ... stay", correct: "found ... staying", explanation: "Find sb. doing sth. 表示发现某人正在做某事。", distractors: ["found ... stayed", "found ... to stay"] },
-            { id: 9, tag: "介词多余 (Preposition)", context: "I asked for them to help...", incorrect: "asked for them", correct: "asked them", explanation: "Ask sb. to do sth. 是固定用法，不需要加 for。", distractors: ["asked to them", "asked at them"] },
-            { id: 10, tag: "拼写 (Spelling)", context: "When they heared my topics...", incorrect: "heared", correct: "heard", explanation: "Hear 的过去式是 heard，是不规则变化。", distractors: ["heareded", "hear"] },
-            { id: 11, tag: "语序 (Word Order)", context: "I with they went to...", incorrect: "I with they went", correct: "I went with them", explanation: "典型的中式英语。应为主语 + 谓语 + 介词短语。", distractors: ["I went with they", "With they I went"] },
-            { id: 12, tag: "生造词 (Vocabulary)", context: "I think they are kindmans.", incorrect: "kindmans", correct: "kind people", explanation: "英语中没有 kindman 这个词。", distractors: ["kind mans", "kinders"] },
-            { id: 13, tag: "动词搭配 (Structure)", context: "The experience make me that I realized...", incorrect: "make me that I realized", correct: "made me realize", explanation: "Make sb. do sth. (使某人做某事)，后面接动词原形。", distractors: ["made me realized", "make me realizing"] },
-            { id: 14, tag: "大写 (Capitalization)", context: "This saturday afternoon...", incorrect: "This saturday", correct: "This Saturday", explanation: "星期几是专有名词，首字母必须大写，如 Monday、Saturday 等。", distractors: ["this Saturday", "This SATURDAY"] },
-            { id: 15, tag: "语法混乱 (Grammar)", context: "...cultural experience an activities can be able to help you...", incorrect: "an activities can be able to", correct: "a cultural experience event that will help you", explanation: "'Can be able to' 是冗余表达，can 与 be able to 二选一即可。此外 activities 不能用 an 修饰（复数）。", distractors: ["an activities can to", "activities can be able"] },
-            { id: 16, tag: "大写 (Capitalization)", context: "...know about chinese traditions...", incorrect: "chinese traditions", correct: "Chinese traditions", explanation: "表示国籍、语言或民族的形容词（如 Chinese、English、French）首字母必须大写。", distractors: ["CHINESE traditions", "chinese Traditions"] },
-            { id: 17, tag: "拼写 (Spelling)", context: "...chinese traditions cund have an unforgettable weekend...", incorrect: "cund", correct: "and", explanation: "'cund' 是拼写错误，根据上下文应为连词 'and'。", distractors: ["caned", "cond"] },
-            { id: 18, tag: "表达不清 (Expression)", context: "...have a chance to make cutting and dumplings...", incorrect: "make cutting and dumplings", correct: "make paper cuttings and dumplings", explanation: "剪纸的英文是 paper cuttings，不能省略 paper，否则意思不清。", distractors: ["make paper cutting and dumpling", "make cuttings and dumplings"] },
-            { id: 19, tag: "拼写 (Spelling)", context: "...make paper cuttings with stucents...", incorrect: "stucents", correct: "students", explanation: "'stucents' 是拼写错误，正确拼写为 students（s-t-u-d-e-n-t-s）。", distractors: ["studants", "studentes"] }
-        ];
-
+        // 设置前端界面的题目总数
         document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
+        document.getElementById('header-total-count').innerText = mistakeDatabase.length;
+        document.getElementById('list-total-count').innerText = mistakeDatabase.length;
 
-        // 初始化 Firebase 与同步记忆数据
-        async function initFirebaseAndSync() {
-            const syncUI = document.getElementById('sync-status');
+        // 初始化环境与数据库连接
+        async function initApp() {
+            await fetchMemoryRecords();
+            renderQuestionList();
+        }
+
+        // 测试邮件发送配置功能
+        window.testEmailConfig = function() {
+            document.getElementById('loading-overlay').style.display = 'flex';
+            
+            const templateParams = {
+                message: "【系统测试】这是一封来自高考政治特训系统的测试邮件。\\n如果您收到此邮件，说明您的 EmailJS 配置完全正常！\\n\\n发送时间：" + new Date().toLocaleString()
+            };
+
+            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, templateParams)
+                .then(function(response) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    console.log("Test Email Send Success:", response.status);
+                    alert("✅ 测试邮件发送成功！\\n请前往您的邮箱检查是否收到邮件。\\n(状态码: " + response.status + ")");
+                }, function(error) {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    console.error("Test Email Failed:", error);
+                    alert("❌ 测试邮件发送失败！\\n请检查您的 Service ID, Template ID 和 Public Key 是否正确。\\n错误详细信息请按 F12 查看浏览器控制台。");
+                });
+        };
+
+        // 控制题目详情展开/折叠
+        window.toggleDetails = function(id) {
+            const detailsDiv = document.getElementById('details-' + id);
+            const icon = document.getElementById('icon-' + id);
+            const preview = document.getElementById('preview-' + id);
+            
+            if (detailsDiv.classList.contains('hidden')) {
+                detailsDiv.classList.remove('hidden');
+                detailsDiv.classList.add('fade-in');
+                icon.classList.add('rotate-180');
+                preview.classList.remove('line-clamp-2'); // 展开完整题目
+            } else {
+                detailsDiv.classList.add('hidden');
+                detailsDiv.classList.remove('fade-in');
+                icon.classList.remove('rotate-180');
+                preview.classList.add('line-clamp-2'); // 恢复两行截断
+            }
+        };
+
+        // 渲染题库列表 (包含点击展开功能)
+        function renderQuestionList() {
+            const container = document.getElementById('question-list');
+            let html = '';
+            mistakeDatabase.forEach(q => {
+                html += \`
+                    <div class="border border-gray-100 pb-2 mb-3 cursor-pointer hover:bg-gray-50 transition-colors p-3 rounded-lg shadow-sm bg-white" onclick="window.toggleDetails(\${q.id})">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <span class="inline-block bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded mr-2">\${q.year}</span>
+                                <span class="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">\${q.tag}</span>
+                            </div>
+                            <span class="text-xs text-gray-400 flex items-center">#\${q.id} <i class="fa-solid fa-chevron-down ml-2 text-gray-400 transition-transform duration-300" id="icon-\${q.id}"></i></span>
+                        </div>
+                        <h4 class="font-medium text-gray-800 mb-1">\${q.title}</h4>
+                        <p class="text-sm text-gray-500 line-clamp-2" id="preview-\${q.id}">\${q.question.replace(/\\\\n/g, '<br>')}</p>
+                        
+                        <!-- 隐藏的答案详情区 -->
+                        <div id="details-\${q.id}" class="hidden mt-4 space-y-3 bg-indigo-50 p-4 rounded-lg border border-indigo-100 cursor-default" onclick="event.stopPropagation()">
+                            <div>
+                                <strong class="text-amber-700 text-sm block mb-1"><i class="fa-solid fa-key mr-1"></i>核心要点：</strong>
+                                <p class="text-sm text-gray-700 leading-relaxed">\${q.keyPoint}</p>
+                            </div>
+                            <div class="border-t border-indigo-200/60 pt-2">
+                                <strong class="text-red-700 text-sm block mb-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>常见错误：</strong>
+                                <p class="text-sm text-gray-700 leading-relaxed">\${q.commonError}</p>
+                            </div>
+                            <div class="border-t border-indigo-200/60 pt-2">
+                                <strong class="text-blue-700 text-sm block mb-1"><i class="fa-solid fa-lightbulb mr-1"></i>详细解析：</strong>
+                                <p class="text-sm text-gray-700 leading-relaxed">\${q.explanation}</p>
+                            </div>
+                        </div>
+                    </div>
+                \`;
+            });
+            container.innerHTML = html;
+        }
+
+        // 调用 Cloudflare API: 拉取记忆记录
+        async function fetchMemoryRecords() {
             try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                // 静默匿名登录，获取跨刷新唯一的 UserID
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                // 判断当前是否是本地打开，如果是本地环境给出友好提示
+                if (window.location.protocol === 'file:') {
+                     document.getElementById('sync-status').innerHTML = '<span class="text-amber-500"><i class="fa-solid fa-triangle-exclamation"></i> 本地预览模式 (无数据库) - 请部署到 Cloudflare Worker 以开启记忆功能</span>';
+                     return;
                 }
 
-                onAuthStateChanged(auth, async (user) => {
-                    currentUser = user;
-                    if (user) {
-                        await fetchMemoryRecords();
-                    }
-                });
-            } catch (e) {
-                console.error("Firebase Initialization Failed", e);
-                syncUI.innerHTML = `<span class="text-red-500"><i class="fa-solid fa-xmark"></i> 记忆库连接失败，请检查Firebase设置</span>`;
-            }
-        }
-
-        async function fetchMemoryRecords() {
-            if (!currentUser || !db) return;
-            try {
-                // 根据不同账号拉取独立的云端集合
-                const collectionName = 'ebbinghaus_' + currentProfile;
-                const snapshot = await getDocs(collection(db, 'artifacts', appId, 'users', currentUser.uid, collectionName));
-                userRecords = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                const now = Date.now();
-                const dueCount = userRecords.filter(r => r.nextReviewTime <= now).length;
-                
-                const syncUI = document.getElementById('sync-status');
-                syncUI.innerHTML = `<span class="text-green-600"><i class="fa-solid fa-cloud-arrow-down"></i> 云端同步成功 (${currentProfile})。发现 <b class="text-purple-700">${dueCount}</b> 道待复习错题</span>`;
+                const response = await fetch('/api/memory/get?userProfile=' + currentProfile);
+                if (!response.ok) throw new Error('API Request Failed');
+                userRecords = await response.json();
+                updateSyncUI();
             } catch(e) {
                 console.error("Fetch Data Error", e);
+                document.getElementById('sync-status').innerHTML = '<span class="text-red-500"><i class="fa-solid fa-xmark"></i> 连接后端 API 失败 (请确保通过 Worker 域名访问)</span>';
             }
         }
 
-        // --- 核心：艾宾浩斯记录算法 ---
+        function updateSyncUI() {
+            const now = Date.now();
+            const dueCount = userRecords.filter(r => r.nextReviewTime <= now).length;
+            const syncUI = document.getElementById('sync-status');
+            syncUI.innerHTML = '<span class="text-green-600"><i class="fa-solid fa-cloud-arrow-down"></i> D1 Sync OK (' + currentProfile.toUpperCase() + ') | <b class="text-purple-700">' + dueCount + '</b> 题待复习</span>';
+            document.getElementById('sql-user-id').innerText = currentProfile;
+        }
+
+        // 调用 Cloudflare API: 触发算法更新数据库
         async function updateMemoryRecord(questionId, isCorrect) {
-            if (!currentUser || !db) return;
             try {
-                // 确保数据路径严格遵循约束，根据账号隔离集合
-                const collectionName = 'ebbinghaus_' + currentProfile;
-                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, collectionName, `q_${questionId}`);
                 const existingIndex = userRecords.findIndex(r => r.questionId === questionId);
                 const existing = existingIndex !== -1 ? userRecords[existingIndex] : null;
                 const now = Date.now();
+                let newData;
 
                 if (!existing) {
                     if (!isCorrect) {
-                        // 首次做错，加入记忆库 (Lv.1: 5分钟后复习)
-                        const nextTime = now + EBBINGHAUS_INTERVALS[1];
-                        const newData = { questionId, level: 1, nextReviewTime: nextTime };
-                        await setDoc(docRef, newData);
-                        userRecords.push(newData);
+                        newData = { questionId: questionId, level: 1, nextReviewTime: now + EBBINGHAUS_INTERVALS[1] };
                     }
                 } else {
                     if (isCorrect) {
-                        // 答对了，进入下一个记忆周期
-                        const nextLevel = existing.level + 1;
-                        if (nextLevel >= EBBINGHAUS_INTERVALS.length) {
-                            await deleteDoc(docRef); // 已彻底掌握
-                            userRecords.splice(existingIndex, 1);
-                        } else {
-                            const nextTime = now + EBBINGHAUS_INTERVALS[nextLevel];
-                            const newData = { questionId, level: nextLevel, nextReviewTime: nextTime };
-                            await setDoc(docRef, newData);
-                            userRecords[existingIndex] = newData;
-                        }
+                        const nextLevel = Math.min(existing.level + 1, EBBINGHAUS_INTERVALS.length - 1);
+                        newData = { questionId: questionId, level: nextLevel, nextReviewTime: now + EBBINGHAUS_INTERVALS[nextLevel] };
                     } else {
-                        // 答错了，重置记忆曲线
-                        const nextTime = now + EBBINGHAUS_INTERVALS[1];
-                        const newData = { questionId, level: 1, nextReviewTime: nextTime };
-                        await setDoc(docRef, newData);
-                        userRecords[existingIndex] = newData;
+                        newData = { questionId: questionId, level: 1, nextReviewTime: now + EBBINGHAUS_INTERVALS[1] };
                     }
                 }
+
+                if (newData) {
+                    // 更新本地内存
+                    if (existingIndex !== -1) {
+                        userRecords[existingIndex] = newData;
+                    } else {
+                        userRecords.push(newData);
+                    }
+                    
+                    if (window.location.protocol === 'file:') return; // 本地模式不发请求
+
+                    // 发送 POST 到同源 Cloudflare API
+                    await fetch('/api/memory/upsert', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            userProfile: currentProfile,
+                            questionId: newData.questionId,
+                            level: newData.level,
+                            nextReviewTime: newData.nextReviewTime
+                        })
+                    });
+                }
             } catch(e) {
-                console.error("更新记忆数据失败", e);
+                console.error("Update DB Failed", e);
             }
         }
 
-        // --- UI & QUIZ LOGIC (Exposed to window) ---
-        let currentQuestionIndex = 0;
-        let score = 0;
-        let quizData = [];
-        let isAnswered = false;
-        let attemptHistory = [];
+        // 生成干扰选项
+        function generateDistractors(correctAnswer, questionId) {
+            // 从其他题目的 keyPoint 中选取作为干扰项
+            const otherQuestions = mistakeDatabase.filter(q => q.id !== questionId);
+            const distractors = [];
+            
+            // 随机选取2个干扰项
+            const indices = [];
+            while (indices.length < 2 && indices.length < otherQuestions.length) {
+                const r = Math.floor(Math.random() * otherQuestions.length);
+                if (!indices.includes(r)) indices.push(r);
+            }
+            
+            indices.forEach(i => {
+                // 截取前50个字符作为干扰项
+                let text = otherQuestions[i].keyPoint.substring(0, 50);
+                if (otherQuestions[i].keyPoint.length > 50) text += '...';
+                distractors.push(text);
+            });
+            
+            return distractors;
+        }
 
         window.changeProfile = async function() {
             const profileSelect = document.getElementById('user-profile');
             currentProfile = profileSelect.value;
-            const syncUI = document.getElementById('sync-status');
-            syncUI.innerHTML = `<span class="text-purple-600"><i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在拉取 ${profileSelect.options[profileSelect.selectedIndex].text} 的数据...</span>`;
+            
+            if (window.location.protocol !== 'file:') {
+                document.getElementById('sync-status').innerHTML = '<span class="text-purple-600"><i class="fa-solid fa-spinner fa-spin"></i> 拉取 ' + currentProfile + ' 数据...</span>';
+            }
+            
             await fetchMemoryRecords();
         };
 
         window.switchTab = function(tabName) {
-            ['view-report1', 'view-report2', 'view-review'].forEach(id => {
+            ['view-home', 'view-review'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            ['tab-report1', 'tab-report2', 'tab-review'].forEach(id => {
-                document.getElementById(id).className = "tab-inactive px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
+            ['tab-home', 'tab-review'].forEach(id => {
+                document.getElementById(id).className = "tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
             });
-            document.getElementById(`view-${tabName}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabName}`).className = "tab-active px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
+            document.getElementById('view-' + tabName).classList.remove('hidden');
+            document.getElementById('tab-' + tabName).className = "tab-active whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
         };
 
-        window.toggleVersion = function(essay, version) {
-            if (essay === 'ai') {
-                document.getElementById('ai-standard').classList.add('hidden');
-                document.getElementById('ai-advanced').classList.add('hidden');
-                document.getElementById(`ai-${version}`).classList.remove('hidden');
-            } else if (essay === 'kindness') {
-                document.getElementById('kindness-revised').classList.add('hidden');
-                document.getElementById('kindness-advanced').classList.add('hidden');
-                document.getElementById(`kindness-${version}`).classList.remove('hidden');
+        window.clearAllMemory = async function() {
+            if (!confirm('确定要清除账号 ' + currentProfile + ' 的所有学习记忆数据吗？此操作不可恢复！')) return;
+            
+            if (window.location.protocol === 'file:') {
+                userRecords = [];
+                window.showMemoryDashboard();
+                alert('本地虚拟数据已清除！');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/memory/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userProfile: currentProfile })
+                });
+                
+                if (!response.ok) throw new Error('Clear Failed');
+                
+                userRecords = [];
+                updateSyncUI();
+                window.showMemoryDashboard();
+                alert('数据已全部清除！');
+            } catch(e) {
+                console.error(e);
+                alert('清除失败，请检查网络或后端配置。');
             }
         };
 
         function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+                [arr[i], arr[j]] = [arr[j], arr[i]];
             }
-            return array;
+            return arr;
         }
 
-        // 🚀 新增：展示记忆库数据的弹窗逻辑
-        window.showMemoryDashboard = function() {
-            const modal = document.getElementById('memory-modal');
-            const list = document.getElementById('memory-list');
-            const profileSelect = document.getElementById('user-profile');
-            const profileName = profileSelect.options[profileSelect.selectedIndex].text;
-            document.getElementById('memory-modal-title').innerText = `${profileName} 的记忆库`;
-
-            if (userRecords.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-500 p-10 flex flex-col items-center"><i class="fa-solid fa-box-open text-4xl mb-3 text-gray-300"></i><p>你的记忆库目前空空如也，<br>快去挑战并产生第一道错题吧！</p></div>';
-            } else {
-                let html = '<div class="space-y-3">';
-                // 按照复习时间排序，最紧急的在最上面
-                const sortedRecords = [...userRecords].sort((a, b) => a.nextReviewTime - b.nextReviewTime);
-                
-                sortedRecords.forEach(record => {
-                    const q = mistakeDatabase.find(x => x.id === record.questionId);
-                    if (q) {
-                        const dateObj = new Date(record.nextReviewTime);
-                        const timeString = `${dateObj.getMonth()+1}月${dateObj.getDate()}日 ${dateObj.getHours().toString().padStart(2, '0')}:${dateObj.getMinutes().toString().padStart(2, '0')}`;
-                        const isDue = record.nextReviewTime <= Date.now();
-                        const dueBadge = isDue ? '<span class="bg-red-100 text-red-600 px-2 py-0.5 rounded text-xs ml-2 font-bold shadow-sm border border-red-200">待复习</span>' : '';
-                        
-                        html += `
-                        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:border-blue-200 transition">
-                            <div class="flex items-center justify-between mb-2">
-                                <div class="text-sm font-bold text-gray-800"><i class="fa-solid fa-tag text-blue-500 mr-1"></i> ${q.tag}</div>
-                                <div>
-                                    <span class="text-xs font-bold bg-purple-100 text-purple-600 px-2 py-0.5 rounded shadow-sm border border-purple-200">Lv.${record.level}</span>
-                                    ${dueBadge}
-                                </div>
-                            </div>
-                            <div class="text-sm text-gray-600 mb-2 p-2 bg-gray-50 rounded">
-                                <span class="line-through text-red-400 mr-2">${q.incorrect}</span> 
-                                <i class="fa-solid fa-arrow-right text-gray-400 text-xs"></i> 
-                                <span class="text-green-600 font-bold ml-2">${q.correct}</span>
-                            </div>
-                            <div class="text-xs text-gray-400 flex items-center">
-                                <i class="fa-regular fa-clock mr-1"></i> 下次复习安排: <span class="ml-1 ${isDue ? 'text-red-500 font-bold' : 'text-gray-500'}">${timeString}</span>
-                            </div>
-                        </div>
-                        `;
-                    }
-                });
-                html += '</div>';
-                list.innerHTML = html;
-            }
-            modal.classList.remove('hidden');
-        };
-
-        window.startQuiz = function() {
-            const dailyLimitInput = document.getElementById('daily-limit');
-            let limit = parseInt(dailyLimitInput.value);
-            if (isNaN(limit) || limit < 1) limit = 5;
-            if (limit > mistakeDatabase.length) limit = mistakeDatabase.length;
-
-            // 艾宾浩斯筛选逻辑：分离出待复习(到期)和新题
+        window.prepareQuiz = function() {
+            const limitVal = parseInt(document.getElementById('daily-limit').value) || 10;
             const now = Date.now();
             const dueQuestionIds = userRecords.filter(r => r.nextReviewTime <= now).map(r => r.questionId);
             
@@ -600,21 +752,53 @@
             dueQuestions = shuffleArray(dueQuestions);
             newQuestions = shuffleArray(newQuestions);
 
-            // 优先填满待复习题，不够的用新题补上
-            quizData = [...dueQuestions, ...newQuestions].slice(0, limit);
-            
-            currentQuestionIndex = 0;
-            score = 0;
-            attemptHistory = [];
+            quizData = [...dueQuestions, ...newQuestions].slice(0, Math.min(limitVal, mistakeDatabase.length));
             
             document.getElementById('quiz-start').classList.add('hidden');
             document.getElementById('quiz-results').classList.add('hidden');
-            document.getElementById('quiz-container').classList.remove('hidden');
-            document.getElementById('total-q').innerText = quizData.length;
-            document.getElementById('email-status').innerText = "";
-            document.getElementById('email-status').className = "text-sm font-medium text-gray-600 flex items-center justify-center";
-            document.getElementById('btn-retry-email').classList.add('hidden');
+            sessionLogs = []; // 重置日志
             
+            if (dueQuestions.length > 0) {
+                showPreReviewScreen(dueQuestions);
+            } else {
+                window.enterQuizContext();
+            }
+        };
+
+        function showPreReviewScreen(dueList) {
+            const listContainer = document.getElementById('pre-review-list');
+            document.getElementById('pre-review-count').innerText = dueList.length;
+            listContainer.innerHTML = '';
+
+            dueList.forEach(q => {
+                const dbRecord = userRecords.find(r => r.questionId === q.id);
+                const lvl = dbRecord ? dbRecord.level : 1;
+                listContainer.innerHTML += 
+                    '<div class="bg-white p-4 rounded-lg border border-yellow-200 shadow-sm relative overflow-hidden">' +
+                        '<div class="absolute right-0 top-0 bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-bl-lg font-bold">' +
+                            'Lv.' + lvl +
+                        '</div>' +
+                        '<div class="flex items-center gap-2 mb-2">' +
+                            '<span class="bg-amber-100 text-amber-700 text-xs px-2 py-1 rounded">' + q.year + '</span>' +
+                            '<span class="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded">' + q.tag + '</span>' +
+                        '</div>' +
+                        '<h4 class="font-bold text-gray-800 mb-2">' + q.title + '</h4>' +
+                        '<p class="text-sm text-gray-600 mb-2">' + q.question.replace(/\\n/g, '<br>') + '</p>' +
+                        '<div class="bg-amber-50 p-2 rounded text-sm">' +
+                            '<strong class="text-amber-700">核心要点：</strong>' + q.keyPoint +
+                        '</div>' +
+                    '</div>';
+            });
+            document.getElementById('quiz-pre-review').classList.remove('hidden');
+        }
+
+        window.enterQuizContext = function() {
+            document.getElementById('quiz-pre-review').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('total-q').innerText = quizData.length;
             loadQuestion();
         };
 
@@ -622,34 +806,32 @@
             isAnswered = false;
             const q = quizData[currentQuestionIndex];
             
-            // 判定当前题是否为艾宾浩斯“到期复习”的题
             const isReviewQuestion = userRecords.some(r => r.questionId === q.id && r.nextReviewTime <= Date.now());
-            if (isReviewQuestion) {
-                document.getElementById('ebbinghaus-badge').classList.remove('hidden');
-            } else {
-                document.getElementById('ebbinghaus-badge').classList.add('hidden');
-            }
+            document.getElementById('ebbinghaus-badge').style.display = isReviewQuestion ? 'inline-flex' : 'none';
 
             document.getElementById('current-q').innerText = currentQuestionIndex + 1;
-            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / quizData.length) * 100}%`;
+            document.getElementById('progress-bar').style.width = (((currentQuestionIndex) / quizData.length) * 100) + '%';
             
+            document.getElementById('q-year').innerText = q.year + ' 高考题';
             document.getElementById('q-tag').innerText = q.tag;
-            document.getElementById('q-context').innerText = q.incorrect;
+            document.getElementById('q-title').innerText = q.title;
+            document.getElementById('q-question').innerHTML = q.question.replace(/\\n/g, '<br>');
             document.getElementById('feedback-area').classList.add('hidden');
 
             const optionsDiv = document.getElementById('options-container');
             optionsDiv.innerHTML = '';
 
+            // 生成选项
             let options = [
-                { text: q.correct, isCorrect: true },
-                ...q.distractors.map(d => ({ text: d, isCorrect: false }))
+                { text: q.keyPoint, isCorrect: true },
+                ...generateDistractors(q.keyPoint, q.id).map(d => ({ text: d, isCorrect: false }))
             ];
             options = shuffleArray(options);
 
             options.forEach((opt) => {
                 const btn = document.createElement('div');
-                btn.className = "option-card w-full p-4 rounded-lg border border-gray-200 cursor-pointer flex items-center bg-white";
-                btn.innerHTML = `<div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center dot-indicator"></div><span class="font-medium text-gray-700">${opt.text}</span>`;
+                btn.className = "option-card w-full p-3 sm:p-4 rounded-lg border border-gray-200 cursor-pointer flex items-center bg-white";
+                btn.innerHTML = '<div class="w-5 h-5 rounded-full border-2 border-gray-300 mr-3 flex items-center justify-center dot-indicator shrink-0"></div><span class="font-medium text-gray-700 text-sm">' + opt.text + '</span>';
                 btn.onclick = () => window.checkAnswer(opt, btn, q);
                 optionsDiv.appendChild(btn);
             });
@@ -657,14 +839,22 @@
 
         window.checkAnswer = async function(selectedOption, btnElement, questionData) {
             if (isAnswered) return;
+            
+            // 记录日志到 sessionLogs 用于发送邮件
+            sessionLogs.push({
+                title: questionData.title,
+                year: questionData.year,
+                status: selectedOption.isCorrect ? "✅ 正确" : "❌ 错误",
+                userAnswer: selectedOption.text,
+                correctAnswer: questionData.keyPoint
+            });
+
             isAnswered = true;
 
             const allBtns = document.getElementById('options-container').children;
-            let resultStatus = "Wrong";
 
             if (selectedOption.isCorrect) {
                 score++;
-                resultStatus = "Correct";
                 btnElement.classList.add('option-selected-correct');
                 btnElement.querySelector('.dot-indicator').innerHTML = '<i class="fa-solid fa-check text-green-500 text-xs"></i>';
                 btnElement.querySelector('.dot-indicator').classList.add('border-green-500');
@@ -675,43 +865,38 @@
                 btnElement.querySelector('.dot-indicator').classList.add('border-red-500');
                 
                 Array.from(allBtns).forEach(b => {
-                    if (b.innerText.includes(questionData.correct)) {
+                    if (b.innerText.includes(questionData.keyPoint.substring(0, 30))) {
                         b.classList.add('option-selected-correct');
                     }
                 });
                 showFeedback(false, questionData);
             }
 
-            // 【触发艾宾浩斯记录算法】
             await updateMemoryRecord(questionData.id, selectedOption.isCorrect);
-
-            attemptHistory.push({
-                question: questionData.context,
-                correctAnswer: questionData.correct,
-                userResult: resultStatus,
-                tag: questionData.tag
-            });
+            updateSyncUI();
         };
 
         function showFeedback(isCorrect, data) {
             const fbArea = document.getElementById('feedback-area');
             const fbIcon = document.getElementById('feedback-icon');
             const fbTitle = document.getElementById('feedback-title');
-            const fbText = document.getElementById('feedback-text');
+            
+            document.getElementById('feedback-keypoint').innerText = data.keyPoint;
+            document.getElementById('feedback-error').innerText = data.commonError;
+            document.getElementById('feedback-explanation').innerText = data.explanation;
 
             fbArea.classList.remove('hidden');
             fbArea.classList.add('fade-in');
 
             if (isCorrect) {
                 fbIcon.innerHTML = '<div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><i class="fa-solid fa-check text-green-600"></i></div>';
-                fbTitle.innerText = "正确! Excellent!";
-                fbTitle.className = "font-bold text-lg mb-1 text-green-700";
+                fbTitle.innerText = "正确! 算法已调高该题掌握层级";
+                fbTitle.className = "font-bold text-base sm:text-lg mb-1 text-green-700";
             } else {
                 fbIcon.innerHTML = '<div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><i class="fa-solid fa-xmark text-red-600"></i></div>';
-                fbTitle.innerText = "Oops! 答错了 (已自动纳入艾宾浩斯复习计划)";
-                fbTitle.className = "font-bold text-lg mb-1 text-red-700";
+                fbTitle.innerText = "答错了! 遗忘曲线已重置为Lv.1";
+                fbTitle.className = "font-bold text-base sm:text-lg mb-1 text-red-700";
             }
-            fbText.innerText = data.explanation;
         }
 
         window.nextQuestion = function() {
@@ -726,74 +911,108 @@
         function showResults() {
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('quiz-results').classList.remove('hidden');
-            
-            const finalScore = document.getElementById('final-score');
-            finalScore.innerText = `${score} / ${quizData.length}`;
-            
-            const percentage = (score / quizData.length) * 100;
-            const msg = document.getElementById('result-message');
-            const icon = document.getElementById('score-icon');
+            document.getElementById('final-score').innerText = score + ' / ' + quizData.length;
 
-            if (percentage === 100) {
-                msg.innerText = "完美通关！学习报告将自动发送。";
-                icon.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-yellow-100 text-yellow-600";
-                icon.innerHTML = '<i class="fa-solid fa-crown text-4xl"></i>';
-            } else if (percentage >= 80) {
-                msg.innerText = "掌握得很好！错题已录入云端记忆库。";
-                icon.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-green-100 text-green-600";
-                icon.innerHTML = '<i class="fa-solid fa-thumbs-up text-4xl"></i>';
-            } else {
-                msg.innerText = "还需努力，做错的题目系统会在最佳记忆点重新推送给你！";
-                icon.className = "w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 bg-gray-100 text-gray-600";
-                icon.innerHTML = '<i class="fa-solid fa-book-open text-4xl"></i>';
+            // 答题结束，触发自动发送邮件
+            if (sessionLogs.length > 0) {
+                sendEmailReport();
             }
-
-            window.sendReport();
         }
 
-        window.resetQuiz = function() {
-            window.startQuiz();
-        };
+        // 发送邮件报告的逻辑
+        function sendEmailReport() {
+            document.getElementById('loading-overlay').style.display = 'flex';
 
-        window.sendReport = function() {
-            const statusDiv = document.getElementById('email-status');
-            const retryBtn = document.getElementById('btn-retry-email');
-            
-            statusDiv.innerHTML = '<div class="spinner text-blue-600"></div> <span class="text-blue-600">正在自动发送今日学习报告...</span>';
-            retryBtn.classList.add('hidden');
+            // 格式化邮件内容
+            let emailBody = "【高考政治特训报告 - " + currentProfile.toUpperCase() + "】\\n\\n";
+            emailBody += \`完成时间: \${new Date().toLocaleString()}\\n\`;
+            emailBody += \`今日得分: \${score} / \${quizData.length} 题\\n\\n\`;
+            emailBody += "----------------------------------------\\n";
 
-            let detailedReport = `Date: ${new Date().toLocaleDateString()}\n`;
-            detailedReport += `Score: ${score} / ${quizData.length}\n`;
-            detailedReport += `-----------------------------------\n\n`;
-
-            attemptHistory.forEach((item, index) => {
-                const mark = item.userResult === "Correct" ? "✅" : "❌";
-                detailedReport += `${index + 1}. [${item.tag}] ${mark}\n`;
-                detailedReport += `   Context: ${item.question}\n`;
-                if (item.userResult !== "Correct") {
-                    detailedReport += `   Correct Answer: ${item.correctAnswer}\n`;
+            sessionLogs.forEach((log, index) => {
+                emailBody += \`题 \${index + 1}: \${log.title} (\${log.year})\\n\`;
+                emailBody += \`掌握情况: \${log.status}\\n\`;
+                emailBody += \`你的选择: \${log.userAnswer}\\n\`;
+                if(log.status.includes("错误")) {
+                    emailBody += \`正确答案: \${log.correctAnswer}\\n\`;
                 }
-                detailedReport += `\n`;
+                emailBody += "----------------------------------------\\n";
             });
 
-            const params = {
-                message: detailedReport,
-                score: `${score} / ${quizData.length}`,
-                to_name: "Teacher/User",
+            const templateParams = {
+                message: emailBody,
             };
 
-            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, params)
+            emailjs.send(EMAIL_CONFIG.serviceID, EMAIL_CONFIG.templateID, templateParams)
                 .then(function(response) {
-                    statusDiv.innerHTML = '<span class="text-green-600 font-bold"><i class="fa-solid fa-check-circle mr-2"></i> 今日学习报告已成功发送至邮箱！</span>';
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    // 仅使用系统自带通知或控制台，不打断结果页的显示
+                    console.log("Email Send Success:", response.status);
+                    alert("🎉 今日复习完成！\\n系统已将你的答题报告发送至指定邮箱，请注意查收。");
                 }, function(error) {
-                    console.error('Email Failed:', error);
-                    statusDiv.innerHTML = '<span class="text-red-600"><i class="fa-solid fa-circle-exclamation mr-2"></i> 报告发送失败</span>';
-                    retryBtn.classList.remove('hidden');
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    console.log("Email Failed:", error);
+                    alert("复习完成，但邮件报告发送失败。请检查网络或 EmailJS 配置。");
                 });
+        }
+
+        window.showMemoryDashboard = function() {
+            const modal = document.getElementById('memory-modal');
+            const tbody = document.getElementById('db-table-body');
+            
+            if (userRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">当前账号 (SELECT *) 结果为空。去答题写入数据吧！</td></tr>';
+            } else {
+                let html = '';
+                const sorted = [...userRecords].sort((a,b) => a.nextReviewTime - b.nextReviewTime);
+                const now = Date.now();
+
+                sorted.forEach(record => {
+                    const q = mistakeDatabase.find(x => x.id === record.questionId);
+                    if(!q) return;
+
+                    const dateObj = new Date(record.nextReviewTime);
+                    const timeStr = dateObj.getFullYear() + '-' + 
+                                    (dateObj.getMonth()+1).toString().padStart(2,'0') + '-' + 
+                                    dateObj.getDate().toString().padStart(2,'0') + ' ' + 
+                                    dateObj.getHours().toString().padStart(2,'0') + ':' + 
+                                    dateObj.getMinutes().toString().padStart(2,'0');
+                    
+                    const isDue = record.nextReviewTime <= now;
+                    const statusHtml = isDue 
+                        ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">DUE (待复习)</span>' 
+                        : '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">RETAINED</span>';
+
+                    const timeClass = isDue ? 'text-red-500 font-bold' : 'text-gray-500';
+
+                    html += 
+                    '<tr class="hover:bg-gray-50 transition">' +
+                        '<td class="px-4 py-3 border-b max-w-xs truncate">' +
+                            '<span class="font-bold text-gray-700">[' + q.year + ']</span> ' + q.title + '<br>' +
+                            '<span class="text-xs text-gray-400 font-mono">' + q.tag + '</span>' +
+                        '</td>' +
+                        '<td class="px-4 py-3 border-b text-center">' + statusHtml + '</td>' +
+                        '<td class="px-4 py-3 border-b text-center">' +
+                            '<div class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100 text-purple-700 font-bold text-sm">' +
+                                record.level +
+                            '</div>' +
+                        '</td>' +
+                        '<td class="px-4 py-3 border-b font-mono text-xs ' + timeClass + '">' +
+                            timeStr + '<br>' +
+                            '<span class="text-[10px] text-gray-400">TIMESTAMP: ' + record.nextReviewTime + '</span>' +
+                        '</td>' +
+                    '</tr>';
+                });
+                tbody.innerHTML = html;
+            }
+            modal.classList.remove('hidden');
         };
 
-        // 启动时连接数据库
-        initFirebaseAndSync();
+        // 启动应用
+        initApp();
     </script>
 </body>
-</html>
+</html>`;
+export {
+  worker_default as default
+};
