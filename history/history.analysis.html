@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -22,6 +23,11 @@
         .prediction-low { border-color: #10b981; }
         .frequency-bar { height: 8px; border-radius: 4px; background: #e5e7eb; overflow: hidden; }
         .frequency-fill { height: 100%; border-radius: 4px; transition: width 1s ease; }
+        
+        /* 试题专区样式 */
+        .question-box { background-color: #f8fafc; border-left: 4px solid #3b82f6; }
+        .answer-box { background-color: #f0fdf4; border-left: 4px solid #22c55e; }
+        .analysis-box { background-color: #fffbeb; border-left: 4px solid #f59e0b; }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -34,7 +40,7 @@
                 <div class="mt-6 flex justify-center space-x-4 text-sm">
                     <span class="bg-white/20 px-4 py-2 rounded-full"><i class="fa-solid fa-database mr-2"></i>54道题目</span>
                     <span class="bg-white/20 px-4 py-2 rounded-full"><i class="fa-solid fa-calendar mr-2"></i>2015-2025年</span>
-                    <span class="bg-white/20 px-4 py-2 rounded-full"><i class="fa-solid fa-brain mr-2"></i>AI预测</span>
+                    <span class="bg-white/20 px-4 py-2 rounded-full"><i class="fa-solid fa-brain mr-2"></i>AI预测 + 独家真题</span>
                 </div>
             </div>
         </div>
@@ -123,7 +129,7 @@
         <section class="mb-16">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
                 <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">2</span>
-                主题标签频率 TOP 15
+                主题标签频率 TOP 10
             </h2>
             <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                 <div class="overflow-x-auto">
@@ -303,10 +309,10 @@
                             <div class="flex flex-wrap gap-2">
                                 <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">战后国际秩序</span>
                                 <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">东京审判</span>
-                                <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">中日邦交正常化</span>
+                                <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">中国国际地位提升</span>
                             </div>
                         </div>
-                        <i class="fa-solid fa-monument text-red-200 text-6xl"></i>
+                        <i class="fa-solid fa-monument text-red-200 text-6xl hidden sm:block"></i>
                     </div>
                 </div>
 
@@ -333,7 +339,7 @@
                                 <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs">三个联合公报</span>
                             </div>
                         </div>
-                        <i class="fa-solid fa-handshake text-red-200 text-6xl"></i>
+                        <i class="fa-solid fa-handshake text-red-200 text-6xl hidden sm:block"></i>
                     </div>
                 </div>
 
@@ -355,67 +361,12 @@
                             <h3 class="text-xl font-bold text-gray-800 mb-2">宋代政治制度（中央集权）</h3>
                             <p class="text-gray-600 mb-3">2015年考儒学、2018年考乡约，宋代制度类题目5年未出现，可能回归；收精兵、削实权、制钱谷是核心。</p>
                             <div class="flex flex-wrap gap-2">
-                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">收精兵</span>
+                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">收精兵/制钱谷</span>
                                 <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">削实权</span>
-                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">制钱谷</span>
-                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">更戍法</span>
+                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">冗官冗兵冗费</span>
                             </div>
                         </div>
-                        <i class="fa-solid fa-scroll text-amber-200 text-6xl"></i>
-                    </div>
-                </div>
-
-                <!-- 预测4 -->
-                <div class="prediction-card prediction-medium bg-white rounded-xl p-6 shadow-lg">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center mb-2">
-                                <span class="bg-amber-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">预测 #4</span>
-                                <div class="flex text-lg">
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-regular fa-star star-empty"></i>
-                                </div>
-                                <span class="ml-2 text-amber-600 font-bold">概率 70%</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">古代中外交流（丝绸之路）</h3>
-                            <p class="text-gray-600 mb-3">2024考农业、2025考医学，文明交流类题目可能接替；一带一路政策映射，张骞通西域、郑和下西洋。</p>
-                            <div class="flex flex-wrap gap-2">
-                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">张骞通西域</span>
-                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">郑和下西洋</span>
-                                <span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">朝贡贸易</span>
-                            </div>
-                        </div>
-                        <i class="fa-solid fa-route text-amber-200 text-6xl"></i>
-                    </div>
-                </div>
-
-                <!-- 预测5 -->
-                <div class="prediction-card prediction-low bg-white rounded-xl p-6 shadow-lg">
-                    <div class="flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center mb-2">
-                                <span class="bg-green-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">预测 #5</span>
-                                <div class="flex text-lg">
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-solid fa-star star-filled"></i>
-                                    <i class="fa-regular fa-star star-empty"></i>
-                                    <i class="fa-regular fa-star star-empty"></i>
-                                </div>
-                                <span class="ml-2 text-green-600 font-bold">概率 65%</span>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-800 mb-2">工业革命与现代化</h3>
-                            <p class="text-gray-600 mb-3">2015、2022年均有涉及，中国式现代化主题可能再考；第四次工业革命、数字经济。</p>
-                            <div class="flex flex-wrap gap-2">
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">四次工业革命</span>
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">中国式现代化</span>
-                                <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">数字经济</span>
-                            </div>
-                        </div>
-                        <i class="fa-solid fa-industry text-green-200 text-6xl"></i>
+                        <i class="fa-solid fa-scroll text-amber-200 text-6xl hidden sm:block"></i>
                     </div>
                 </div>
             </div>
@@ -445,24 +396,9 @@
                             </thead>
                             <tbody class="divide-y divide-gray-100">
                                 <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-3 font-medium text-gray-500">先秦</td>
-                                    <td class="py-3 px-3">商鞅变法 vs 王安石变法</td>
-                                    <td class="py-3 px-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">比较题</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-3 font-medium text-gray-500">汉代</td>
-                                    <td class="py-3 px-3">丝绸之路开通的背景与影响</td>
-                                    <td class="py-3 px-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">背景+影响</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
                                     <td class="py-3 px-3 font-medium text-amber-600">宋代⭐</td>
                                     <td class="py-3 px-3 font-bold">中央集权加强的措施</td>
                                     <td class="py-3 px-3"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">概括题</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-3 font-medium text-gray-500">明代</td>
-                                    <td class="py-3 px-3">郑和下西洋与朝贡贸易</td>
-                                    <td class="py-3 px-3"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">评价题</span></td>
                                 </tr>
                                 <tr class="hover:bg-gray-50">
                                     <td class="py-3 px-3 font-medium text-gray-500">晚清</td>
@@ -470,19 +406,9 @@
                                     <td class="py-3 px-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">比较题</span></td>
                                 </tr>
                                 <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-3 font-medium text-red-600">民国⭐</td>
-                                    <td class="py-3 px-3 font-bold">北洋军阀时期社会变迁</td>
-                                    <td class="py-3 px-3"><span class="bg-pink-100 text-pink-700 px-2 py-1 rounded text-xs">变化题</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
                                     <td class="py-3 px-3 font-medium text-red-600">新中国⭐</td>
                                     <td class="py-3 px-3 font-bold">中美关系正常化（1972-1979）</td>
                                     <td class="py-3 px-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">背景+影响</span></td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="py-3 px-3 font-medium text-gray-500">改革开放</td>
-                                    <td class="py-3 px-3">经济特区的发展与经验</td>
-                                    <td class="py-3 px-3"><span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">概括题</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -491,7 +417,6 @@
 
                 <!-- 世界史 + 史学理论 -->
                 <div class="space-y-6">
-                    <!-- 世界史 -->
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                         <div class="bg-blue-500 text-white px-6 py-4">
                             <h3 class="font-bold text-lg"><i class="fa-solid fa-globe mr-2"></i>世界史（预测）</h3>
@@ -507,16 +432,6 @@
                                 </thead>
                                 <tbody class="divide-y divide-gray-100">
                                     <tr class="hover:bg-gray-50">
-                                        <td class="py-3 px-3 font-medium text-gray-500">古代</td>
-                                        <td class="py-3 px-3">希腊民主政治与罗马法</td>
-                                        <td class="py-3 px-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">比较题</span></td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="py-3 px-3 font-medium text-gray-500">近代</td>
-                                        <td class="py-3 px-3">拿破仑战争与维也纳体系</td>
-                                        <td class="py-3 px-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">影响题</span></td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
                                         <td class="py-3 px-3 font-medium text-gray-500">现代</td>
                                         <td class="py-3 px-3">冷战起源（1947-1955）</td>
                                         <td class="py-3 px-3"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-xs">原因题</span></td>
@@ -525,36 +440,6 @@
                                         <td class="py-3 px-3 font-medium text-gray-500">当代</td>
                                         <td class="py-3 px-3">全球化与反全球化浪潮</td>
                                         <td class="py-3 px-3"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">评析题</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- 史学理论 -->
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                        <div class="bg-purple-500 text-white px-6 py-4">
-                            <h3 class="font-bold text-lg"><i class="fa-solid fa-book-open mr-2"></i>史学理论（预测）</h3>
-                        </div>
-                        <div class="p-6">
-                            <table class="w-full text-sm">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="text-left py-2 px-3">考点</th>
-                                        <th class="text-left py-2 px-3">题型</th>
-                                        <th class="text-left py-2 px-3">理由</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-100">
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="py-3 px-3">史料实证方法</td>
-                                        <td class="py-3 px-3"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">方法论应用</span></td>
-                                        <td class="py-3 px-3 text-gray-500">2025年调查研究延伸</td>
-                                    </tr>
-                                    <tr class="hover:bg-gray-50">
-                                        <td class="py-3 px-3">全球史观/文明史观</td>
-                                        <td class="py-3 px-3"><span class="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs">论述题</span></td>
-                                        <td class="py-3 px-3 text-gray-500">2024中外农业比较深化</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -575,57 +460,156 @@
                 <!-- 预测题型一 -->
                 <div class="bg-gradient-to-br from-red-500 to-pink-600 rounded-xl p-6 text-white shadow-lg">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-xl">预测题型一：小论文</h3>
+                        <h3 class="font-bold text-xl">预测题型一：背景+影响</h3>
                         <span class="bg-white/20 px-3 py-1 rounded-full text-sm">概率 85%</span>
                     </div>
                     <div class="bg-white/10 rounded-lg p-4 mb-4">
-                        <p class="italic">"结合中国古代史，论述国家统一与民族融合的关系"</p>
+                        <p class="italic">"分析1970年代中美关系走向正常化的背景及影响"</p>
                     </div>
-                    <p class="text-sm opacity-90">类似2023年"东汉民德"、2024年"1932年抗战短评"的命题思路</p>
+                    <p class="text-sm opacity-90">结合大国博弈与冷战格局变化出题，经典且重点。</p>
                 </div>
 
                 <!-- 预测题型二 -->
                 <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-6 text-white shadow-lg">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-xl">预测题型二：中外比较</h3>
+                        <h3 class="font-bold text-xl">预测题型二：概括与评价</h3>
                         <span class="bg-white/20 px-3 py-1 rounded-full text-sm">概率 80%</span>
                     </div>
                     <div class="bg-white/10 rounded-lg p-4 mb-4">
-                        <p class="italic">"比较近代中国洋务运动与日本明治维新的异同"</p>
+                        <p class="italic">"概括宋代加强中央集权的措施，并评价其历史作用"</p>
                     </div>
-                    <p class="text-sm opacity-90">清末新政已连续考4次（2018, 2020, 2021），可能转向洋务运动</p>
-                </div>
-
-                <!-- 预测题型三 -->
-                <div class="bg-gradient-to-br from-green-500 to-teal-600 rounded-xl p-6 text-white shadow-lg">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-xl">预测题型三：背景+影响</h3>
-                        <span class="bg-white/20 px-3 py-1 rounded-full text-sm">概率 75%</span>
-                    </div>
-                    <div class="bg-white/10 rounded-lg p-4 mb-4">
-                        <p class="italic">"分析1972年中美关系正常化的历史背景及影响"</p>
-                    </div>
-                    <p class="text-sm opacity-90">中德关系已考3题，中美关系是外交史缺位重点</p>
-                </div>
-
-                <!-- 预测题型四 -->
-                <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl p-6 text-white shadow-lg">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-bold text-xl">预测题型四：变化概括</h3>
-                        <span class="bg-white/20 px-3 py-1 rounded-full text-sm">概率 70%</span>
-                    </div>
-                    <div class="bg-white/10 rounded-lg p-4 mb-4">
-                        <p class="italic">"概括近代以来中国外交观念的演变"</p>
-                    </div>
-                    <p class="text-sm opacity-90">类似中德关系变化题，但扩展到整个近代外交史</p>
+                    <p class="text-sm opacity-90">回归制度史本体，考查学生的历史辩证思维（冗官冗费弊端）。</p>
                 </div>
             </div>
         </section>
 
-        <!-- 七、复习建议权重 -->
+        <!-- 七、2026预测真题及答案解析 (新增) -->
         <section class="mb-16">
             <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">7</span>
+                <span class="bg-red-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">7</span>
+                2026 预测真题及答案解析
+            </h2>
+            <div class="space-y-8">
+                
+                <!-- 预测真题 1 -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-gray-800">
+                            <i class="fa-solid fa-pen-nib text-red-500 mr-2"></i> 预测题一：抗战与战后国际秩序（对应预测#1）
+                        </h3>
+                        <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-bold">难度：★★★★☆</span>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="question-box p-4 rounded-lg">
+                            <p class="font-semibold mb-2">【阅读材料，回答问题】（14分）</p>
+                            <p class="text-gray-700 italic text-sm leading-relaxed mb-3">
+                                材料：1943年10月，中、美、英、苏四国共同签署了《关于普遍安全的宣言》，宣告在战后建立一个维持国际和平与安全的国际组织。11月，中美英三国举行开罗会议，发表《开罗宣言》，明确规定日本所窃取于中国的领土，如东北四省、台湾、澎湖列岛等，必须归还中国。1945年4月，中国代表团（包含中共代表董必武）出席旧金山会议，参与起草了《联合国宪章》。同年，中国成为联合国安理会五个常任理事国之一。
+                                <br><span class="block text-right text-gray-500 mt-2">——摘编自《中国近代史》</span>
+                            </p>
+                            <p class="font-bold text-gray-800 mt-4">
+                                设问：根据材料并结合所学知识，简析抗日战争后期中国国际地位提升的原因，并说明其对战后国际秩序的影响。（14分）
+                            </p>
+                        </div>
+                        <div class="answer-box p-4 rounded-lg">
+                            <p class="font-bold text-green-800 mb-2"><i class="fa-solid fa-check-circle mr-2"></i>参考答案</p>
+                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-2">
+                                <li><strong>原因（8分）：</strong>中国是世界反法西斯战争的东方主战场，牵制了大量日军；中国人民付出了巨大的民族牺牲，作出了不可磨灭的贡献；世界反法西斯同盟的建立与大国间的合作；中国国民政府积极开展抗战外交（如参与开罗会议等）。</li>
+                                <li><strong>影响（6分）：</strong>推动了不平等条约的废除，洗刷了近代以来的民族屈辱；中国参与创建联合国并成为安理会常任理事国，增强了第三世界/发展中国家在国际事务中的话语权；为雅尔塔体系的建立和战后和平格局奠定了基础。</li>
+                            </ul>
+                        </div>
+                        <div class="analysis-box p-4 rounded-lg">
+                            <p class="font-bold text-amber-800 mb-2"><i class="fa-solid fa-lightbulb mr-2"></i>深度解析</p>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                <strong>考点剖析：</strong>本题切中2026年“抗战胜利80周年后”的余热考点。命题思路从单纯的“抗战过程”转向“抗战与战后国际秩序的构建”。<br>
+                                <strong>解题思路：</strong>“原因”部分需采取“内因+外因”结构：内因是中国的抗战贡献和牺牲（核心采分点）；外因是同盟国的合作及外交努力。“影响”部分要围绕“国际地位实质性变化（废除条约）”和“国际机制建设（联合国、雅尔塔体系）”作答。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预测真题 2 -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-gray-800">
+                            <i class="fa-solid fa-pen-nib text-amber-500 mr-2"></i> 预测题二：宋代中央集权制度（对应预测#3）
+                        </h3>
+                        <span class="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded font-bold">难度：★★★☆☆</span>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="question-box p-4 rounded-lg">
+                            <p class="font-semibold mb-2">【阅读材料，回答问题】（12分）</p>
+                            <p class="text-gray-700 italic text-sm leading-relaxed mb-3">
+                                材料：宋太祖鉴于唐末五代藩镇割据的教训，在政治上，派文臣担任地方长官知州，并设通判负责监督；在军事上，将地方精锐部队编入禁军，拱卫京师，镇守地方；在财政上，设转运使，规定地方赋税除留一小部分作为地方开支外，其余全部由中央掌控。
+                            </p>
+                            <p class="font-bold text-gray-800 mt-4">
+                                设问：根据材料并结合所学知识，概括宋初加强地方治理的特点，并用一分为二的观点评价这些措施。（12分）
+                            </p>
+                        </div>
+                        <div class="answer-box p-4 rounded-lg">
+                            <p class="font-bold text-green-800 mb-2"><i class="fa-solid fa-check-circle mr-2"></i>参考答案</p>
+                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-2">
+                                <li><strong>特点（6分）：</strong>重文轻武，文人治国；分化事权，相互牵制（设通判监督知州）；强干弱枝，守内虚外（收精兵）；全面收权（行政、军事、财政大权收归中央）。（答出3点即可）</li>
+                                <li><strong>评价（6分）：</strong><br>
+                                    <em>积极作用：</em>彻底改变了唐末五代以来藩镇割据的分裂局面，巩固了国家统一；强化了中央集权，维护了社会的相对安定。<br>
+                                    <em>消极作用：</em>导致官僚机构臃肿和军队数量庞大，形成了“冗官、冗兵、冗费”的积贫积弱局面；削弱了地方的主动性，导致地方财政空虚，边防军力衰退。
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="analysis-box p-4 rounded-lg">
+                            <p class="font-bold text-amber-800 mb-2"><i class="fa-solid fa-lightbulb mr-2"></i>深度解析</p>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                <strong>考点剖析：</strong>宋代政治制度是古代史高频区，长达5年未专门考查大题，反弹概率极高。<br>
+                                <strong>解题思路：</strong>特点概括要求考生将具体的材料内容（知州、禁军、转运使）上升为历史学科语言（重文轻武、强干弱枝、分权制衡）。评价题严格遵循辩证唯物主义“积极+消极”两面性作答，“强干弱枝”的正面是防内乱，反面是致外患与“三冗”。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 预测真题 3 -->
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+                    <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                        <h3 class="font-bold text-lg text-gray-800">
+                            <i class="fa-solid fa-pen-nib text-blue-500 mr-2"></i> 预测题三：中美关系正常化（对应预测#2）
+                        </h3>
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold">难度：★★★★☆</span>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="question-box p-4 rounded-lg">
+                            <p class="font-semibold mb-2">【阅读材料，回答问题】（14分）</p>
+                            <p class="text-gray-700 italic text-sm leading-relaxed mb-3">
+                                材料：20世纪60年代末，尼克松在文章中写道：“在这个小小的星球上，容不得十亿最有才能的人民生活在愤怒的孤立状态之中。”1971年，基辛格秘密访华。1972年，尼克松总统访华，中美在上海签署《中美联合公报》。公报指出：“双方同意，各国不论社会制度如何，都应根据尊重各国主权和领土完整、不侵犯别国、不干涉别国内政、平等互利、和平共处的原则来处理国与国之间的关系。”1979年，中美正式建立外交关系。
+                            </p>
+                            <p class="font-bold text-gray-800 mt-4">
+                                设问：根据材料并结合所学知识，指出20世纪70年代中美关系发生的重大转变，并从国际格局演变的角度分析其背景。（14分）
+                            </p>
+                        </div>
+                        <div class="answer-box p-4 rounded-lg">
+                            <p class="font-bold text-green-800 mb-2"><i class="fa-solid fa-check-circle mr-2"></i>参考答案</p>
+                            <ul class="list-disc list-inside text-sm text-gray-700 space-y-2">
+                                <li><strong>重大转变（4分）：</strong>由长期敌视、对抗走向缓和，最终实现关系正常化并建交。</li>
+                                <li><strong>国际格局背景（10分）：</strong><br>
+                                    <em>美国方面：</em>陷入越南战争泥潭，国力相对衰落；在美苏争霸中处于守势；西欧、日本的崛起冲击了美国的霸主地位；美国企图通过改善中美关系来制衡苏联。（任答3点得6分）<br>
+                                    <em>中国方面：</em>中苏关系恶化，苏联对中国安全构成严重威胁；中国面临恢复联合国合法席位的契机；中国需要改善国际环境，突破外交孤立，利于自身经济建设。（任答2点得4分）
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="analysis-box p-4 rounded-lg">
+                            <p class="font-bold text-amber-800 mb-2"><i class="fa-solid fa-lightbulb mr-2"></i>深度解析</p>
+                            <p class="text-sm text-gray-700 leading-relaxed">
+                                <strong>考点剖析：</strong>大国关系（尤其是中美关系）是高考永恒的主题，特别是在当前国际形势下，回顾70年代“跨越太平洋的握手”具有现实借镜意义。<br>
+                                <strong>解题思路：</strong>转变一目了然，但难点在于“从国际格局演变的角度分析”。考生必须跳出单纯的双边关系，将视线拉高到冷战时期的“美苏争霸态势转换（苏攻美守）”、“多极化趋势的出现”以及“中苏交恶”等宏观国际背景上。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 八、复习建议权重 -->
+        <section class="mb-16">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <span class="bg-blue-500 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm mr-3">8</span>
                 复习建议权重
             </h2>
             
@@ -643,7 +627,7 @@
                         </div>
                         <div class="bg-white rounded-lg p-4 shadow-sm">
                             <h4 class="font-bold text-gray-800 mb-2">抗战历史</h4>
-                            <p class="text-sm text-gray-600">2025年热点延续，战后秩序</p>
+                            <p class="text-sm text-gray-600">2026年热点延续，战后秩序</p>
                         </div>
                         <div class="bg-white rounded-lg p-4 shadow-sm">
                             <h4 class="font-bold text-gray-800 mb-2">中美关系</h4>
@@ -693,7 +677,7 @@
                         <span class="bg-gray-500 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">第四梯队 · 了解 10%</span>
                         <i class="fa-solid fa-bookmark text-gray-500"></i>
                     </div>
-                    <p class="text-gray-600">已考但可能再现：中德关系、中日技术引进、越南战争等</p>
+                    <p class="text-gray-600">已考但可能再现：中日技术引进、越南战争等</p>
                 </div>
             </div>
         </section>
@@ -701,10 +685,10 @@
         <!-- 结论 -->
         <section class="mb-16">
             <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-8 text-white shadow-lg text-center">
-                <h2 class="text-2xl font-bold mb-4"><i class="fa-solid fa-graduation-cap mr-2"></i>结论</h2>
-                <p class="text-lg opacity-90 max-w-3xl mx-auto">
-                    2026年命题可能呈现 <strong>"外交史补位（中美关系）+ 热点延续（抗战）+ 制度史回归（宋代集权）"</strong> 的特点，
-                    建议重点关注以上三个方向！
+                <h2 class="text-2xl font-bold mb-4"><i class="fa-solid fa-graduation-cap mr-2"></i>核心总结</h2>
+                <p class="text-lg opacity-90 max-w-3xl mx-auto leading-relaxed">
+                    2026年高考历史命题可能呈现 <strong>"外交史补位（中美关系）+ 热点延续（抗战）+ 制度史回归（宋代集权）"</strong> 的特点。<br>
+                    建议考生在冲刺阶段结合本文提供的新增预测真题，重点进行相关大题的规范训练！
                 </p>
             </div>
         </section>
@@ -714,8 +698,8 @@
     <!-- Footer -->
     <footer class="bg-gray-800 text-gray-400 py-8">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>基于 worker.js 54道真题的统计分析</p>
-            <p class="text-sm mt-2">生成时间：2025年</p>
+            <p>基于 54 道高考真题的统计分析与 AI 模型前瞻预测</p>
+            <p class="text-sm mt-2">生成时间：2026年</p>
         </div>
     </footer>
 
