@@ -4,18 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>读后续写批改互动报告 | 深度解析</title>
+    <title>读后续写批改报告 | 深度解析</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         /* Custom Styles & Utilities */
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #faf9f6; /* Warm neutral background */
+            background-color: #faf9f6; 
             color: #334155;
         }
 
-        /* Hide Scrollbar but keep functionality */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -24,13 +23,11 @@
             scrollbar-width: none;
         }
 
-        /* * Chart Container Styling 
-         * MANDATORY constraint for Canvas elements to prevent layout breakage
-         */
+        /* Chart Container Styling */
         .chart-container {
             position: relative;
             width: 100%;
-            max-width: 400px;
+            max-width: 500px;
             margin-left: auto;
             margin-right: auto;
             height: 250px;
@@ -45,18 +42,6 @@
             }
         }
 
-        /* Interactive Sentence Hover */
-        .sentence-item {
-            transition: all 0.2s ease-in-out;
-            cursor: pointer;
-            border-left: 4px solid transparent;
-        }
-        .sentence-item:hover, .sentence-item.active {
-            background-color: #f1f5f9;
-            border-left-color: #ef4444;
-            transform: translateX(4px);
-        }
-        
         .tip-card {
             transition: transform 0.3s;
         }
@@ -78,24 +63,20 @@
 </head>
 <body class="antialiased selection:bg-blue-200 selection:text-blue-900">
 
-    <!-- Chosen Palette: Warm Neutrals & Educational Accents (Beige background #faf9f6, Slate text #334155, Red for errors #ef4444, Green for corrections #10b981, Blue for highlights #3b82f6) -->
+    <!-- Chosen Palette: Warm Neutrals & Educational Accents -->
     
     <!-- Application Structure Plan: 
-         1. Header & Dashboard: High-level overview of the score (Chart.js doughnut) and overall evaluation (pros/cons). Provides immediate feedback.
-         2. Context Section: Collapsible view of the original prompt to remind the user of the task without cluttering the screen.
-         3. Interactive Sentence Analyzer (Core): A side-by-side layout (stacked on mobile). Left column lists the student's original sentences. Right column acts as a dynamic detail view, showing the specific error, correction, and teacher's comment when a sentence is clicked. Includes auto-scroll on mobile for better UX.
-         4. The Masterpiece: Presents the fully revised, high-scoring essay in a beautiful "paper" format for reading flow.
-         5. Actionable Tips: Grid of 4 cards highlighting key takeaways for future exams. 
-         Rationale: This structure moves the user from high-level summary -> specific interactive feedback -> holistic good example -> actionable future steps. -->
+         1. Header & Dashboard: Explicitly focuses on the types of errors (Bar chart showing specific grammar/spelling errors) to satisfy the user's prompt. 
+         2. Context Section: Collapsible view of the original prompt.
+         3. Static Sentence Analyzer: Replaced the interactive UI with a direct, sequential, static list. Each card clearly highlights the original text, the specific error categories (e.g., Tense, Part of Speech), the explanation, and the direct answer/correction.
+         4. The Masterpiece: Fully revised essay.
+         5. Actionable Tips: Key takeaways. -->
     
     <!-- Visualization & Content Choices: 
-         - Score -> Goal: Inform -> Viz: Chart.js Doughnut Chart -> Interaction: Hover for exact score -> Justifies a quick visual grasp of performance. (Library: Chart.js Canvas)
-         - Overall Feedback -> Goal: Inform -> Viz: Styled Text/List with Unicode icons -> Interaction: Read -> Clear, immediate context.
-         - Line-by-Line Corrections -> Goal: Compare & Learn -> Viz: Side-by-side Interactive List -> Interaction: Click original sentence to reveal correction/notes -> Forces active learning, prevents skimming, connects error directly to solution. (Library: Vanilla JS, DOM manipulation)
-         - Revised Essay -> Goal: Inform/Model -> Viz: Styled "Paper" block -> Interaction: Read -> Creates a visual distinction for the "ideal" state.
-         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons are Unicode emojis. -->
+         - Error Breakdown -> Goal: Inform/Organize -> Viz: Chart.js Bar Chart -> Justification: Directly answers the user's request to "highlight individual grammar errors".
+         - Line-by-Line Corrections -> Goal: Inform -> Viz: Static stacked cards -> Justification: The user explicitly requested NO interaction and direct presentation of problems and answers. -->
 
-    <!-- Navigation (Mobile Optimized) -->
+    <!-- Navigation -->
     <nav class="sticky top-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex flex-col md:flex-row md:justify-between md:items-center py-3 md:h-16 space-y-3 md:space-y-0">
@@ -103,10 +84,9 @@
                     <span>📝</span>
                     <span>读后续写智能批改</span>
                 </div>
-                <!-- Horizontal scrollable nav for mobile -->
                 <div class="flex items-center space-x-4 md:space-x-6 text-sm font-medium text-slate-600 overflow-x-auto no-scrollbar pb-1 md:pb-0 w-full md:w-auto">
-                    <a href="#dashboard" class="hover:text-blue-600 transition whitespace-nowrap">成绩概览</a>
-                    <a href="#analyzer" class="hover:text-blue-600 transition whitespace-nowrap">逐句精批</a>
+                    <a href="#dashboard" class="hover:text-blue-600 transition whitespace-nowrap">成绩与错误分析</a>
+                    <a href="#analyzer" class="hover:text-blue-600 transition whitespace-nowrap">逐句精批诊断</a>
                     <a href="#masterpiece" class="hover:text-blue-600 transition whitespace-nowrap">升格示范</a>
                     <a href="#tips" class="hover:text-blue-600 transition whitespace-nowrap">提分建议</a>
                 </div>
@@ -116,45 +96,35 @@
 
     <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-10 md:space-y-12">
 
-        <!-- SECTION 1: Dashboard -->
+        <!-- SECTION 1: Dashboard & Error Analysis -->
         <section id="dashboard" class="scroll-mt-24 md:scroll-mt-20">
-            <div class="mb-4">
-                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">成绩与综合评价</h1>
-                <p class="text-slate-500 mt-2 text-sm md:text-base">在这里，你可以直观地看到本次练习的得分情况以及整体的优缺点分析。了解全局，是进步的第一步。</p>
+            <div class="mb-4 flex flex-col md:flex-row md:justify-between md:items-end">
+                <div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">成绩与单项错误分析</h1>
+                    <p class="text-slate-500 mt-2 text-sm md:text-base">预估分数：<strong class="text-blue-600 text-xl">10 / 25分</strong>。以下为你本次作文中出现的单独语法与拼写错误分布情况。</p>
+                </div>
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Score Chart -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center justify-center">
-                    <h2 class="text-lg font-semibold text-slate-700 mb-4">预估分数</h2>
+                <!-- Error Distribution Chart -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col justify-center lg:col-span-2">
+                    <h2 class="text-lg font-semibold text-slate-700 mb-2">语法与基础错误分布 (频次)</h2>
                     <div class="chart-container">
-                        <canvas id="scoreChart"></canvas>
+                        <canvas id="errorChart"></canvas>
                     </div>
-                    <div class="mt-4 text-center">
-                        <span class="text-3xl font-bold text-blue-600">10</span>
-                        <span class="text-slate-500">/ 25 分</span>
-                    </div>
-                    <p class="text-sm text-slate-400 mt-1">分数区间：9-11分</p>
                 </div>
 
-                <!-- Pros & Cons -->
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 lg:col-span-2 flex flex-col justify-center space-y-6">
-                    <div>
-                        <h3 class="flex items-center text-lg font-semibold text-emerald-600 mb-2">
-                            <span class="mr-2">✨</span> 亮点与优势
-                        </h3>
-                        <p class="text-slate-600 text-sm md:text-base bg-emerald-50 p-4 rounded-lg border border-emerald-100 leading-relaxed">
-                            你的<strong>情节构思符合逻辑</strong>。第一段写了母亲反思并与儿子们沟通，给予自由并渴求陪伴；第二段写了母子关系缓和，母亲决定在未来多支持儿子。首尾句衔接较好，且尝试套用了高级句型（如结尾的比喻）。
-                        </p>
-                    </div>
-                    <div>
-                        <h3 class="flex items-center text-lg font-semibold text-rose-600 mb-2">
-                            <span class="mr-2">⚠️</span> 核心问题
-                        </h3>
-                        <p class="text-slate-600 text-sm md:text-base bg-rose-50 p-4 rounded-lg border border-rose-100 leading-relaxed">
-                            <strong>基础语法错误和拼写错误较多</strong>（如词性误用、时态混乱、拼写失误），中式英语（Chinglish）痕迹较重，部分句子结构混乱，严重影响了阅卷老师的阅读体验。生搬硬套的“万能句子”与语境不太融合。
-                        </p>
-                    </div>
+                <!-- Core Problems Summary -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col justify-center space-y-4">
+                    <h3 class="flex items-center text-lg font-semibold text-rose-600 mb-2 border-b border-rose-100 pb-2">
+                        <span class="mr-2">⚠️</span> 核心丢分项总结
+                    </h3>
+                    <ul class="space-y-3 text-sm md:text-base text-slate-600">
+                        <li class="flex items-start"><span class="text-rose-500 mr-2 mt-0.5">●</span> <strong>高频拼写错误：</strong>长难词（如 experience, unforgettable）几乎全军覆没。</li>
+                        <li class="flex items-start"><span class="text-rose-500 mr-2 mt-0.5">●</span> <strong>词性严重混淆：</strong>多次将名词（company）作动词使用。</li>
+                        <li class="flex items-start"><span class="text-rose-500 mr-2 mt-0.5">●</span> <strong>代词指代混乱：</strong>I/me/my 混用，介词后未使用宾格。</li>
+                        <li class="flex items-start"><span class="text-rose-500 mr-2 mt-0.5">●</span> <strong>中式英语：</strong>句子结构和语序受中文思维影响严重。</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -173,8 +143,6 @@
                     <p class="mb-2">When they left, I actually enjoyed the peace at first. My kitchen stayed clean, towels weren't left on the floor, and I could watch my favorite TV shows without interruption. But as days turned into weeks, the silence began to feel heavy. I missed their company.</p>
                     <p class="mb-2">However, the first time Mark came back for a weekend visit, it was a disaster. He stayed out until 3 a.m., left dirty dishes piled in the sink, and slept until noon. One night, I couldn't take it anymore and confronted him in the kitchen: "Why can't you respect my rules when you're home? This isn't a hotel!"</p>
                     <p class="mb-2">He sighed deeply, not looking at me. "Mom, I'm not a kid anymore. I have my own schedule and responsibilities at university."</p>
-                    <p class="mb-2">"But this is still my house!" I replied, my voice shaking with frustration. "I want some basic consideration!"</p>
-                    <p class="mb-2">We didn't speak for two days after that argument. The heavy tension in our home made me realize I needed to find a better way to connect with my grown sons.</p>
                     <p class="mb-4">Then came a breakthrough moment. One evening, feeling particularly upset about Leo's clothes covering his entire bedroom floor, I asked Mark for advice. "Why doesn't your brother listen to me?" Mark responded with wisdom beyond his years. "Mom, it's not just making a mess — his mind is filled with lectures, new friends, and assignments. He probably doesn't realize..."</p>
                     <div class="bg-slate-700 p-4 rounded text-white font-mono text-xs">
                         <p><strong>Paragraph 1:</strong> His words struck me deeply and I started making small changes.</p>
@@ -184,34 +152,15 @@
             </div>
         </section>
 
-        <!-- SECTION 3: Interactive Line-by-Line Analyzer -->
+        <!-- SECTION 3: Static Line-by-Line Analyzer (Direct answers, no interaction) -->
         <section id="analyzer" class="scroll-mt-24 md:scroll-mt-20">
             <div class="mb-6">
-                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">🔍 互动逐句精批</h2>
-                <p class="text-slate-500 mt-2 text-sm md:text-base">点击列表中的原句，下方（或右侧）将显示详细的语法分析、拼写纠正以及地道的修改建议。</p>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">🔍 逐句精批与错误诊断</h2>
+                <p class="text-slate-500 mt-2 text-sm md:text-base">直接指出原句中存在的具体语法、拼写问题，并提供标准的地道答案。</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
-                <!-- Left/Top: Student's Sentences (Responsive Height) -->
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[350px] lg:h-[600px]">
-                    <div class="bg-slate-50 p-4 border-b border-slate-200 sticky top-0 z-10">
-                        <h3 class="font-semibold text-slate-700">你的原句 (点击查看解析)</h3>
-                    </div>
-                    <div class="overflow-y-auto flex-1 p-2 space-y-1" id="sentence-list">
-                        <!-- Populated by JS -->
-                    </div>
-                </div>
-
-                <!-- Right/Bottom: Analysis Detail (Responsive Height & ID added for mobile scroll) -->
-                <div id="detail-container" class="bg-white border border-blue-100 rounded-xl shadow-md overflow-hidden flex flex-col min-h-[350px] lg:h-[600px] scroll-mt-24 md:scroll-mt-20">
-                    <div class="bg-blue-50 p-4 border-b border-blue-100 sticky top-0 z-10">
-                        <h3 class="font-semibold text-blue-800">批改与解析</h3>
-                    </div>
-                    <div id="analysis-detail" class="p-5 md:p-6 flex-1 overflow-y-auto flex flex-col items-center justify-center text-slate-400">
-                        <span class="text-4xl mb-4">👆</span>
-                        <p class="text-center text-sm md:text-base">请在列表中选择一个句子<br>查看详细批改</p>
-                    </div>
-                </div>
+            <!-- Populated sequentially by JS -->
+            <div id="static-sentence-list" class="space-y-6">
             </div>
         </section>
 
@@ -238,34 +187,31 @@
         <section id="tips" class="scroll-mt-24 md:scroll-mt-20 pb-16">
             <div class="mb-6">
                 <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">💡 老师给你的 4 条提分建议</h2>
-                <p class="text-slate-500 mt-2 text-sm md:text-base">总结本次练习暴露的核心问题，在下一次考试中避免踩坑。</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div class="tip-card bg-gradient-to-br from-red-50 to-white p-5 md:p-6 rounded-xl border border-red-100 shadow-sm">
                     <div class="text-2xl md:text-3xl mb-3">🔤</div>
                     <h3 class="text-base md:text-lg font-bold text-red-800 mb-2">1. 消灭低级拼写错误</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">你的文章中出现了 <code class="bg-red-100 px-1 rounded text-red-700">experiencet</code>, <code class="bg-red-100 px-1 rounded text-red-700">guension</code> (tension), <code class="bg-red-100 px-1 rounded text-red-700">forrgetabe</code>, <code class="bg-red-100 px-1 rounded text-red-700">flwoer</code> 等极多的拼写错误。<strong class="text-red-600">考场上，宁可换一个简单的、你会拼写的单词，也绝对不要拼错长难词！</strong> 阅卷老师对拼写错误极其敏感。</p>
+                    <p class="text-slate-600 text-sm leading-relaxed">宁可换一个简单的、你会拼写的单词，也绝对不要拼错长难词！阅卷老师对拼写错误极其敏感。</p>
                 </div>
 
                 <div class="tip-card bg-gradient-to-br from-blue-50 to-white p-5 md:p-6 rounded-xl border border-blue-100 shadow-sm">
                     <div class="text-2xl md:text-3xl mb-3">🧩</div>
-                    <h3 class="text-base md:text-lg font-bold text-blue-800 mb-2">2. 彻底搞清词性 (尤其是 Company)</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">你多次把名词当作动词用。必须牢记：<br>
-                    • <strong>名词:</strong> I enjoy your <strong>company</strong>. (我享受你的陪伴)<br>
-                    • <strong>动词:</strong> <strong>keep</strong> me company / <strong>accompany</strong> me. 绝对没有 "to company me" 这种动词原形用法。</p>
+                    <h3 class="text-base md:text-lg font-bold text-blue-800 mb-2">2. 彻底搞清词性 (Company)</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">必须牢记：名词：I enjoy your <strong>company</strong>. 动词：<strong>keep</strong> me company / <strong>accompany</strong> me. 绝对没有 "to company me" 的用法。</p>
                 </div>
 
                 <div class="tip-card bg-gradient-to-br from-amber-50 to-white p-5 md:p-6 rounded-xl border border-amber-100 shadow-sm">
                     <div class="text-2xl md:text-3xl mb-3">👤</div>
-                    <h3 class="text-base md:text-lg font-bold text-amber-800 mb-2">3. 理清人称代词 (I / Me / My)</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">像 <code class="bg-amber-100 px-1 rounded text-amber-700">every week to company with I</code> 这种错误非常致命。介词 (with) 后面永远接宾格 (me)。平时写完作文，一定要默读一遍，检查 "我"、"他"、"他们" 是不是用串了，避免逻辑混乱。</p>
+                    <h3 class="text-base md:text-lg font-bold text-amber-800 mb-2">3. 理清人称代词 (I/Me/My)</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">介词 (with) 后面永远接宾格 (me)。平时写完作文，一定要默读一遍，检查 "我"、"他"、"他们" 是不是用串了。</p>
                 </div>
 
                 <div class="tip-card bg-gradient-to-br from-purple-50 to-white p-5 md:p-6 rounded-xl border border-purple-100 shadow-sm">
                     <div class="text-2xl md:text-3xl mb-3">🎭</div>
-                    <h3 class="text-base md:text-lg font-bold text-purple-800 mb-2">4. 谨慎使用“背诵的万能句”</h3>
-                    <p class="text-slate-600 text-sm leading-relaxed">你的结尾比喻很好，但是前面的名言 <em class="text-slate-500">"one day of success shall calm your anxious heart"</em> 完全不符合母子和解的温馨语境（这句更适合奋斗类）。<strong>背诵好句子是好事，但一定要看语境，不要硬塞。</strong></p>
+                    <h3 class="text-base md:text-lg font-bold text-purple-800 mb-2">4. 谨慎使用“万能句”</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">你引用的成功类名言完全不符合母子和解的温馨语境。背诵好句子是好事，但一定要看语境，不要硬塞。</p>
                 </div>
             </div>
         </section>
@@ -273,86 +219,85 @@
     </main>
 
     <script>
-        // Data Storage: Store base data from the report for dynamic interaction
+        // Enhanced Data Storage: Explicitly defining error categories for direct display
         const correctionData = [
             {
                 id: "p1-1",
                 original: "Because I realized my two sons have grown, they could need experiencet to help them.",
+                errors: ["时态错误", "拼写错误"],
                 corrected: "I realized my two sons had grown up, and they needed their own experiences to guide them.",
-                comment: "时态应与前文保持一致（过去时）。`experiencet` 拼写错误。"
+                comment: "`have grown` 应为过去完成时 `had grown up` 以与主句时态一致。`experiencet` 拼写错误，应为 `experiences`。"
             },
             {
                 id: "p1-2",
                 original: "And I needed their company to make the silence began to feel relax.",
+                errors: ["句法结构错误", "词性误用"],
                 corrected: "And I needed their company to break the heavy silence in the house.",
-                comment: "`make` 后面的宾补结构错误，不能用 `began to...`。`relax` 是动词，这里应该用形容词 `relaxed`，或者像修改版那样改变表达方式。"
+                comment: "`make` 后面的宾补结构不能用 `began to`。`relax` 是动词，此处需要形容词 `relaxed`，但整体表达中式，建议换用 `break the silence`。"
             },
             {
                 id: "p1-3",
                 original: "At night, I said I didn't confront any people in our home to Mark and Leo.",
+                errors: ["中式英语 (Chinglish)", "介词搭配不当"],
                 corrected: "That night, I sat down with Mark and Leo, promising I wouldn't confront them so harshly anymore.",
-                comment: "表达生硬，语序中式。你想表达“我晚上告诉他们我不再和他们起冲突了”。"
+                comment: "语序和用词生硬。`say... to sb.` 中间夹杂太长的宾语从句会导致结构混乱。"
             },
             {
                 id: "p1-4",
                 original: "And you are typical teenagers. So I could give you more freedom and train yourself live skill.",
+                errors: ["代词误用", "拼写搭配错误", "标点缺失"],
                 corrected: "\"You are young adults now,\" I said. \"I will give you more freedom to develop your own life skills.\"",
-                comment: "标点和代词转换混乱。直接引语应加引号。`live skill` 应为 `life skills`。（注：上大学了，用 young adults 比 teenagers 更准确）"
-            },
-            {
-                id: "p1-5",
-                original: "Then I hoped you could give me more company. I said.",
-                corrected: "\"But in return, I hope you can spend more time with me.\"",
-                comment: "标点和语序错误。"
+                comment: "直接引语未加引号。`yourself` 需改为 `your own`。生活技能应拼写为 `life skills` 而非 `live skill`。"
             },
             {
                 id: "p1-6",
                 original: "They answered I would often look after me and every week to company with I.",
+                errors: ["代词严重混乱", "词性误用", "介词用法错误"],
                 corrected: "They agreed, promising to look after themselves and visit every week to keep me company.",
-                comment: "代词混乱透顶！“他们回答他们会照顾好自己”。`company` 是名词，不能作动词。`with I` 更是基础语法错误，介词后应接宾格 `me`。"
+                comment: "主语是 They，后面反身代词应该是 `themselves`，而不是 `I/me`。`company` 不能作动词。介词 `with` 后面必须用宾格 `me`，绝不能用 `I`。"
             },
             {
                 id: "p2-1",
                 original: "From then On,we began to together deal with guension.",
+                errors: ["拼写错误", "副词位置不当"],
                 corrected: "From then on, we began to deal with our tension together peacefully.",
-                comment: "拼写错误：`guension` 应该是想写 `tension` (紧张关系)。副词 `together` 位置不当。"
+                comment: "严重拼写错误：`guension` 应为 `tension` (紧张关系)。副词 `together` 建议放在句末。"
             },
             {
                 id: "p2-2",
                 original: "And they often went home to company me so that I began to feel relax.",
+                errors: ["词性误用"],
                 corrected: "They often came home to accompany me, which made me feel truly relaxed.",
-                comment: "`company` 词性误用。`relax` 应为形容词 `relaxed`。"
+                comment: "再次将名词 `company` 当作动词。被动感受应使用形容词 `relaxed`。"
             },
             {
                 id: "p2-3",
                 original: "\" one day of success shall calm your anxious heart\".this say make me realized, my two sons has been teenager.",
+                errors: ["语境不符", "拼写错误", "时态错误"],
                 corrected: "As the saying goes, \"Understanding is the bridge to love.\" This made me realize my two sons had grown into independent individuals.",
-                comment: "引用的名言与语境非常不搭。语法错误：`this say` 应为 `this saying` (俗话说)，`make` 需用过去式 `made`，`has been` 应为 `had become`。"
+                comment: "引用的名言语境违和。`this say` 应为 `this saying`。`make` 需用过去式 `made`。`has been` 应为过去完成时 `had become/grown`。"
             },
             {
                 id: "p2-4",
                 original: "In the further, I will agree with them every suggession to make them have more exerpience.",
+                errors: ["拼写错误 (多处)", "词汇搭配不当"],
                 corrected: "In the future, I decided to respect their choices to help them gain more life experience.",
-                comment: "拼写错误太多：`further` -> `future`, `suggession` -> `suggestion`, `exerpience` -> `experience`。“同意他们的每一个建议” 有点溺爱，可以说“尊重他们的决定”。"
+                comment: "三大拼写错误：`further` -> `future`, `suggession` -> `suggestion`, `exerpience` -> `experience`。表达略显累赘。"
             },
             {
                 id: "p2-5",
                 original: "The forrgetabe exerpience was like an everlasting flwoer blooming in my memories.",
+                errors: ["严重拼写错误"],
                 corrected: "This unforgettable experience was like an everlasting flower blooming in my memories.",
-                comment: "极度低级的拼写连环错误，会给阅卷老师留下极差的印象。`unforgettable` (写成了 forrgetabe), `experience`, `flower`。"
+                comment: "一句话三个低级拼写错误：`unforgettable` (写成 forrgetabe), `experience`, `flower`。比喻句型用得好，但拼写毁了句子。"
             }
         ];
 
-        // State Management
-        let currentSelectedId = null;
-
-        // Core Interaction Handling: Initialize the SPA components
         document.addEventListener('DOMContentLoaded', () => {
-            initChart();
-            renderSentenceList();
+            initErrorChart();
+            renderStaticSentenceList();
         });
 
-        // Toggle Context Section
         function toggleContext() {
             const content = document.getElementById('context-content');
             const icon = document.getElementById('context-icon');
@@ -365,148 +310,120 @@
             }
         }
 
-        // Render Chart.js
-        function initChart() {
-            const ctx = document.getElementById('scoreChart').getContext('2d');
-            const score = 10;
-            const maxScore = 25;
+        // Initialize Bar Chart for Error Types
+        function initErrorChart() {
+            const ctx = document.getElementById('errorChart').getContext('2d');
+            
+            // Error frequency data based on the corrections
+            const errorTypes = ['拼写错误', '代词混乱/误用', '词性误用', '时态错误', '中式英语/搭配不当'];
+            const errorCounts = [8, 4, 4, 3, 4]; 
             
             new Chart(ctx, {
-                type: 'doughnut',
+                type: 'bar',
                 data: {
-                    labels: ['得分', '失分'],
+                    labels: errorTypes,
                     datasets: [{
-                        data: [score, maxScore - score],
+                        label: '错误出现频次',
+                        data: errorCounts,
                         backgroundColor: [
-                            '#3b82f6', // blue-500
-                            '#e2e8f0'  // slate-200
+                            '#ef4444', // Red for spelling
+                            '#f59e0b', // Amber for pronoun
+                            '#3b82f6', // Blue for part of speech
+                            '#8b5cf6', // Purple for tense
+                            '#64748b'  // Slate for Chinglish
                         ],
                         borderWidth: 0,
-                        hoverOffset: 4
+                        borderRadius: 4
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false, // CRITICAL: allows canvas to stretch to container height/width
-                    cutout: '75%',
-                    plugins: {
-                        legend: {
-                            display: false
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 2
+                            },
+                            grid: {
+                                color: '#f1f5f9'
+                            }
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return ` ${context.label}: ${context.raw} 分`;
-                                }
+                        x: {
+                            grid: {
+                                display: false
                             }
                         }
                     },
-                    animation: {
-                        animateScale: true,
-                        animateRotate: true
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
                 }
             });
         }
 
-        // Render Left Column (Sentence List)
-        function renderSentenceList() {
-            const container = document.getElementById('sentence-list');
+        // Render the sequential static list
+        function renderStaticSentenceList() {
+            const container = document.getElementById('static-sentence-list');
             
             correctionData.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'sentence-item p-3 md:p-4 rounded-md text-sm md:text-base text-slate-700 bg-white border border-slate-100 mb-2';
-                div.id = `list-item-${item.id}`;
-                
-                // Highlight words that look misspelled or grammatically wrong in red (simple heuristic for UI effect)
+                // Highlight red words heuristically
                 let displayHtml = item.original;
                 const redWords = ['have grown', 'experiencet', 'began to feel relax', 'confront any people', 'yourself live skill', 'company with I', 'guension', 'company me', 'this say', 'suggession', 'exerpience', 'forrgetabe', 'flwoer'];
-                
                 redWords.forEach(word => {
                     const regex = new RegExp(`(${word})`, 'gi');
-                    displayHtml = displayHtml.replace(regex, '<span class="text-red-500 font-semibold underline decoration-wavy decoration-red-300">$1</span>');
+                    displayHtml = displayHtml.replace(regex, '<span class="text-red-600 font-bold underline decoration-wavy decoration-red-300">$1</span>');
                 });
 
-                div.innerHTML = `<span class="text-slate-400 font-mono text-xs md:text-sm mr-2">${index + 1}.</span>${displayHtml}`;
+                // Format markdown in comment
+                const formattedComment = item.comment.replace(/`([^`]+)`/g, '<code class="bg-amber-100 text-amber-800 px-1 rounded font-mono text-sm">$1</code>');
+
+                // Generate Error Tags
+                const errorTags = item.errors.map(err => `<span class="inline-block bg-rose-100 text-rose-700 text-xs px-2 py-1 rounded-full font-semibold mr-2 mb-2">${err}</span>`).join('');
+
+                const cardHtml = `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col md:flex-row">
+                        
+                        <!-- Left: Original & Diagnosis -->
+                        <div class="md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-slate-200">
+                            <!-- Original Sentence -->
+                            <div class="bg-red-50 p-4 border-b border-red-100 flex-grow">
+                                <div class="text-[11px] md:text-xs font-bold text-red-500 uppercase tracking-wider mb-2 flex items-center">
+                                    <span class="mr-1">❌</span> 你的原句 (第 ${index + 1} 句)
+                                </div>
+                                <div class="text-slate-800 text-base font-medium leading-relaxed">
+                                    ${displayHtml}
+                                </div>
+                            </div>
+                            <!-- Error Tags & Explanation -->
+                            <div class="p-4 bg-white flex-grow">
+                                <div class="mb-2">
+                                    ${errorTags}
+                                </div>
+                                <p class="text-sm text-slate-600 leading-relaxed">
+                                    ${formattedComment}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Right: Corrected Answer -->
+                        <div class="md:w-1/2 bg-emerald-50 p-4 flex flex-col justify-center">
+                            <div class="text-[11px] md:text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2 flex items-center">
+                                <span class="mr-1">✅</span> 标准答案 / 修改建议
+                            </div>
+                            <div class="text-slate-800 text-base font-medium leading-relaxed border-l-4 border-emerald-400 pl-3">
+                                ${item.corrected}
+                            </div>
+                        </div>
+
+                    </div>
+                `;
                 
-                div.onclick = () => selectSentence(item.id);
-                container.appendChild(div);
+                container.innerHTML += cardHtml;
             });
         }
-
-        // Update Right Column (Detail View) on click
-        function selectSentence(id) {
-            // Update active state in list
-            if (currentSelectedId) {
-                document.getElementById(`list-item-${currentSelectedId}`).classList.remove('active', 'bg-red-50');
-            }
-            currentSelectedId = id;
-            document.getElementById(`list-item-${id}`).classList.add('active', 'bg-red-50');
-
-            // Get Data
-            const data = correctionData.find(item => item.id === id);
-            
-            // Format markdown-like syntax in comment (e.g., `word` to code block)
-            const formattedComment = data.comment.replace(/`([^`]+)`/g, '<code class="bg-amber-100 text-amber-800 px-1 rounded font-mono text-sm">$1</code>');
-
-            // Update UI
-            const detailContainerInner = document.getElementById('analysis-detail');
-            detailContainerInner.innerHTML = `
-                <div class="w-full space-y-5 md:space-y-6 animate-fade-in">
-                    <!-- Original -->
-                    <div>
-                        <div class="text-[10px] md:text-xs font-bold text-red-500 uppercase tracking-wider mb-1 flex items-center">
-                            <span class="mr-1">❌</span> 原句存在问题
-                        </div>
-                        <div class="bg-red-50 p-3 md:p-4 rounded-lg border border-red-100 text-slate-800 text-base md:text-lg font-medium">
-                            ${data.original}
-                        </div>
-                    </div>
-
-                    <!-- Teacher's Comment -->
-                    <div>
-                        <div class="text-[10px] md:text-xs font-bold text-amber-600 uppercase tracking-wider mb-1 flex items-center">
-                            <span class="mr-1">👨‍🏫</span> 老师解析
-                        </div>
-                        <div class="bg-amber-50 p-3 md:p-4 rounded-lg border border-amber-100 text-sm md:text-base text-slate-700 leading-relaxed">
-                            ${formattedComment}
-                        </div>
-                    </div>
-
-                    <!-- Corrected -->
-                    <div>
-                        <div class="text-[10px] md:text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 flex items-center">
-                            <span class="mr-1">✅</span> 地道修改建议
-                        </div>
-                        <div class="bg-emerald-50 p-3 md:p-4 rounded-lg border border-emerald-100 text-slate-800 text-base md:text-lg font-medium">
-                            ${data.corrected}
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Auto-scroll logic for mobile devices (lg breakpoint in Tailwind is 1024px)
-            if (window.innerWidth < 1024) {
-                setTimeout(() => {
-                    const detailContainer = document.getElementById('detail-container');
-                    detailContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 100);
-            }
-        }
-
-        // Custom minimal animation injection
-        const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes fadeIn {
-                from { opacity: 0; transform: translateY(5px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-            .animate-fade-in {
-                animation: fadeIn 0.3s ease-out forwards;
-            }
-        `;
-        document.head.appendChild(style);
-
     </script>
 </body>
 </html>
