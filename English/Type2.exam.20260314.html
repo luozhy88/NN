@@ -1,0 +1,504 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>读后续写批改互动报告 | 深度解析</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Custom Styles & Utilities */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #faf9f6; /* Warm neutral background */
+            color: #334155;
+        }
+
+        /* Hide Scrollbar but keep functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* * Chart Container Styling 
+         * MANDATORY constraint for Canvas elements to prevent layout breakage
+         */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 250px;
+            max-height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Interactive Sentence Hover */
+        .sentence-item {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            border-left: 4px solid transparent;
+        }
+        .sentence-item:hover, .sentence-item.active {
+            background-color: #f1f5f9;
+            border-left-color: #ef4444;
+            transform: translateX(4px);
+        }
+        
+        .tip-card {
+            transition: transform 0.3s;
+        }
+        .tip-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Paper effect for the revised essay */
+        .paper-effect {
+            background-color: #fff;
+            background-image: linear-gradient(#f1f5f9 1px, transparent 1px);
+            background-size: 100% 2rem;
+            line-height: 2rem;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Chosen Palette: Warm Neutrals & Educational Accents (Beige background #faf9f6, Slate text #334155, Red for errors #ef4444, Green for corrections #10b981, Blue for highlights #3b82f6) -->
+    
+    <!-- Application Structure Plan: 
+         1. Header & Dashboard: High-level overview of the score (Chart.js doughnut) and overall evaluation (pros/cons). Provides immediate feedback.
+         2. Context Section: Collapsible view of the original prompt to remind the user of the task without cluttering the screen.
+         3. Interactive Sentence Analyzer (Core): A side-by-side layout. Left column lists the student's original sentences. Right column acts as a dynamic detail view, showing the specific error, correction, and teacher's comment when a sentence is clicked. This prevents cognitive overload compared to a long scrolling text list.
+         4. The Masterpiece: Presents the fully revised, high-scoring essay in a beautiful "paper" format for reading flow.
+         5. Actionable Tips: Grid of 4 cards highlighting key takeaways for future exams. 
+         Rationale: This structure moves the user from high-level summary -> specific interactive feedback -> holistic good example -> actionable future steps. -->
+    
+    <!-- Visualization & Content Choices: 
+         - Score -> Goal: Inform -> Viz: Chart.js Doughnut Chart -> Interaction: Hover for exact score -> Justifies a quick visual grasp of performance. (Library: Chart.js Canvas)
+         - Overall Feedback -> Goal: Inform -> Viz: Styled Text/List with Unicode icons -> Interaction: Read -> Clear, immediate context.
+         - Line-by-Line Corrections -> Goal: Compare & Learn -> Viz: Side-by-side Interactive List -> Interaction: Click original sentence to reveal correction/notes -> Forces active learning, prevents skimming, connects error directly to solution. (Library: Vanilla JS, DOM manipulation)
+         - Revised Essay -> Goal: Inform/Model -> Viz: Styled "Paper" block -> Interaction: Read -> Creates a visual distinction for the "ideal" state.
+         CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons are Unicode emojis. -->
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center space-x-2 text-xl font-bold text-slate-800">
+                    <span>📝</span>
+                    <span>读后续写智能批改</span>
+                </div>
+                <div class="flex items-center space-x-6 text-sm font-medium text-slate-600 hidden md:flex">
+                    <a href="#dashboard" class="hover:text-blue-600 transition">成绩概览</a>
+                    <a href="#analyzer" class="hover:text-blue-600 transition">逐句精批</a>
+                    <a href="#masterpiece" class="hover:text-blue-600 transition">升格示范</a>
+                    <a href="#tips" class="hover:text-blue-600 transition">提分建议</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- SECTION 1: Dashboard -->
+        <section id="dashboard" class="scroll-mt-20">
+            <div class="mb-4">
+                <h1 class="text-3xl font-extrabold text-slate-800">成绩与综合评价</h1>
+                <p class="text-slate-500 mt-2">在这里，你可以直观地看到本次练习的得分情况以及整体的优缺点分析。了解全局，是进步的第一步。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Score Chart -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center justify-center">
+                    <h2 class="text-lg font-semibold text-slate-700 mb-4">预估分数</h2>
+                    <div class="chart-container">
+                        <canvas id="scoreChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center">
+                        <span class="text-3xl font-bold text-blue-600">10</span>
+                        <span class="text-slate-500">/ 25 分</span>
+                    </div>
+                    <p class="text-sm text-slate-400 mt-1">分数区间：9-11分</p>
+                </div>
+
+                <!-- Pros & Cons -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 lg:col-span-2 flex flex-col justify-center space-y-6">
+                    <div>
+                        <h3 class="flex items-center text-lg font-semibold text-emerald-600 mb-2">
+                            <span class="mr-2">✨</span> 亮点与优势
+                        </h3>
+                        <p class="text-slate-600 bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                            你的<strong>情节构思符合逻辑</strong>。第一段写了母亲反思并与儿子们沟通，给予自由并渴求陪伴；第二段写了母子关系缓和，母亲决定在未来多支持儿子。首尾句衔接较好，且尝试套用了高级句型（如结尾的比喻）。
+                        </p>
+                    </div>
+                    <div>
+                        <h3 class="flex items-center text-lg font-semibold text-rose-600 mb-2">
+                            <span class="mr-2">⚠️</span> 核心问题
+                        </h3>
+                        <p class="text-slate-600 bg-rose-50 p-4 rounded-lg border border-rose-100">
+                            <strong>基础语法错误和拼写错误较多</strong>（如词性误用、时态混乱、拼写失误），中式英语（Chinglish）痕迹较重，部分句子结构混乱，严重影响了阅卷老师的阅读体验。生搬硬套的“万能句子”与语境不太融合。
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Original Context Toggle -->
+        <section id="context" class="scroll-mt-20">
+            <div class="bg-slate-800 rounded-xl text-white overflow-hidden shadow-lg">
+                <button onclick="toggleContext()" class="w-full flex justify-between items-center p-6 focus:outline-none hover:bg-slate-700 transition">
+                    <div class="flex items-center text-lg font-semibold">
+                        <span class="mr-3">📖</span> 查看原题目 (Source Prompt)
+                    </div>
+                    <span id="context-icon" class="text-xl">➕</span>
+                </button>
+                <div id="context-content" class="hidden px-6 pb-6 pt-2 border-t border-slate-600 text-slate-300 leading-relaxed text-sm">
+                    <p class="mb-2">This autumn, my nest became truly empty. My two sons — Mark, in his third year of university, and Leo, just starting his first year — had both moved out. No more of my strict house rules, or my daily complaints about their disastrous bathroom.</p>
+                    <p class="mb-2">When they left, I actually enjoyed the peace at first. My kitchen stayed clean, towels weren't left on the floor, and I could watch my favorite TV shows without interruption. But as days turned into weeks, the silence began to feel heavy. I missed their company.</p>
+                    <p class="mb-2">However, the first time Mark came back for a weekend visit, it was a disaster. He stayed out until 3 a.m., left dirty dishes piled in the sink, and slept until noon. One night, I couldn't take it anymore and confronted him in the kitchen: "Why can't you respect my rules when you're home? This isn't a hotel!"</p>
+                    <p class="mb-2">He sighed deeply, not looking at me. "Mom, I'm not a kid anymore. I have my own schedule and responsibilities at university."</p>
+                    <p class="mb-2">"But this is still my house!" I replied, my voice shaking with frustration. "I want some basic consideration!"</p>
+                    <p class="mb-2">We didn't speak for two days after that argument. The heavy tension in our home made me realize I needed to find a better way to connect with my grown sons.</p>
+                    <p class="mb-4">Then came a breakthrough moment. One evening, feeling particularly upset about Leo's clothes covering his entire bedroom floor, I asked Mark for advice. "Why doesn't your brother listen to me?" Mark responded with wisdom beyond his years. "Mom, it's not just making a mess — his mind is filled with lectures, new friends, and assignments. He probably doesn't realize..."</p>
+                    <div class="bg-slate-700 p-4 rounded text-white font-mono text-xs">
+                        <p><strong>Paragraph 1:</strong> His words struck me deeply and I started making small changes.</p>
+                        <p><strong>Paragraph 2:</strong> Our bond shifted and I really appreciated their company.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Interactive Line-by-Line Analyzer -->
+        <section id="analyzer" class="scroll-mt-20">
+            <div class="mb-6">
+                <h2 class="text-3xl font-extrabold text-slate-800">🔍 互动逐句精批</h2>
+                <p class="text-slate-500 mt-2">点击左侧你写的原句，右侧将显示详细的语法分析、拼写纠正以及地道的修改建议。这是提升语言表达最有效的方法。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Left: Student's Sentences -->
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[600px]">
+                    <div class="bg-slate-50 p-4 border-b border-slate-200">
+                        <h3 class="font-semibold text-slate-700">你的原句 (点击查看解析)</h3>
+                    </div>
+                    <div class="overflow-y-auto flex-1 p-2 space-y-1" id="sentence-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Right: Analysis Detail -->
+                <div class="bg-white border border-blue-100 rounded-xl shadow-md overflow-hidden flex flex-col h-[600px]">
+                    <div class="bg-blue-50 p-4 border-b border-blue-100">
+                        <h3 class="font-semibold text-blue-800">批改与解析</h3>
+                    </div>
+                    <div id="analysis-detail" class="p-6 flex-1 overflow-y-auto flex flex-col items-center justify-center text-slate-400">
+                        <span class="text-4xl mb-4">👈</span>
+                        <p>请在左侧选择一个句子查看详细批改</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: The Revised Masterpiece -->
+        <section id="masterpiece" class="scroll-mt-20">
+            <div class="mb-6">
+                <h2 class="text-3xl font-extrabold text-slate-800">🎓 升格示范</h2>
+                <p class="text-slate-500 mt-2">在保留你原本思路的基础上，这里提供了一个语法正确、用词地道的高分版本，供你背诵和模仿。</p>
+            </div>
+
+            <div class="paper-effect text-slate-800 text-lg md:text-xl font-serif max-w-4xl mx-auto">
+                <p class="indent-8 mb-6">
+                    <strong class="font-sans text-blue-600">His words struck me deeply and I started making small changes.</strong> 
+                    I realized that my two sons had grown up and needed space to experience life on their own. Instead of complaining, I hoped to break the heavy silence in the house with their cheerful presence. That night, I sat down with Mark and Leo. "I am sorry for being so harsh," I said sincerely. "You are young adults now. I will give you more freedom to develop your own life skills, but I also hope you can spend more time with me." Hearing this, their eyes lit up. They warmly agreed, promising to look after themselves and visit every week to keep me company.
+                </p>
+                <p class="indent-8">
+                    <strong class="font-sans text-blue-600">Our bond shifted and I really appreciated their company.</strong> 
+                    From then on, we began to deal with our family tension through peaceful communication. They often came home on weekends to accompany me, which made me feel truly relaxed and happy. As a saying goes, "Understanding is the bridge to love." This conflict made me realize that my boys had stepped into a new stage of life. In the future, I will respect their choices and support them to gain more life experience. This unforgettable lesson of letting go is like an everlasting flower blooming in my sweet memories.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 5: Actionable Tips -->
+        <section id="tips" class="scroll-mt-20 pb-16">
+            <div class="mb-6">
+                <h2 class="text-3xl font-extrabold text-slate-800">💡 老师给你的 4 条提分建议</h2>
+                <p class="text-slate-500 mt-2">总结本次练习暴露的核心问题，在下一次考试中避免踩坑。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="tip-card bg-gradient-to-br from-red-50 to-white p-6 rounded-xl border border-red-100 shadow-sm">
+                    <div class="text-3xl mb-3">🔤</div>
+                    <h3 class="text-lg font-bold text-red-800 mb-2">1. 消灭低级拼写错误</h3>
+                    <p class="text-slate-600 text-sm">你的文章中出现了 <code class="bg-red-100 px-1 rounded text-red-700">experiencet</code>, <code class="bg-red-100 px-1 rounded text-red-700">guension</code> (tension), <code class="bg-red-100 px-1 rounded text-red-700">forrgetabe</code>, <code class="bg-red-100 px-1 rounded text-red-700">flwoer</code> 等极多的拼写错误。<strong class="text-red-600">考场上，宁可换一个简单的、你会拼写的单词，也绝对不要拼错长难词！</strong> 阅卷老师对拼写错误极其敏感。</p>
+                </div>
+
+                <div class="tip-card bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100 shadow-sm">
+                    <div class="text-3xl mb-3">🧩</div>
+                    <h3 class="text-lg font-bold text-blue-800 mb-2">2. 彻底搞清词性 (尤其是 Company)</h3>
+                    <p class="text-slate-600 text-sm">你多次把名词当作动词用。必须牢记：<br>
+                    • <strong>名词:</strong> I enjoy your <strong>company</strong>. (我享受你的陪伴)<br>
+                    • <strong>动词:</strong> <strong>keep</strong> me company / <strong>accompany</strong> me. 绝对没有 "to company me" 这种动词原形用法。</p>
+                </div>
+
+                <div class="tip-card bg-gradient-to-br from-amber-50 to-white p-6 rounded-xl border border-amber-100 shadow-sm">
+                    <div class="text-3xl mb-3">👤</div>
+                    <h3 class="text-lg font-bold text-amber-800 mb-2">3. 理清人称代词 (I / Me / My)</h3>
+                    <p class="text-slate-600 text-sm">像 <code class="bg-amber-100 px-1 rounded text-amber-700">every week to company with I</code> 这种错误非常致命。介词 (with) 后面永远接宾格 (me)。平时写完作文，一定要默读一遍，检查 "我"、"他"、"他们" 是不是用串了，避免逻辑混乱。</p>
+                </div>
+
+                <div class="tip-card bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 shadow-sm">
+                    <div class="text-3xl mb-3">🎭</div>
+                    <h3 class="text-lg font-bold text-purple-800 mb-2">4. 谨慎使用“背诵的万能句”</h3>
+                    <p class="text-slate-600 text-sm">你的结尾比喻很好，但是前面的名言 <em class="text-slate-500">"one day of success shall calm your anxious heart"</em> 完全不符合母子和解的温馨语境（这句更适合奋斗类）。<strong>背诵好句子是好事，但一定要看语境，不要硬塞。</strong></p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // Data Storage: Store base data from the report for dynamic interaction
+        const correctionData = [
+            {
+                id: "p1-1",
+                original: "Because I realized my two sons have grown, they could need experiencet to help them.",
+                corrected: "I realized my two sons had grown up, and they needed their own experiences to guide them.",
+                comment: "时态应与前文保持一致（过去时）。`experiencet` 拼写错误。"
+            },
+            {
+                id: "p1-2",
+                original: "And I needed their company to make the silence began to feel relax.",
+                corrected: "And I needed their company to break the heavy silence in the house.",
+                comment: "`make` 后面的宾补结构错误，不能用 `began to...`。`relax` 是动词，这里应该用形容词 `relaxed`，或者像修改版那样改变表达方式。"
+            },
+            {
+                id: "p1-3",
+                original: "At night, I said I didn't confront any people in our home to Mark and Leo.",
+                corrected: "That night, I sat down with Mark and Leo, promising I wouldn't confront them so harshly anymore.",
+                comment: "表达生硬，语序中式。你想表达“我晚上告诉他们我不再和他们起冲突了”。"
+            },
+            {
+                id: "p1-4",
+                original: "And you are typical teenagers. So I could give you more freedom and train yourself live skill.",
+                corrected: "\"You are young adults now,\" I said. \"I will give you more freedom to develop your own life skills.\"",
+                comment: "标点和代词转换混乱。直接引语应加引号。`live skill` 应为 `life skills`。（注：上大学了，用 young adults 比 teenagers 更准确）"
+            },
+            {
+                id: "p1-5",
+                original: "Then I hoped you could give me more company. I said.",
+                corrected: "\"But in return, I hope you can spend more time with me.\"",
+                comment: "标点和语序错误。"
+            },
+            {
+                id: "p1-6",
+                original: "They answered I would often look after me and every week to company with I.",
+                corrected: "They agreed, promising to look after themselves and visit every week to keep me company.",
+                comment: "代词混乱透顶！“他们回答他们会照顾好自己”。`company` 是名词，不能作动词。`with I` 更是基础语法错误，介词后应接宾格 `me`。"
+            },
+            {
+                id: "p2-1",
+                original: "From then On,we began to together deal with guension.",
+                corrected: "From then on, we began to deal with our tension together peacefully.",
+                comment: "拼写错误：`guension` 应该是想写 `tension` (紧张关系)。副词 `together` 位置不当。"
+            },
+            {
+                id: "p2-2",
+                original: "And they often went home to company me so that I began to feel relax.",
+                corrected: "They often came home to accompany me, which made me feel truly relaxed.",
+                comment: "`company` 词性误用。`relax` 应为形容词 `relaxed`。"
+            },
+            {
+                id: "p2-3",
+                original: "\" one day of success shall calm your anxious heart\".this say make me realized, my two sons has been teenager.",
+                corrected: "As the saying goes, \"Understanding is the bridge to love.\" This made me realize my two sons had grown into independent individuals.",
+                comment: "引用的名言与语境非常不搭。语法错误：`this say` 应为 `this saying` (俗话说)，`make` 需用过去式 `made`，`has been` 应为 `had become`。"
+            },
+            {
+                id: "p2-4",
+                original: "In the further, I will agree with them every suggession to make them have more exerpience.",
+                corrected: "In the future, I decided to respect their choices to help them gain more life experience.",
+                comment: "拼写错误太多：`further` -> `future`, `suggession` -> `suggestion`, `exerpience` -> `experience`。“同意他们的每一个建议” 有点溺爱，可以说“尊重他们的决定”。"
+            },
+            {
+                id: "p2-5",
+                original: "The forrgetabe exerpience was like an everlasting flwoer blooming in my memories.",
+                corrected: "This unforgettable experience was like an everlasting flower blooming in my memories.",
+                comment: "极度低级的拼写连环错误，会给阅卷老师留下极差的印象。`unforgettable` (写成了 forrgetabe), `experience`, `flower`。"
+            }
+        ];
+
+        // State Management
+        let currentSelectedId = null;
+
+        // Core Interaction Handling: Initialize the SPA components
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            renderSentenceList();
+        });
+
+        // Toggle Context Section
+        function toggleContext() {
+            const content = document.getElementById('context-content');
+            const icon = document.getElementById('context-icon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.textContent = '➖';
+            } else {
+                content.classList.add('hidden');
+                icon.textContent = '➕';
+            }
+        }
+
+        // Render Chart.js
+        function initChart() {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            const score = 10;
+            const maxScore = 25;
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['得分', '失分'],
+                    datasets: [{
+                        data: [score, maxScore - score],
+                        backgroundColor: [
+                            '#3b82f6', // blue-500
+                            '#e2e8f0'  // slate-200
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL: allows canvas to stretch to container height/width
+                    cutout: '75%',
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw} 分`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        }
+
+        // Render Left Column (Sentence List)
+        function renderSentenceList() {
+            const container = document.getElementById('sentence-list');
+            
+            correctionData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'sentence-item p-3 rounded-md text-sm text-slate-700 bg-white border border-slate-100 mb-2';
+                div.id = `list-item-${item.id}`;
+                
+                // Highlight words that look misspelled or grammatically wrong in red (simple heuristic for UI effect)
+                let displayHtml = item.original;
+                const redWords = ['have grown', 'experiencet', 'began to feel relax', 'confront any people', 'yourself live skill', 'company with I', 'guension', 'company me', 'this say', 'suggession', 'exerpience', 'forrgetabe', 'flwoer'];
+                
+                redWords.forEach(word => {
+                    const regex = new RegExp(`(${word})`, 'gi');
+                    displayHtml = displayHtml.replace(regex, '<span class="text-red-500 font-semibold underline decoration-wavy decoration-red-300">$1</span>');
+                });
+
+                div.innerHTML = `<span class="text-slate-400 font-mono text-xs mr-2">${index + 1}.</span>${displayHtml}`;
+                
+                div.onclick = () => selectSentence(item.id);
+                container.appendChild(div);
+            });
+        }
+
+        // Update Right Column (Detail View) on click
+        function selectSentence(id) {
+            // Update active state in list
+            if (currentSelectedId) {
+                document.getElementById(`list-item-${currentSelectedId}`).classList.remove('active', 'bg-red-50');
+            }
+            currentSelectedId = id;
+            document.getElementById(`list-item-${id}`).classList.add('active', 'bg-red-50');
+
+            // Get Data
+            const data = correctionData.find(item => item.id === id);
+            
+            // Format markdown-like syntax in comment (e.g., `word` to code block)
+            const formattedComment = data.comment.replace(/`([^`]+)`/g, '<code class="bg-amber-100 text-amber-800 px-1 rounded font-mono text-sm">$1</code>');
+
+            // Update UI
+            const detailContainer = document.getElementById('analysis-detail');
+            detailContainer.innerHTML = `
+                <div class="w-full space-y-6 animate-fade-in">
+                    <!-- Original -->
+                    <div>
+                        <div class="text-xs font-bold text-red-500 uppercase tracking-wider mb-1 flex items-center">
+                            <span class="mr-1">❌</span> 原句存在问题
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-slate-800 text-lg font-medium">
+                            ${data.original}
+                        </div>
+                    </div>
+
+                    <!-- Teacher's Comment -->
+                    <div>
+                        <div class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1 flex items-center">
+                            <span class="mr-1">👨‍🏫</span> 老师解析
+                        </div>
+                        <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 text-slate-700 leading-relaxed">
+                            ${formattedComment}
+                        </div>
+                    </div>
+
+                    <!-- Corrected -->
+                    <div>
+                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 flex items-center">
+                            <span class="mr-1">✅</span> 地道修改建议
+                        </div>
+                        <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 text-slate-800 text-lg font-medium">
+                            ${data.corrected}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Custom minimal animation injection
+        const style = document.createElement('style');
+        style.innerHTML = `
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(5px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .animate-fade-in {
+                animation: fadeIn 0.3s ease-out forwards;
+            }
+        `;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>
