@@ -71,7 +71,6 @@
             background-image: linear-gradient(#f1f5f9 1px, transparent 1px);
             background-size: 100% 2rem;
             line-height: 2rem;
-            padding: 2rem;
             border-radius: 0.5rem;
             box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
         }
@@ -84,7 +83,7 @@
     <!-- Application Structure Plan: 
          1. Header & Dashboard: High-level overview of the score (Chart.js doughnut) and overall evaluation (pros/cons). Provides immediate feedback.
          2. Context Section: Collapsible view of the original prompt to remind the user of the task without cluttering the screen.
-         3. Interactive Sentence Analyzer (Core): A side-by-side layout. Left column lists the student's original sentences. Right column acts as a dynamic detail view, showing the specific error, correction, and teacher's comment when a sentence is clicked. This prevents cognitive overload compared to a long scrolling text list.
+         3. Interactive Sentence Analyzer (Core): A side-by-side layout (stacked on mobile). Left column lists the student's original sentences. Right column acts as a dynamic detail view, showing the specific error, correction, and teacher's comment when a sentence is clicked. Includes auto-scroll on mobile for better UX.
          4. The Masterpiece: Presents the fully revised, high-scoring essay in a beautiful "paper" format for reading flow.
          5. Actionable Tips: Grid of 4 cards highlighting key takeaways for future exams. 
          Rationale: This structure moves the user from high-level summary -> specific interactive feedback -> holistic good example -> actionable future steps. -->
@@ -96,31 +95,32 @@
          - Revised Essay -> Goal: Inform/Model -> Viz: Styled "Paper" block -> Interaction: Read -> Creates a visual distinction for the "ideal" state.
          CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All icons are Unicode emojis. -->
 
-    <!-- Navigation -->
+    <!-- Navigation (Mobile Optimized) -->
     <nav class="sticky top-0 bg-white/90 backdrop-blur-md shadow-sm z-50">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center py-3 md:h-16 space-y-3 md:space-y-0">
                 <div class="flex items-center space-x-2 text-xl font-bold text-slate-800">
                     <span>📝</span>
                     <span>读后续写智能批改</span>
                 </div>
-                <div class="flex items-center space-x-6 text-sm font-medium text-slate-600 hidden md:flex">
-                    <a href="#dashboard" class="hover:text-blue-600 transition">成绩概览</a>
-                    <a href="#analyzer" class="hover:text-blue-600 transition">逐句精批</a>
-                    <a href="#masterpiece" class="hover:text-blue-600 transition">升格示范</a>
-                    <a href="#tips" class="hover:text-blue-600 transition">提分建议</a>
+                <!-- Horizontal scrollable nav for mobile -->
+                <div class="flex items-center space-x-4 md:space-x-6 text-sm font-medium text-slate-600 overflow-x-auto no-scrollbar pb-1 md:pb-0 w-full md:w-auto">
+                    <a href="#dashboard" class="hover:text-blue-600 transition whitespace-nowrap">成绩概览</a>
+                    <a href="#analyzer" class="hover:text-blue-600 transition whitespace-nowrap">逐句精批</a>
+                    <a href="#masterpiece" class="hover:text-blue-600 transition whitespace-nowrap">升格示范</a>
+                    <a href="#tips" class="hover:text-blue-600 transition whitespace-nowrap">提分建议</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8 space-y-10 md:space-y-12">
 
         <!-- SECTION 1: Dashboard -->
-        <section id="dashboard" class="scroll-mt-20">
+        <section id="dashboard" class="scroll-mt-24 md:scroll-mt-20">
             <div class="mb-4">
-                <h1 class="text-3xl font-extrabold text-slate-800">成绩与综合评价</h1>
-                <p class="text-slate-500 mt-2">在这里，你可以直观地看到本次练习的得分情况以及整体的优缺点分析。了解全局，是进步的第一步。</p>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-800">成绩与综合评价</h1>
+                <p class="text-slate-500 mt-2 text-sm md:text-base">在这里，你可以直观地看到本次练习的得分情况以及整体的优缺点分析。了解全局，是进步的第一步。</p>
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -143,7 +143,7 @@
                         <h3 class="flex items-center text-lg font-semibold text-emerald-600 mb-2">
                             <span class="mr-2">✨</span> 亮点与优势
                         </h3>
-                        <p class="text-slate-600 bg-emerald-50 p-4 rounded-lg border border-emerald-100">
+                        <p class="text-slate-600 text-sm md:text-base bg-emerald-50 p-4 rounded-lg border border-emerald-100 leading-relaxed">
                             你的<strong>情节构思符合逻辑</strong>。第一段写了母亲反思并与儿子们沟通，给予自由并渴求陪伴；第二段写了母子关系缓和，母亲决定在未来多支持儿子。首尾句衔接较好，且尝试套用了高级句型（如结尾的比喻）。
                         </p>
                     </div>
@@ -151,7 +151,7 @@
                         <h3 class="flex items-center text-lg font-semibold text-rose-600 mb-2">
                             <span class="mr-2">⚠️</span> 核心问题
                         </h3>
-                        <p class="text-slate-600 bg-rose-50 p-4 rounded-lg border border-rose-100">
+                        <p class="text-slate-600 text-sm md:text-base bg-rose-50 p-4 rounded-lg border border-rose-100 leading-relaxed">
                             <strong>基础语法错误和拼写错误较多</strong>（如词性误用、时态混乱、拼写失误），中式英语（Chinglish）痕迹较重，部分句子结构混乱，严重影响了阅卷老师的阅读体验。生搬硬套的“万能句子”与语境不太融合。
                         </p>
                     </div>
@@ -160,15 +160,15 @@
         </section>
 
         <!-- SECTION 2: Original Context Toggle -->
-        <section id="context" class="scroll-mt-20">
+        <section id="context" class="scroll-mt-24 md:scroll-mt-20">
             <div class="bg-slate-800 rounded-xl text-white overflow-hidden shadow-lg">
-                <button onclick="toggleContext()" class="w-full flex justify-between items-center p-6 focus:outline-none hover:bg-slate-700 transition">
-                    <div class="flex items-center text-lg font-semibold">
+                <button onclick="toggleContext()" class="w-full flex justify-between items-center p-5 md:p-6 focus:outline-none hover:bg-slate-700 transition">
+                    <div class="flex items-center text-base md:text-lg font-semibold">
                         <span class="mr-3">📖</span> 查看原题目 (Source Prompt)
                     </div>
                     <span id="context-icon" class="text-xl">➕</span>
                 </button>
-                <div id="context-content" class="hidden px-6 pb-6 pt-2 border-t border-slate-600 text-slate-300 leading-relaxed text-sm">
+                <div id="context-content" class="hidden px-5 pb-5 md:px-6 md:pb-6 pt-2 border-t border-slate-600 text-slate-300 leading-relaxed text-sm">
                     <p class="mb-2">This autumn, my nest became truly empty. My two sons — Mark, in his third year of university, and Leo, just starting his first year — had both moved out. No more of my strict house rules, or my daily complaints about their disastrous bathroom.</p>
                     <p class="mb-2">When they left, I actually enjoyed the peace at first. My kitchen stayed clean, towels weren't left on the floor, and I could watch my favorite TV shows without interruption. But as days turned into weeks, the silence began to feel heavy. I missed their company.</p>
                     <p class="mb-2">However, the first time Mark came back for a weekend visit, it was a disaster. He stayed out until 3 a.m., left dirty dishes piled in the sink, and slept until noon. One night, I couldn't take it anymore and confronted him in the kitchen: "Why can't you respect my rules when you're home? This isn't a hotel!"</p>
@@ -185,16 +185,16 @@
         </section>
 
         <!-- SECTION 3: Interactive Line-by-Line Analyzer -->
-        <section id="analyzer" class="scroll-mt-20">
+        <section id="analyzer" class="scroll-mt-24 md:scroll-mt-20">
             <div class="mb-6">
-                <h2 class="text-3xl font-extrabold text-slate-800">🔍 互动逐句精批</h2>
-                <p class="text-slate-500 mt-2">点击左侧你写的原句，右侧将显示详细的语法分析、拼写纠正以及地道的修改建议。这是提升语言表达最有效的方法。</p>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">🔍 互动逐句精批</h2>
+                <p class="text-slate-500 mt-2 text-sm md:text-base">点击列表中的原句，下方（或右侧）将显示详细的语法分析、拼写纠正以及地道的修改建议。</p>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <!-- Left: Student's Sentences -->
-                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[600px]">
-                    <div class="bg-slate-50 p-4 border-b border-slate-200">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                <!-- Left/Top: Student's Sentences (Responsive Height) -->
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col h-[350px] lg:h-[600px]">
+                    <div class="bg-slate-50 p-4 border-b border-slate-200 sticky top-0 z-10">
                         <h3 class="font-semibold text-slate-700">你的原句 (点击查看解析)</h3>
                     </div>
                     <div class="overflow-y-auto flex-1 p-2 space-y-1" id="sentence-list">
@@ -202,70 +202,70 @@
                     </div>
                 </div>
 
-                <!-- Right: Analysis Detail -->
-                <div class="bg-white border border-blue-100 rounded-xl shadow-md overflow-hidden flex flex-col h-[600px]">
-                    <div class="bg-blue-50 p-4 border-b border-blue-100">
+                <!-- Right/Bottom: Analysis Detail (Responsive Height & ID added for mobile scroll) -->
+                <div id="detail-container" class="bg-white border border-blue-100 rounded-xl shadow-md overflow-hidden flex flex-col min-h-[350px] lg:h-[600px] scroll-mt-24 md:scroll-mt-20">
+                    <div class="bg-blue-50 p-4 border-b border-blue-100 sticky top-0 z-10">
                         <h3 class="font-semibold text-blue-800">批改与解析</h3>
                     </div>
-                    <div id="analysis-detail" class="p-6 flex-1 overflow-y-auto flex flex-col items-center justify-center text-slate-400">
-                        <span class="text-4xl mb-4">👈</span>
-                        <p>请在左侧选择一个句子查看详细批改</p>
+                    <div id="analysis-detail" class="p-5 md:p-6 flex-1 overflow-y-auto flex flex-col items-center justify-center text-slate-400">
+                        <span class="text-4xl mb-4">👆</span>
+                        <p class="text-center text-sm md:text-base">请在列表中选择一个句子<br>查看详细批改</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- SECTION 4: The Revised Masterpiece -->
-        <section id="masterpiece" class="scroll-mt-20">
+        <section id="masterpiece" class="scroll-mt-24 md:scroll-mt-20">
             <div class="mb-6">
-                <h2 class="text-3xl font-extrabold text-slate-800">🎓 升格示范</h2>
-                <p class="text-slate-500 mt-2">在保留你原本思路的基础上，这里提供了一个语法正确、用词地道的高分版本，供你背诵和模仿。</p>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">🎓 升格示范</h2>
+                <p class="text-slate-500 mt-2 text-sm md:text-base">在保留你原本思路的基础上，这里提供了一个语法正确、用词地道的高分版本，供你背诵和模仿。</p>
             </div>
 
-            <div class="paper-effect text-slate-800 text-lg md:text-xl font-serif max-w-4xl mx-auto">
-                <p class="indent-8 mb-6">
-                    <strong class="font-sans text-blue-600">His words struck me deeply and I started making small changes.</strong> 
+            <div class="paper-effect p-5 sm:p-8 text-slate-800 text-base md:text-lg lg:text-xl font-serif max-w-4xl mx-auto">
+                <p class="indent-6 sm:indent-8 mb-6">
+                    <strong class="font-sans text-blue-600 block sm:inline mb-2 sm:mb-0">His words struck me deeply and I started making small changes.</strong> 
                     I realized that my two sons had grown up and needed space to experience life on their own. Instead of complaining, I hoped to break the heavy silence in the house with their cheerful presence. That night, I sat down with Mark and Leo. "I am sorry for being so harsh," I said sincerely. "You are young adults now. I will give you more freedom to develop your own life skills, but I also hope you can spend more time with me." Hearing this, their eyes lit up. They warmly agreed, promising to look after themselves and visit every week to keep me company.
                 </p>
-                <p class="indent-8">
-                    <strong class="font-sans text-blue-600">Our bond shifted and I really appreciated their company.</strong> 
+                <p class="indent-6 sm:indent-8">
+                    <strong class="font-sans text-blue-600 block sm:inline mb-2 sm:mb-0">Our bond shifted and I really appreciated their company.</strong> 
                     From then on, we began to deal with our family tension through peaceful communication. They often came home on weekends to accompany me, which made me feel truly relaxed and happy. As a saying goes, "Understanding is the bridge to love." This conflict made me realize that my boys had stepped into a new stage of life. In the future, I will respect their choices and support them to gain more life experience. This unforgettable lesson of letting go is like an everlasting flower blooming in my sweet memories.
                 </p>
             </div>
         </section>
 
         <!-- SECTION 5: Actionable Tips -->
-        <section id="tips" class="scroll-mt-20 pb-16">
+        <section id="tips" class="scroll-mt-24 md:scroll-mt-20 pb-16">
             <div class="mb-6">
-                <h2 class="text-3xl font-extrabold text-slate-800">💡 老师给你的 4 条提分建议</h2>
-                <p class="text-slate-500 mt-2">总结本次练习暴露的核心问题，在下一次考试中避免踩坑。</p>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800">💡 老师给你的 4 条提分建议</h2>
+                <p class="text-slate-500 mt-2 text-sm md:text-base">总结本次练习暴露的核心问题，在下一次考试中避免踩坑。</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="tip-card bg-gradient-to-br from-red-50 to-white p-6 rounded-xl border border-red-100 shadow-sm">
-                    <div class="text-3xl mb-3">🔤</div>
-                    <h3 class="text-lg font-bold text-red-800 mb-2">1. 消灭低级拼写错误</h3>
-                    <p class="text-slate-600 text-sm">你的文章中出现了 <code class="bg-red-100 px-1 rounded text-red-700">experiencet</code>, <code class="bg-red-100 px-1 rounded text-red-700">guension</code> (tension), <code class="bg-red-100 px-1 rounded text-red-700">forrgetabe</code>, <code class="bg-red-100 px-1 rounded text-red-700">flwoer</code> 等极多的拼写错误。<strong class="text-red-600">考场上，宁可换一个简单的、你会拼写的单词，也绝对不要拼错长难词！</strong> 阅卷老师对拼写错误极其敏感。</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                <div class="tip-card bg-gradient-to-br from-red-50 to-white p-5 md:p-6 rounded-xl border border-red-100 shadow-sm">
+                    <div class="text-2xl md:text-3xl mb-3">🔤</div>
+                    <h3 class="text-base md:text-lg font-bold text-red-800 mb-2">1. 消灭低级拼写错误</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">你的文章中出现了 <code class="bg-red-100 px-1 rounded text-red-700">experiencet</code>, <code class="bg-red-100 px-1 rounded text-red-700">guension</code> (tension), <code class="bg-red-100 px-1 rounded text-red-700">forrgetabe</code>, <code class="bg-red-100 px-1 rounded text-red-700">flwoer</code> 等极多的拼写错误。<strong class="text-red-600">考场上，宁可换一个简单的、你会拼写的单词，也绝对不要拼错长难词！</strong> 阅卷老师对拼写错误极其敏感。</p>
                 </div>
 
-                <div class="tip-card bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl border border-blue-100 shadow-sm">
-                    <div class="text-3xl mb-3">🧩</div>
-                    <h3 class="text-lg font-bold text-blue-800 mb-2">2. 彻底搞清词性 (尤其是 Company)</h3>
-                    <p class="text-slate-600 text-sm">你多次把名词当作动词用。必须牢记：<br>
+                <div class="tip-card bg-gradient-to-br from-blue-50 to-white p-5 md:p-6 rounded-xl border border-blue-100 shadow-sm">
+                    <div class="text-2xl md:text-3xl mb-3">🧩</div>
+                    <h3 class="text-base md:text-lg font-bold text-blue-800 mb-2">2. 彻底搞清词性 (尤其是 Company)</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">你多次把名词当作动词用。必须牢记：<br>
                     • <strong>名词:</strong> I enjoy your <strong>company</strong>. (我享受你的陪伴)<br>
                     • <strong>动词:</strong> <strong>keep</strong> me company / <strong>accompany</strong> me. 绝对没有 "to company me" 这种动词原形用法。</p>
                 </div>
 
-                <div class="tip-card bg-gradient-to-br from-amber-50 to-white p-6 rounded-xl border border-amber-100 shadow-sm">
-                    <div class="text-3xl mb-3">👤</div>
-                    <h3 class="text-lg font-bold text-amber-800 mb-2">3. 理清人称代词 (I / Me / My)</h3>
-                    <p class="text-slate-600 text-sm">像 <code class="bg-amber-100 px-1 rounded text-amber-700">every week to company with I</code> 这种错误非常致命。介词 (with) 后面永远接宾格 (me)。平时写完作文，一定要默读一遍，检查 "我"、"他"、"他们" 是不是用串了，避免逻辑混乱。</p>
+                <div class="tip-card bg-gradient-to-br from-amber-50 to-white p-5 md:p-6 rounded-xl border border-amber-100 shadow-sm">
+                    <div class="text-2xl md:text-3xl mb-3">👤</div>
+                    <h3 class="text-base md:text-lg font-bold text-amber-800 mb-2">3. 理清人称代词 (I / Me / My)</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">像 <code class="bg-amber-100 px-1 rounded text-amber-700">every week to company with I</code> 这种错误非常致命。介词 (with) 后面永远接宾格 (me)。平时写完作文，一定要默读一遍，检查 "我"、"他"、"他们" 是不是用串了，避免逻辑混乱。</p>
                 </div>
 
-                <div class="tip-card bg-gradient-to-br from-purple-50 to-white p-6 rounded-xl border border-purple-100 shadow-sm">
-                    <div class="text-3xl mb-3">🎭</div>
-                    <h3 class="text-lg font-bold text-purple-800 mb-2">4. 谨慎使用“背诵的万能句”</h3>
-                    <p class="text-slate-600 text-sm">你的结尾比喻很好，但是前面的名言 <em class="text-slate-500">"one day of success shall calm your anxious heart"</em> 完全不符合母子和解的温馨语境（这句更适合奋斗类）。<strong>背诵好句子是好事，但一定要看语境，不要硬塞。</strong></p>
+                <div class="tip-card bg-gradient-to-br from-purple-50 to-white p-5 md:p-6 rounded-xl border border-purple-100 shadow-sm">
+                    <div class="text-2xl md:text-3xl mb-3">🎭</div>
+                    <h3 class="text-base md:text-lg font-bold text-purple-800 mb-2">4. 谨慎使用“背诵的万能句”</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed">你的结尾比喻很好，但是前面的名言 <em class="text-slate-500">"one day of success shall calm your anxious heart"</em> 完全不符合母子和解的温馨语境（这句更适合奋斗类）。<strong>背诵好句子是好事，但一定要看语境，不要硬塞。</strong></p>
                 </div>
             </div>
         </section>
@@ -415,7 +415,7 @@
             
             correctionData.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = 'sentence-item p-3 rounded-md text-sm text-slate-700 bg-white border border-slate-100 mb-2';
+                div.className = 'sentence-item p-3 md:p-4 rounded-md text-sm md:text-base text-slate-700 bg-white border border-slate-100 mb-2';
                 div.id = `list-item-${item.id}`;
                 
                 // Highlight words that look misspelled or grammatically wrong in red (simple heuristic for UI effect)
@@ -427,7 +427,7 @@
                     displayHtml = displayHtml.replace(regex, '<span class="text-red-500 font-semibold underline decoration-wavy decoration-red-300">$1</span>');
                 });
 
-                div.innerHTML = `<span class="text-slate-400 font-mono text-xs mr-2">${index + 1}.</span>${displayHtml}`;
+                div.innerHTML = `<span class="text-slate-400 font-mono text-xs md:text-sm mr-2">${index + 1}.</span>${displayHtml}`;
                 
                 div.onclick = () => selectSentence(item.id);
                 container.appendChild(div);
@@ -450,40 +450,48 @@
             const formattedComment = data.comment.replace(/`([^`]+)`/g, '<code class="bg-amber-100 text-amber-800 px-1 rounded font-mono text-sm">$1</code>');
 
             // Update UI
-            const detailContainer = document.getElementById('analysis-detail');
-            detailContainer.innerHTML = `
-                <div class="w-full space-y-6 animate-fade-in">
+            const detailContainerInner = document.getElementById('analysis-detail');
+            detailContainerInner.innerHTML = `
+                <div class="w-full space-y-5 md:space-y-6 animate-fade-in">
                     <!-- Original -->
                     <div>
-                        <div class="text-xs font-bold text-red-500 uppercase tracking-wider mb-1 flex items-center">
+                        <div class="text-[10px] md:text-xs font-bold text-red-500 uppercase tracking-wider mb-1 flex items-center">
                             <span class="mr-1">❌</span> 原句存在问题
                         </div>
-                        <div class="bg-red-50 p-4 rounded-lg border border-red-100 text-slate-800 text-lg font-medium">
+                        <div class="bg-red-50 p-3 md:p-4 rounded-lg border border-red-100 text-slate-800 text-base md:text-lg font-medium">
                             ${data.original}
                         </div>
                     </div>
 
                     <!-- Teacher's Comment -->
                     <div>
-                        <div class="text-xs font-bold text-amber-600 uppercase tracking-wider mb-1 flex items-center">
+                        <div class="text-[10px] md:text-xs font-bold text-amber-600 uppercase tracking-wider mb-1 flex items-center">
                             <span class="mr-1">👨‍🏫</span> 老师解析
                         </div>
-                        <div class="bg-amber-50 p-4 rounded-lg border border-amber-100 text-slate-700 leading-relaxed">
+                        <div class="bg-amber-50 p-3 md:p-4 rounded-lg border border-amber-100 text-sm md:text-base text-slate-700 leading-relaxed">
                             ${formattedComment}
                         </div>
                     </div>
 
                     <!-- Corrected -->
                     <div>
-                        <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 flex items-center">
+                        <div class="text-[10px] md:text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1 flex items-center">
                             <span class="mr-1">✅</span> 地道修改建议
                         </div>
-                        <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-100 text-slate-800 text-lg font-medium">
+                        <div class="bg-emerald-50 p-3 md:p-4 rounded-lg border border-emerald-100 text-slate-800 text-base md:text-lg font-medium">
                             ${data.corrected}
                         </div>
                     </div>
                 </div>
             `;
+
+            // Auto-scroll logic for mobile devices (lg breakpoint in Tailwind is 1024px)
+            if (window.innerWidth < 1024) {
+                setTimeout(() => {
+                    const detailContainer = document.getElementById('detail-container');
+                    detailContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
         }
 
         // Custom minimal animation injection
