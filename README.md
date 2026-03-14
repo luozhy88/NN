@@ -26,3 +26,5 @@
 历史错题：https://nnhistory.qyjc.top/   
 历史高考 26 年预测：https://nn-1er.pages.dev/history/history.analysis.html   
 政治错题：https://nnpolitics.qyjc.top   
+
+https://nn-1er.pages.dev/English/Type2.exam.20260314.html   
