@@ -28,3 +28,4 @@
 政治错题：https://nnpolitics.qyjc.top   
 
 https://nn-1er.pages.dev/English/Type2.exam.20260314.html   
+https://nn-1er.pages.dev/English/Type1.exam.v20260321.html   
