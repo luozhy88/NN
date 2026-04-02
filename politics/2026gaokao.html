@@ -1,0 +1,943 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高考政治真题规律总结 2018-2025</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #c0392b;
+    --red-dark: #922b21;
+    --red-light: #f5b7b1;
+    --gold: #d4a017;
+    --gold-light: #f9e4a0;
+    --ink: #1a1a2e;
+    --ink-soft: #2d2d4e;
+    --paper: #fdf6ec;
+    --paper-dark: #f0e6d3;
+    --paper-mid: #f8f0e0;
+    --muted: #7a6a5a;
+    --border: #c8b89a;
+    --shadow: 0 4px 24px rgba(26,26,46,0.10);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Noto Sans SC', sans-serif;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* Decorative background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(192,57,43,0.06) 39px, rgba(192,57,43,0.06) 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(192,57,43,0.04) 39px, rgba(192,57,43,0.04) 40px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    margin-bottom: 52px;
+    position: relative;
+  }
+  .header::before, .header::after {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--red), var(--gold), var(--red), transparent);
+    margin: 0 auto;
+    width: 80%;
+  }
+  .header::before { margin-bottom: 28px; }
+  .header::after { margin-top: 28px; }
+
+  .header-badge {
+    display: inline-block;
+    background: var(--red);
+    color: #fff;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    padding: 5px 18px;
+    border-radius: 2px;
+    margin-bottom: 16px;
+  }
+  .header h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 900;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+  .header h1 span { color: var(--red); }
+  .header-sub {
+    margin-top: 10px;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 2px;
+  }
+
+  /* ─── SECTION TITLES ─── */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .section-title .icon {
+    width: 40px; height: 40px;
+    background: var(--red);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+    box-shadow: 3px 3px 0 var(--red-dark);
+  }
+  .section-title h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .section-title .sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--paper-mid);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 28px 28px 24px;
+    margin-bottom: 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 5px; height: 100%;
+    background: linear-gradient(180deg, var(--red), var(--gold));
+  }
+
+  /* ─── TABLE ─── */
+  .tbl-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  thead tr {
+    background: var(--ink);
+    color: #fff;
+  }
+  thead th {
+    padding: 11px 14px;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 600;
+    text-align: left;
+    font-size: 13px;
+    letter-spacing: 1px;
+    white-space: nowrap;
+  }
+  tbody tr:nth-child(even) { background: rgba(208,186,160,0.15); }
+  tbody tr:hover { background: rgba(192,57,43,0.06); transition: background 0.2s; }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink-soft);
+    line-height: 1.55;
+    vertical-align: middle;
+  }
+  tbody td:first-child {
+    font-weight: 700;
+    color: var(--red-dark);
+    white-space: nowrap;
+  }
+
+  /* Stars */
+  .stars { color: var(--gold); letter-spacing: 1px; font-size: 15px; }
+  .stars .dim { color: #ccc; }
+  .tag {
+    display: inline-block;
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 3px;
+    margin-left: 4px;
+    font-weight: 500;
+  }
+  .tag-every { background: #fdecea; color: var(--red); }
+  .tag-alt { background: #fef9e7; color: #9a7d0a; }
+  .tag-new { background: #eaf8f5; color: #1a7a5e; }
+  .tag-rotate { background: #eaf0f8; color: #1a5078; }
+
+  /* ─── TOP10 ─── */
+  .top10-list { list-style: none; }
+  .top10-list li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .top10-list li:last-child { border-bottom: none; }
+  .rank-badge {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 900;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .rank-1 { background: #c0392b; color: #fff; }
+  .rank-2 { background: #d4a017; color: #fff; }
+  .rank-3 { background: #7d6608; color: #fff; }
+  .rank-other { background: var(--paper-dark); color: var(--muted); border: 1.5px solid var(--border); }
+
+  .top10-info { flex: 1; }
+  .top10-info .name { font-weight: 700; font-size: 14px; color: var(--ink); }
+  .top10-info .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .freq-bar-wrap { width: 100px; flex-shrink: 0; }
+  .freq-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--paper-dark);
+    overflow: hidden;
+  }
+  .freq-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--red), var(--gold));
+    transition: width 1s ease;
+  }
+  .freq-label { font-size: 11px; color: var(--muted); margin-top: 3px; text-align: right; }
+
+  /* ─── THEME CYCLE ─── */
+  .theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+  }
+  .theme-card {
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .theme-card .theme-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .theme-card .years {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .pred-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .pred-must { background: #fdecea; color: var(--red); border: 1px solid var(--red-light); }
+  .pred-likely { background: #fef9e7; color: #9a7d0a; border: 1px solid #f0d080; }
+  .pred-maybe { background: #f0f0f0; color: #555; border: 1px solid #ccc; }
+
+  /* ─── TEMPLATES ─── */
+  .template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+  .template-box {
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .template-box h4 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--red);
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .template-box ol {
+    padding-left: 18px;
+  }
+  .template-box ol li {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.8;
+  }
+  .template-box ol li strong { color: var(--red-dark); }
+
+  .phil-box {
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .phil-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .freq-chip {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .freq-high { background: #fdecea; color: var(--red); }
+  .freq-mid { background: #fef9e7; color: #9a7d0a; }
+  .freq-norm { background: #f0f0f0; color: #555; }
+  .phil-box ul { padding-left: 18px; }
+  .phil-box ul li { font-size: 13px; color: var(--ink-soft); line-height: 1.8; }
+
+  /* ─── PREDICTION ─── */
+  .pred-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+  .pred-col {
+    background: var(--paper);
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    overflow: hidden;
+  }
+  .pred-col-header {
+    padding: 12px 16px;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.5px;
+  }
+  .pred-must-h { background: var(--red); color: #fff; }
+  .pred-likely-h { background: var(--gold); color: var(--ink); }
+  .pred-maybe-h { background: #5d6d7e; color: #fff; }
+  .pred-col-body { padding: 14px 16px; }
+  .pred-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .pred-item::before {
+    content: '□';
+    flex-shrink: 0;
+    color: var(--muted);
+  }
+
+  /* ─── TIPS ─── */
+  .tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 16px;
+  }
+  .tip-box {
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .tip-box h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tip-box ul { padding-left: 18px; }
+  .tip-box ul li { font-size: 13px; line-height: 1.9; color: var(--ink-soft); }
+
+  /* ─── TIME TABLE ─── */
+  .time-table {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .time-item {
+    flex: 1;
+    min-width: 160px;
+    background: var(--paper);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .time-item .label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+  .time-item .mins {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--red);
+  }
+  .time-item .mins span { font-size: 13px; color: var(--muted); font-weight: 400; }
+
+  /* ─── FIVE RULES ─── */
+  .rules-list { list-style: none; counter-reset: rule; }
+  .rules-list li {
+    counter-increment: rule;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .rules-list li:last-child { border-bottom: none; }
+  .rules-list li::before {
+    content: counter(rule);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--red);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 900;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .rules-list li strong { color: var(--red-dark); }
+
+  /* ─── BIG TOPIC TABLE ─── */
+  .big-topic-row td:nth-child(2) { font-weight: 600; color: var(--red-dark); }
+
+  /* Divider */
+  .section-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 40px 0 32px;
+  }
+  .section-divider hr {
+    flex: 1; border: none;
+    border-top: 1.5px solid var(--border);
+  }
+  .section-divider span {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 600px) {
+    .card { padding: 18px 14px; }
+    thead th, tbody td { padding: 8px 10px; font-size: 13px; }
+    .template-grid, .theme-grid, .pred-grid, .tips-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">备考资料</div>
+    <h1>高考政治真题<span>规律与重现性</span>总结</h1>
+    <div class="header-sub">2018 — 2025 · 八年规律 · 2026备考预测</div>
+  </div>
+
+  <!-- 选择题规律 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">✏️</div>
+      <div>
+        <h2>选择题规律</h2>
+        <div class="sub">12题 × 4分 = 48分</div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>题号</th>
+            <th>模块</th>
+            <th>考点规律</th>
+            <th>重现频率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1–2题</td><td>经济</td><td>劳动价值论 / 商品理论</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>2–3题</td><td>经济</td><td>企业经营 / 产业发展</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>3–4题</td><td>经济</td><td>宏观调控 / 财政货币</td><td><span class="stars">★★★★<span class="dim">☆</span></span> <span class="tag tag-alt">隔年</span></td></tr>
+          <tr><td>4–5题</td><td>政治</td><td>基层治理 / 政府职能</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>5–6题</td><td>政治</td><td>人大制度 / 立法过程</td><td><span class="stars">★★★★<span class="dim">☆</span></span> <span class="tag tag-rotate">轮换</span></td></tr>
+          <tr><td>6–7题</td><td>政治</td><td>政协 / 协商民主</td><td><span class="stars">★★★<span class="dim">☆☆</span></span> <span class="tag tag-rotate">轮换</span></td></tr>
+          <tr><td>7–8题</td><td>国际</td><td>国际关系 / 大国外交</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>8–9题</td><td>文化</td><td>传统文化 / 文化交流</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>9–10题</td><td>文化</td><td>文化创新 / 文化自信</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>10–11题</td><td>哲学</td><td>认识论 / 辩证法（矛盾）</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>11–12题</td><td>哲学</td><td>历史唯物主义 / 价值观</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
+          <tr><td>12题</td><td>逻辑 / 其他</td><td>逻辑推理（2023后新增）</td><td><span class="stars">★★★<span class="dim">☆☆</span></span> <span class="tag tag-new">新增</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 大题规律 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">📝</div>
+      <div>
+        <h2>大题规律</h2>
+        <div class="sub">3大题 × (14 + 12 + 26分) = 52分</div>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table class="big-topic-row">
+        <thead>
+          <tr>
+            <th>题号</th>
+            <th>分值</th>
+            <th>模块组合</th>
+            <th>设问类型</th>
+            <th>材料主题</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>第13题</td>
+            <td>14分</td>
+            <td>经济</td>
+            <td>原因 / 意义 / 措施</td>
+            <td>产业 / 企业</td>
+          </tr>
+          <tr>
+            <td>第14题</td>
+            <td>12分</td>
+            <td>政治 / 法治</td>
+            <td>体现 / 说明 / 评析</td>
+            <td>制度 / 治理</td>
+          </tr>
+          <tr>
+            <td>第15题</td>
+            <td>26分</td>
+            <td>文化(10) + 哲学(10) + 开放(6)</td>
+            <td>意义 + 原理 + 建议</td>
+            <td>文化 / 改革</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section-divider"><hr><span>高频知识点</span><hr></div>
+
+  <!-- TOP10 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">🏆</div>
+      <div>
+        <h2>高频重现知识点 TOP10</h2>
+        <div class="sub">2018–2025 八年统计</div>
+      </div>
+    </div>
+    <ul class="top10-list">
+      <li>
+        <div class="rank-badge rank-1">1</div>
+        <div class="top10-info">
+          <div class="name">矛盾普遍性与特殊性辩证关系</div>
+          <div class="meta">选择 + 大题</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:100%"></div></div>
+          <div class="freq-label">8年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-2">2</div>
+        <div class="top10-info">
+          <div class="name">实践是认识的基础</div>
+          <div class="meta">选择 + 大题</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:87%"></div></div>
+          <div class="freq-label">7年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-3">3</div>
+        <div class="top10-info">
+          <div class="name">党的领导与党的建设</div>
+          <div class="meta">选择 + 大题</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:100%"></div></div>
+          <div class="freq-label">8年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">4</div>
+        <div class="top10-info">
+          <div class="name">文化的作用与文化自信</div>
+          <div class="meta">选择 + 大题</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:87%"></div></div>
+          <div class="freq-label">7年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">5</div>
+        <div class="top10-info">
+          <div class="name">价值判断与价值选择</div>
+          <div class="meta">选择 + 大题</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:75%"></div></div>
+          <div class="freq-label">6年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">6</div>
+        <div class="top10-info">
+          <div class="name">企业经营与发展</div>
+          <div class="meta">选择 + 大题</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:75%"></div></div>
+          <div class="freq-label">6年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">7</div>
+        <div class="top10-info">
+          <div class="name">政府职能与依法行政</div>
+          <div class="meta">选择题为主</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:75%"></div></div>
+          <div class="freq-label">6年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">8</div>
+        <div class="top10-info">
+          <div class="name">传统文化创造性转化</div>
+          <div class="meta">大题为主</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:62%"></div></div>
+          <div class="freq-label">5年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">9</div>
+        <div class="top10-info">
+          <div class="name">人大制度与立法过程</div>
+          <div class="meta">大题为主</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:62%"></div></div>
+          <div class="freq-label">5年/8年</div>
+        </div>
+      </li>
+      <li>
+        <div class="rank-badge rank-other">10</div>
+        <div class="top10-info">
+          <div class="name">国际关系与外交政策</div>
+          <div class="meta">选择题为主</div>
+        </div>
+        <div class="freq-bar-wrap">
+          <div class="freq-bar"><div class="freq-bar-fill" style="width:62%"></div></div>
+          <div class="freq-label">5年/8年</div>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="section-divider"><hr><span>材料主题</span><hr></div>
+
+  <!-- 主题轮回 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">🔄</div>
+      <div>
+        <h2>材料主题轮回周期</h2>
+        <div class="sub">历年规律 · 2026预测</div>
+      </div>
+    </div>
+    <div class="theme-grid">
+      <div class="theme-card">
+        <div class="theme-name">农村改革 / 乡村振兴</div>
+        <div class="years">📅 2018、2021、2024 &nbsp;·&nbsp; 周期 3年</div>
+        <span class="pred-badge pred-likely">★★★ 2026可能考</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">宪法 / 法治建设</div>
+        <div class="years">📅 2018、2020、2023 &nbsp;·&nbsp; 周期 3–4年</div>
+        <span class="pred-badge pred-maybe">★★☆ 可能轮换</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">对外开放 / 一带一路</div>
+        <div class="years">📅 2019、2022、2025 &nbsp;·&nbsp; 周期 3年</div>
+        <span class="pred-badge pred-likely">★★★ 2026可能轮换</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">传统文化保护</div>
+        <div class="years">📅 2020、2023、2024 &nbsp;·&nbsp; 周期 2–3年</div>
+        <span class="pred-badge pred-maybe">★★☆ 2026可能考</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">生态 / 绿色发展</div>
+        <div class="years">📅 2022、2024、2025 &nbsp;·&nbsp; 周期 1–2年</div>
+        <span class="pred-badge pred-likely">★★★ 持续关注</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">科技创新 / 新质生产力</div>
+        <div class="years">📅 2022、2024、2025 &nbsp;·&nbsp; 周期 1–2年</div>
+        <span class="pred-badge pred-must">★★★ 必考</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">全过程人民民主</div>
+        <div class="years">📅 2023、2024、2025 &nbsp;·&nbsp; 每年</div>
+        <span class="pred-badge pred-must">★★★ 必考</span>
+      </div>
+      <div class="theme-card">
+        <div class="theme-name">新就业形态 / 民生保障</div>
+        <div class="years">📅 2020、2023、2025 &nbsp;·&nbsp; 周期 2–3年</div>
+        <span class="pred-badge pred-maybe">★★☆ 可能考</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"><hr><span>答题模板</span><hr></div>
+
+  <!-- 答题模板 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">📋</div>
+      <div>
+        <h2>答题模板重现</h2>
+        <div class="sub">四大模块万能框架</div>
+      </div>
+    </div>
+    <div class="template-grid">
+      <div class="template-box">
+        <h4>📊 经济类大题</h4>
+        <ol>
+          <li><strong>理念：</strong>贯彻新发展理念（创新、协调、绿色、开放、共享）</li>
+          <li><strong>市场：</strong>发挥市场在资源配置中的决定性作用</li>
+          <li><strong>政府：</strong>科学的宏观调控，完善产业政策</li>
+          <li><strong>企业：</strong>提高自主创新能力，优化产品结构</li>
+          <li><strong>消费：</strong>满足人民日益增长的美好生活需要</li>
+          <li><strong>开放：</strong>融入双循环新发展格局</li>
+        </ol>
+      </div>
+      <div class="template-box">
+        <h4>🏛️ 政治类大题</h4>
+        <ol>
+          <li><strong>制度：</strong>坚持和完善中国特色社会主义制度</li>
+          <li><strong>主体：</strong>党领导、人大立法、政府履职、政协协商</li>
+          <li><strong>程序：</strong>坚持民主集中制，科学民主依法决策</li>
+          <li><strong>价值：</strong>保障人民当家作主，维护人民根本利益</li>
+          <li><strong>法治：</strong>推进国家治理体系和治理能力现代化</li>
+        </ol>
+      </div>
+      <div class="template-box">
+        <h4>🎭 文化类大题</h4>
+        <ol>
+          <li><strong>功能：</strong>引领风尚、教育人民、服务社会、推动发展</li>
+          <li><strong>传统：</strong>创造性转化、创新性发展</li>
+          <li><strong>自信：</strong>坚定文化自信，增强文化认同</li>
+          <li><strong>融合：</strong>文化与经济深度融合，文旅产业发展</li>
+          <li><strong>传播：</strong>讲好中国故事，增强国际影响力</li>
+        </ol>
+      </div>
+      <div class="template-box">
+        <h4>🧠 哲学类高频原理</h4>
+        <div class="phil-box" style="margin-top:0;padding:10px 12px;">
+          <h4>矛盾观 <span class="freq-chip freq-high">最高频</span></h4>
+          <ul>
+            <li>矛盾普遍性与特殊性辩证关系（试点→推广）</li>
+            <li>主次矛盾 / 矛盾主次方面</li>
+          </ul>
+        </div>
+        <div class="phil-box" style="padding:10px 12px;">
+          <h4>认识论 <span class="freq-chip freq-mid">次高频</span></h4>
+          <ul>
+            <li>实践是认识的基础（来源、动力、检验标准、目的）</li>
+            <li>认识的反复性、无限性、上升性</li>
+          </ul>
+        </div>
+        <div class="phil-box" style="padding:10px 12px;">
+          <h4>唯物论 <span class="freq-chip freq-norm">常考</span></h4>
+          <ul>
+            <li>物质与意识辩证关系（一切从实际出发）</li>
+            <li>规律客观性与主观能动性（生态治理）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"><hr><span>2026预测</span><hr></div>
+
+  <!-- 预测 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">🎯</div>
+      <div>
+        <h2>2026备考预测</h2>
+        <div class="sub">基于规律推演</div>
+      </div>
+    </div>
+    <div class="pred-grid">
+      <div class="pred-col">
+        <div class="pred-col-header pred-must-h">🔴 必考（概率 &gt;90%）</div>
+        <div class="pred-col-body">
+          <div class="pred-item">矛盾普遍性与特殊性辩证关系</div>
+          <div class="pred-item">实践是认识的基础</div>
+          <div class="pred-item">党的领导（中国式现代化）</div>
+          <div class="pred-item">文化自信与传统文化</div>
+          <div class="pred-item">新质生产力 / 高质量发展</div>
+        </div>
+      </div>
+      <div class="pred-col">
+        <div class="pred-col-header pred-likely-h">🟡 极可能考（70–90%）</div>
+        <div class="pred-col-body">
+          <div class="pred-item">全过程人民民主</div>
+          <div class="pred-item">基层治理创新</div>
+          <div class="pred-item">人工智能治理 / 数字经济</div>
+          <div class="pred-item">绿色低碳发展</div>
+          <div class="pred-item">乡村振兴（如2024未考透）</div>
+        </div>
+      </div>
+      <div class="pred-col">
+        <div class="pred-col-header pred-maybe-h">⚪ 关注时政（50–70%）</div>
+        <div class="pred-col-body">
+          <div class="pred-item">十五五规划相关内容</div>
+          <div class="pred-item">区域协调发展（西部大开发、东北振兴）</div>
+          <div class="pred-item">教育科技人才一体化</div>
+          <div class="pred-item">医药卫生体制改革</div>
+          <div class="pred-item">养老服务体系</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"><hr><span>备考建议</span><hr></div>
+
+  <!-- 备考建议 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">💡</div>
+      <div>
+        <h2>备考建议</h2>
+        <div class="sub">策略 · 方法 · 时间</div>
+      </div>
+    </div>
+    <div class="tips-grid">
+      <div class="tip-box">
+        <h4>✏️ 选择题策略</h4>
+        <ul>
+          <li>优先刷2018–2025真题，掌握"四选二"排除技巧</li>
+          <li>整理易混概念（政府职能≠党的作用，人大≠政协）</li>
+          <li>关注当年1–3月时政热点</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <h4>📝 大题策略</h4>
+        <ul>
+          <li>背诵4个万能答题框架</li>
+          <li>重点练习"矛盾观"和"认识论"原理应用</li>
+          <li>开放题准备3–5套通用建议模板</li>
+        </ul>
+      </div>
+      <div class="tip-box">
+        <h4>⏱️ 时间安排</h4>
+        <div class="time-table" style="margin-top:10px">
+          <div class="time-item">
+            <div class="label">选择题</div>
+            <div class="mins">20–25<span>分钟</span></div>
+          </div>
+          <div class="time-item">
+            <div class="label">第13题</div>
+            <div class="mins">15–18<span>分钟</span></div>
+          </div>
+          <div class="time-item">
+            <div class="label">第14题</div>
+            <div class="mins">12–15<span>分钟</span></div>
+          </div>
+          <div class="time-item">
+            <div class="label">第15题</div>
+            <div class="mins">20–25<span>分钟</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider"><hr><span>规律总结</span><hr></div>
+
+  <!-- 5个凡是 -->
+  <div class="card">
+    <div class="section-title">
+      <div class="icon">⚡</div>
+      <div>
+        <h2>规律总结：5个"凡是"</h2>
+        <div class="sub">考场黄金法则</div>
+      </div>
+    </div>
+    <ul class="rules-list">
+      <li>凡是考<strong>经济</strong>，必考"<strong>新发展理念 + 高质量发展</strong>"</li>
+      <li>凡是考<strong>政治</strong>，必考"<strong>制度优势 + 人民当家作主</strong>"</li>
+      <li>凡是考<strong>文化</strong>，必考"<strong>传统转化 + 文化自信</strong>"</li>
+      <li>凡是考<strong>哲学</strong>，必考"<strong>矛盾分析 + 实践观点</strong>"</li>
+      <li>凡是考<strong>时政</strong>，必考"<strong>当年中央重大决策</strong>"</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
