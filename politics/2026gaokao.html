@@ -1,943 +1,958 @@
 
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>高考政治真题规律总结 2018-2025</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --red: #c0392b;
-    --red-dark: #922b21;
-    --red-light: #f5b7b1;
-    --gold: #d4a017;
-    --gold-light: #f9e4a0;
-    --ink: #1a1a2e;
-    --ink-soft: #2d2d4e;
-    --paper: #fdf6ec;
-    --paper-dark: #f0e6d3;
-    --paper-mid: #f8f0e0;
-    --muted: #7a6a5a;
-    --border: #c8b89a;
-    --shadow: 0 4px 24px rgba(26,26,46,0.10);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--paper);
-    color: var(--ink);
-    font-family: 'Noto Sans SC', sans-serif;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-  }
-
-  /* Decorative background pattern */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(192,57,43,0.06) 39px, rgba(192,57,43,0.06) 40px),
-      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(192,57,43,0.04) 39px, rgba(192,57,43,0.04) 40px);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .page-wrap {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 40px 24px 80px;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* ─── HEADER ─── */
-  .header {
-    text-align: center;
-    margin-bottom: 52px;
-    position: relative;
-  }
-  .header::before, .header::after {
-    content: '';
-    display: block;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--red), var(--gold), var(--red), transparent);
-    margin: 0 auto;
-    width: 80%;
-  }
-  .header::before { margin-bottom: 28px; }
-  .header::after { margin-top: 28px; }
-
-  .header-badge {
-    display: inline-block;
-    background: var(--red);
-    color: #fff;
-    font-family: 'Noto Serif SC', serif;
-    font-size: 11px;
-    letter-spacing: 4px;
-    padding: 5px 18px;
-    border-radius: 2px;
-    margin-bottom: 16px;
-  }
-  .header h1 {
-    font-family: 'Noto Serif SC', serif;
-    font-size: clamp(26px, 4vw, 40px);
-    font-weight: 900;
-    color: var(--ink);
-    line-height: 1.3;
-  }
-  .header h1 span { color: var(--red); }
-  .header-sub {
-    margin-top: 10px;
-    color: var(--muted);
-    font-size: 14px;
-    letter-spacing: 2px;
-  }
-
-  /* ─── SECTION TITLES ─── */
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    margin-bottom: 22px;
-  }
-  .section-title .icon {
-    width: 40px; height: 40px;
-    background: var(--red);
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    box-shadow: 3px 3px 0 var(--red-dark);
-  }
-  .section-title h2 {
-    font-family: 'Noto Serif SC', serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--ink);
-  }
-  .section-title .sub {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  /* ─── CARDS ─── */
-  .card {
-    background: var(--paper-mid);
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 28px 28px 24px;
-    margin-bottom: 32px;
-    box-shadow: var(--shadow);
-    position: relative;
-    overflow: hidden;
-  }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 5px; height: 100%;
-    background: linear-gradient(180deg, var(--red), var(--gold));
-  }
-
-  /* ─── TABLE ─── */
-  .tbl-wrap { overflow-x: auto; }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-  }
-  thead tr {
-    background: var(--ink);
-    color: #fff;
-  }
-  thead th {
-    padding: 11px 14px;
-    font-family: 'Noto Serif SC', serif;
-    font-weight: 600;
-    text-align: left;
-    font-size: 13px;
-    letter-spacing: 1px;
-    white-space: nowrap;
-  }
-  tbody tr:nth-child(even) { background: rgba(208,186,160,0.15); }
-  tbody tr:hover { background: rgba(192,57,43,0.06); transition: background 0.2s; }
-  tbody td {
-    padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
-    color: var(--ink-soft);
-    line-height: 1.55;
-    vertical-align: middle;
-  }
-  tbody td:first-child {
-    font-weight: 700;
-    color: var(--red-dark);
-    white-space: nowrap;
-  }
-
-  /* Stars */
-  .stars { color: var(--gold); letter-spacing: 1px; font-size: 15px; }
-  .stars .dim { color: #ccc; }
-  .tag {
-    display: inline-block;
-    font-size: 11px;
-    padding: 1px 7px;
-    border-radius: 3px;
-    margin-left: 4px;
-    font-weight: 500;
-  }
-  .tag-every { background: #fdecea; color: var(--red); }
-  .tag-alt { background: #fef9e7; color: #9a7d0a; }
-  .tag-new { background: #eaf8f5; color: #1a7a5e; }
-  .tag-rotate { background: #eaf0f8; color: #1a5078; }
-
-  /* ─── TOP10 ─── */
-  .top10-list { list-style: none; }
-  .top10-list li {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px 0;
-    border-bottom: 1px dashed var(--border);
-  }
-  .top10-list li:last-child { border-bottom: none; }
-  .rank-badge {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Noto Serif SC', serif;
-    font-weight: 900;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-  .rank-1 { background: #c0392b; color: #fff; }
-  .rank-2 { background: #d4a017; color: #fff; }
-  .rank-3 { background: #7d6608; color: #fff; }
-  .rank-other { background: var(--paper-dark); color: var(--muted); border: 1.5px solid var(--border); }
-
-  .top10-info { flex: 1; }
-  .top10-info .name { font-weight: 700; font-size: 14px; color: var(--ink); }
-  .top10-info .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-
-  .freq-bar-wrap { width: 100px; flex-shrink: 0; }
-  .freq-bar {
-    height: 6px;
-    border-radius: 3px;
-    background: var(--paper-dark);
-    overflow: hidden;
-  }
-  .freq-bar-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--red), var(--gold));
-    transition: width 1s ease;
-  }
-  .freq-label { font-size: 11px; color: var(--muted); margin-top: 3px; text-align: right; }
-
-  /* ─── THEME CYCLE ─── */
-  .theme-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 14px;
-  }
-  .theme-card {
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    position: relative;
-  }
-  .theme-card .theme-name {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--ink);
-    margin-bottom: 6px;
-  }
-  .theme-card .years {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 8px;
-  }
-  .pred-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  .pred-must { background: #fdecea; color: var(--red); border: 1px solid var(--red-light); }
-  .pred-likely { background: #fef9e7; color: #9a7d0a; border: 1px solid #f0d080; }
-  .pred-maybe { background: #f0f0f0; color: #555; border: 1px solid #ccc; }
-
-  /* ─── TEMPLATES ─── */
-  .template-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
-  }
-  .template-box {
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .template-box h4 {
-    font-family: 'Noto Serif SC', serif;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--red);
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .template-box ol {
-    padding-left: 18px;
-  }
-  .template-box ol li {
-    font-size: 13px;
-    color: var(--ink-soft);
-    line-height: 1.8;
-  }
-  .template-box ol li strong { color: var(--red-dark); }
-
-  .phil-box {
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    margin-bottom: 12px;
-  }
-  .phil-box h4 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .freq-chip {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
-  }
-  .freq-high { background: #fdecea; color: var(--red); }
-  .freq-mid { background: #fef9e7; color: #9a7d0a; }
-  .freq-norm { background: #f0f0f0; color: #555; }
-  .phil-box ul { padding-left: 18px; }
-  .phil-box ul li { font-size: 13px; color: var(--ink-soft); line-height: 1.8; }
-
-  /* ─── PREDICTION ─── */
-  .pred-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 16px;
-  }
-  .pred-col {
-    background: var(--paper);
-    border-radius: 8px;
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-  }
-  .pred-col-header {
-    padding: 12px 16px;
-    font-family: 'Noto Serif SC', serif;
-    font-weight: 700;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    letter-spacing: 0.5px;
-  }
-  .pred-must-h { background: var(--red); color: #fff; }
-  .pred-likely-h { background: var(--gold); color: var(--ink); }
-  .pred-maybe-h { background: #5d6d7e; color: #fff; }
-  .pred-col-body { padding: 14px 16px; }
-  .pred-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 10px;
-    font-size: 13.5px;
-    color: var(--ink-soft);
-    line-height: 1.55;
-  }
-  .pred-item::before {
-    content: '□';
-    flex-shrink: 0;
-    color: var(--muted);
-  }
-
-  /* ─── TIPS ─── */
-  .tips-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-    gap: 16px;
-  }
-  .tip-box {
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 16px;
-  }
-  .tip-box h4 {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--ink);
-    margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .tip-box ul { padding-left: 18px; }
-  .tip-box ul li { font-size: 13px; line-height: 1.9; color: var(--ink-soft); }
-
-  /* ─── TIME TABLE ─── */
-  .time-table {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .time-item {
-    flex: 1;
-    min-width: 160px;
-    background: var(--paper);
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    text-align: center;
-  }
-  .time-item .label { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
-  .time-item .mins {
-    font-family: 'Noto Serif SC', serif;
-    font-size: 26px;
-    font-weight: 900;
-    color: var(--red);
-  }
-  .time-item .mins span { font-size: 13px; color: var(--muted); font-weight: 400; }
-
-  /* ─── FIVE RULES ─── */
-  .rules-list { list-style: none; counter-reset: rule; }
-  .rules-list li {
-    counter-increment: rule;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 14px 0;
-    border-bottom: 1px dashed var(--border);
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    line-height: 1.7;
-  }
-  .rules-list li:last-child { border-bottom: none; }
-  .rules-list li::before {
-    content: counter(rule);
-    width: 28px; height: 28px;
-    border-radius: 50%;
-    background: var(--red);
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Noto Serif SC', serif;
-    font-weight: 900;
-    font-size: 13px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .rules-list li strong { color: var(--red-dark); }
-
-  /* ─── BIG TOPIC TABLE ─── */
-  .big-topic-row td:nth-child(2) { font-weight: 600; color: var(--red-dark); }
-
-  /* Divider */
-  .section-divider {
-    display: flex; align-items: center; gap: 16px;
-    margin: 40px 0 32px;
-  }
-  .section-divider hr {
-    flex: 1; border: none;
-    border-top: 1.5px solid var(--border);
-  }
-  .section-divider span {
-    font-family: 'Noto Serif SC', serif;
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 3px;
-    white-space: nowrap;
-  }
-
-  @media (max-width: 600px) {
-    .card { padding: 18px 14px; }
-    thead th, tbody td { padding: 8px 10px; font-size: 13px; }
-    .template-grid, .theme-grid, .pred-grid, .tips-grid { grid-template-columns: 1fr; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高考政治命题规律与备考全景报告 (2018-2026)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .timeline-dot::before {
+            content: '';
+            position: absolute;
+            left: -0.35rem;
+            top: 0.4rem;
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            border: 2px solid white;
+        }
+    </style>
 </head>
-<body>
-<div class="page-wrap">
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="header-badge">备考资料</div>
-    <h1>高考政治真题<span>规律与重现性</span>总结</h1>
-    <div class="header-sub">2018 — 2025 · 八年规律 · 2026备考预测</div>
-  </div>
-
-  <!-- 选择题规律 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">✏️</div>
-      <div>
-        <h2>选择题规律</h2>
-        <div class="sub">12题 × 4分 = 48分</div>
-      </div>
+    <!-- Top Navigation for Mobile -->
+    <div class="lg:hidden bg-blue-900 text-white p-4 sticky top-0 z-50 shadow-md flex justify-between items-center">
+        <h1 class="text-lg font-bold truncate">高考政治全景报告</h1>
+        <button onclick="document.getElementById('sidebar').classList.toggle('hidden')" class="p-2 bg-blue-800 rounded">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
     </div>
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>题号</th>
-            <th>模块</th>
-            <th>考点规律</th>
-            <th>重现频率</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>1–2题</td><td>经济</td><td>劳动价值论 / 商品理论</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>2–3题</td><td>经济</td><td>企业经营 / 产业发展</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>3–4题</td><td>经济</td><td>宏观调控 / 财政货币</td><td><span class="stars">★★★★<span class="dim">☆</span></span> <span class="tag tag-alt">隔年</span></td></tr>
-          <tr><td>4–5题</td><td>政治</td><td>基层治理 / 政府职能</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>5–6题</td><td>政治</td><td>人大制度 / 立法过程</td><td><span class="stars">★★★★<span class="dim">☆</span></span> <span class="tag tag-rotate">轮换</span></td></tr>
-          <tr><td>6–7题</td><td>政治</td><td>政协 / 协商民主</td><td><span class="stars">★★★<span class="dim">☆☆</span></span> <span class="tag tag-rotate">轮换</span></td></tr>
-          <tr><td>7–8题</td><td>国际</td><td>国际关系 / 大国外交</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>8–9题</td><td>文化</td><td>传统文化 / 文化交流</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>9–10题</td><td>文化</td><td>文化创新 / 文化自信</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>10–11题</td><td>哲学</td><td>认识论 / 辩证法（矛盾）</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>11–12题</td><td>哲学</td><td>历史唯物主义 / 价值观</td><td><span class="stars">★★★★★</span> <span class="tag tag-every">每年</span></td></tr>
-          <tr><td>12题</td><td>逻辑 / 其他</td><td>逻辑推理（2023后新增）</td><td><span class="stars">★★★<span class="dim">☆☆</span></span> <span class="tag tag-new">新增</span></td></tr>
-        </tbody>
-      </table>
+
+    <div class="max-w-screen-2xl mx-auto flex flex-col lg:flex-row">
+        
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="hidden lg:block w-full lg:w-64 bg-white lg:h-screen lg:sticky lg:top-0 shadow-lg shrink-0 overflow-y-auto border-r border-slate-200 z-40 transition-all">
+            <div class="p-6 border-b border-slate-200 bg-blue-50">
+                <h2 class="text-2xl font-extrabold text-blue-900 tracking-tight">高考政治<br><span class="text-lg text-blue-700">全景解密与预测</span></h2>
+                <p class="text-xs text-slate-500 mt-2">基于2018-2025年真题汇编</p>
+            </div>
+            <nav class="p-4 space-y-1">
+                <a href="#summary" class="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">核心提要：总体规律</a>
+                <a href="#structure" class="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">结构化规律：选择题与大题</a>
+                <a href="#themes" class="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">7大核心主题：轮回与轨迹</a>
+                <a href="#cross-module" class="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">跨模块命题与转化路径</a>
+                <a href="#templates" class="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">高分保障：万能答题框架</a>
+                <a href="#prediction2026" class="block px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">2026年终极命题预测</a>
+                <a href="#mock-exam" class="block px-4 py-2.5 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">实战演练：2026模拟卷</a>
+                <a href="#strategy" class="block px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-colors">备考策略与时间规划</a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6 lg:p-12 lg:pl-16 xl:pr-32 overflow-hidden w-full">
+            
+            <header class="mb-12 border-b-2 border-blue-900 pb-8">
+                <h1 class="text-4xl lg:text-5xl font-black text-slate-900 leading-tight mb-4">高考政治真题规律与预测权威报告</h1>
+                <p class="text-xl text-slate-600 font-light">全息透视 2018-2025 年真题底层逻辑，锁定 2026 年命题靶心。</p>
+            </header>
+
+            <!-- SECTION: 核心提要 -->
+            <section id="summary" class="mb-16 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    核心提要：命题的底层逻辑
+                </h2>
+                
+                <div class="grid lg:grid-cols-2 gap-6">
+                    <!-- 5个凡是 -->
+                    <div class="bg-gradient-to-br from-blue-900 to-indigo-900 rounded-2xl p-8 text-white shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-20">
+                            <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-4 text-yellow-300">5个"凡是"（最高黄金准则）</h3>
+                        <ul class="space-y-4 text-lg font-medium relative z-10">
+                            <li class="flex"><span class="mr-2">①</span> 凡是考经济，必考 <strong>"新发展理念 + 高质量发展"</strong></li>
+                            <li class="flex"><span class="mr-2">②</span> 凡是考政治，必考 <strong>"制度优势 + 人民当家作主"</strong></li>
+                            <li class="flex"><span class="mr-2">③</span> 凡是考文化，必考 <strong>"传统转化 + 文化自信"</strong></li>
+                            <li class="flex"><span class="mr-2">④</span> 凡是考哲学，必考 <strong>"矛盾分析 + 实践观点"</strong></li>
+                            <li class="flex"><span class="mr-2">⑤</span> 凡是考时政，必考 <strong>"当年中央重大决策"</strong></li>
+                        </ul>
+                    </div>
+
+                    <!-- 总体轮动模式 -->
+                    <div class="bg-white rounded-2xl p-8 shadow-md border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-blue-900 border-b pb-2">总体轮动：选择题与大题的交互模式</h3>
+                        <p class="text-slate-600 mb-4 text-sm">高考政治命题存在明显的"选择题预热 → 大题深化"或"大题重点考查 → 选择题分散巩固"的轮动规律。</p>
+                        <ul class="space-y-3">
+                            <li class="p-3 bg-slate-50 rounded text-sm"><strong class="text-blue-700">【模式1】最常见：</strong> 选择题铺垫，2-3年后升级为大题</li>
+                            <li class="p-3 bg-slate-50 rounded text-sm"><strong class="text-blue-700">【模式2】巩固期：</strong> 大题深度考查后，1-2年后退居选择题巩固</li>
+                            <li class="p-3 bg-slate-50 rounded text-sm"><strong class="text-blue-700">【模式3】双轨并行：</strong> 同一热点话题在同一年份选择题和大题同时出现</li>
+                            <li class="p-3 bg-slate-50 rounded text-sm"><strong class="text-blue-700">【模式4】大题轮换：</strong> 大题内部模块轮换（经济→政治→文化→哲学的年度侧重）</li>
+                            <li class="p-3 bg-slate-50 rounded text-sm"><strong class="text-blue-700">【模式5】新教材特性：</strong> 新增模块呈现"由无到有、逐年加重"的固定化趋势</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 结构与考点分布 -->
+            <section id="structure" class="mb-16 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    结构化考点与高频分布
+                </h2>
+
+                <div class="grid xl:grid-cols-2 gap-8 mb-8">
+                    <!-- 选择题规律 -->
+                    <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-100 p-4 border-b border-slate-200 font-bold text-slate-700 flex justify-between">
+                            <span>【选择题规律】 12题 × 4分 = 48分</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-slate-50 text-slate-600">
+                                    <tr><th class="p-3 border-b">题号</th><th class="p-3 border-b">模块</th><th class="p-3 border-b">考点规律</th><th class="p-3 border-b">重现频率</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">1-2题</td><td class="p-3 text-blue-700">经济</td><td class="p-3">劳动价值论/商品理论</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">2-3题</td><td class="p-3 text-blue-700">经济</td><td class="p-3">企业经营/产业发展</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">3-4题</td><td class="p-3 text-blue-700">经济</td><td class="p-3">宏观调控/财政货币</td><td class="p-3 text-yellow-500">★★★★☆ (隔年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">4-5题</td><td class="p-3 text-red-700">政治</td><td class="p-3">基层治理/政府职能</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">5-6题</td><td class="p-3 text-red-700">政治</td><td class="p-3">人大制度/立法过程</td><td class="p-3 text-yellow-500">★★★★☆ (轮换)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">6-7题</td><td class="p-3 text-red-700">政治</td><td class="p-3">政协/协商民主</td><td class="p-3 text-yellow-500">★★★☆☆ (轮换)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">7-8题</td><td class="p-3 text-purple-700">国际</td><td class="p-3">国际关系/大国外交</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">8-9题</td><td class="p-3 text-emerald-700">文化</td><td class="p-3">传统文化/文化交流</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">9-10题</td><td class="p-3 text-emerald-700">文化</td><td class="p-3">文化创新/文化自信</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">10-11题</td><td class="p-3 text-indigo-700">哲学</td><td class="p-3">认识论/辩证法(矛盾)</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="border-b hover:bg-slate-50"><td class="p-3 font-medium">11-12题</td><td class="p-3 text-indigo-700">哲学</td><td class="p-3">历史唯物主义/价值观</td><td class="p-3 text-yellow-500">★★★★★ (每年)</td></tr>
+                                    <tr class="hover:bg-slate-50"><td class="p-3 font-medium">12题</td><td class="p-3 text-slate-700">逻辑/其他</td><td class="p-3">逻辑推理(2023后新增)</td><td class="p-3 text-yellow-500">★★★☆☆ (新增)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- 大题规律 -->
+                        <div class="bg-white rounded-xl shadow border border-slate-200 overflow-hidden">
+                            <div class="bg-slate-100 p-4 border-b border-slate-200 font-bold text-slate-700">
+                                【大题规律】 3大题 × (14+12+26分) = 52分
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="bg-slate-50 text-slate-600">
+                                        <tr><th class="p-3 border-b">题号</th><th class="p-3 border-b">分值</th><th class="p-3 border-b">模块组合</th><th class="p-3 border-b">设问类型</th><th class="p-3 border-b">材料主题</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b"><td class="p-3 font-bold">第13题</td><td class="p-3">14分</td><td class="p-3 text-blue-700">经济</td><td class="p-3 text-slate-600">原因/意义/措施</td><td class="p-3">产业/企业</td></tr>
+                                        <tr class="border-b"><td class="p-3 font-bold">第14题</td><td class="p-3">12分</td><td class="p-3 text-red-700">政治/法治</td><td class="p-3 text-slate-600">体现/说明/评析</td><td class="p-3">制度/治理</td></tr>
+                                        <tr><td class="p-3 font-bold">第15题</td><td class="p-3">26分</td><td class="p-3 text-indigo-700">文化(10)+哲学(10)+开放(6)</td><td class="p-3 text-slate-600">意义+原理+建议</td><td class="p-3">文化/改革</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- 材料主题轮回周期预测 -->
+                        <div class="bg-orange-50 rounded-xl shadow border border-orange-200 p-6">
+                            <h3 class="font-bold text-orange-900 mb-4 text-lg">材料主题轮回周期与预测</h3>
+                            <ul class="space-y-3 text-sm text-slate-800">
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>农村改革/乡村振兴 <span class="text-xs text-slate-500">(2018, 2021, 2024 / 周期3年)</span></span> <span class="font-bold text-orange-600">★★★ 可能考</span></li>
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>宪法/法治建设 <span class="text-xs text-slate-500">(2018, 2020, 2023 / 周期3-4年)</span></span> <span class="font-bold text-orange-600">★★☆ 可能轮换</span></li>
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>对外开放/一带一路 <span class="text-xs text-slate-500">(2019, 2022, 2025 / 周期3年)</span></span> <span class="font-bold text-orange-600">★★★ 2026可能轮换</span></li>
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>传统文化保护 <span class="text-xs text-slate-500">(2020, 2023, 2024 / 周期2-3年)</span></span> <span class="font-bold text-orange-600">★★☆ 2026可能考</span></li>
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>生态/绿色发展 <span class="text-xs text-slate-500">(2022, 2024, 2025 / 周期1-2年)</span></span> <span class="font-bold text-red-600">★★★ 持续关注</span></li>
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>科技创新/新质生产力 <span class="text-xs text-slate-500">(2022, 2024, 2025 / 周期1-2年)</span></span> <span class="font-bold text-red-600">★★★ 必考</span></li>
+                                <li class="flex justify-between border-b border-orange-200 pb-2"><span>全过程人民民主 <span class="text-xs text-slate-500">(2023, 2024, 2025 / 周期每年)</span></span> <span class="font-bold text-red-600">★★★ 必考</span></li>
+                                <li class="flex justify-between pb-1"><span>新就业形态/民生保障 <span class="text-xs text-slate-500">(2020, 2023, 2025 / 周期2-3年)</span></span> <span class="font-bold text-orange-600">★★☆ 可能考</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOP 10 知识点 -->
+                <div class="bg-white rounded-xl shadow border border-slate-200 p-6 mb-8">
+                    <h3 class="font-bold text-slate-800 mb-4 text-xl border-l-4 border-blue-500 pl-3">【高频重现知识点 TOP 10】</h3>
+                    <div class="grid md:grid-cols-2 gap-x-8 gap-y-4">
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded text-red-900 border border-red-100">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-red-600 text-white text-xs flex items-center justify-center mr-3">1</span><span class="font-bold">矛盾普遍性与特殊性辩证关系</span></div>
+                            <div class="text-xs text-right">8年/8年<br><span class="text-red-600 font-bold">选择+大题</span></div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-red-50 rounded text-red-900 border border-red-100">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-red-500 text-white text-xs flex items-center justify-center mr-3">2</span><span class="font-bold">实践是认识的基础</span></div>
+                            <div class="text-xs text-right">7年/8年<br><span class="text-red-600 font-bold">选择+大题</span></div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-orange-50 rounded text-orange-900 border border-orange-100">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center mr-3">3</span><span class="font-bold">党的领导与党的建设</span></div>
+                            <div class="text-xs text-right">8年/8年<br><span class="text-orange-600 font-bold">选择+大题</span></div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-orange-50 rounded text-orange-900 border border-orange-100">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-orange-400 text-white text-xs flex items-center justify-center mr-3">4</span><span class="font-bold">文化的作用与文化自信</span></div>
+                            <div class="text-xs text-right">7年/8年<br><span class="text-orange-600 font-bold">选择+大题</span></div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded text-blue-900 border border-blue-100">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center mr-3">5</span><span class="font-bold">价值判断与价值选择</span></div>
+                            <div class="text-xs text-right">6年/8年<br><span class="text-blue-600 font-bold">选择+大题</span></div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded text-blue-900 border border-blue-100">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-blue-400 text-white text-xs flex items-center justify-center mr-3">6</span><span class="font-bold">企业经营与发展</span></div>
+                            <div class="text-xs text-right">6年/8年<br><span class="text-blue-600 font-bold">选择+大题</span></div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded text-slate-700 border border-slate-200">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-slate-400 text-white text-xs flex items-center justify-center mr-3">7</span><span class="font-bold">政府职能与依法行政</span></div>
+                            <div class="text-xs text-right">6年/8年<br>选择题为主</div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded text-slate-700 border border-slate-200">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-slate-400 text-white text-xs flex items-center justify-center mr-3">8</span><span class="font-bold">传统文化创造性转化</span></div>
+                            <div class="text-xs text-right">5年/8年<br>大题为主</div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded text-slate-700 border border-slate-200">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-slate-400 text-white text-xs flex items-center justify-center mr-3">9</span><span class="font-bold">人大制度与立法过程</span></div>
+                            <div class="text-xs text-right">5年/8年<br>大题为主</div>
+                        </div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded text-slate-700 border border-slate-200">
+                            <div class="flex items-center"><span class="w-6 h-6 rounded-full bg-slate-400 text-white text-xs flex items-center justify-center mr-3">10</span><span class="font-bold">国际关系与外交政策</span></div>
+                            <div class="text-xs text-right">5年/8年<br>选择题为主</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 7大核心主题 -->
+            <section id="themes" class="mb-16 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    七大核心热点主题：轮回与轨迹分析
+                </h2>
+                
+                <!-- 1. 乡村振兴 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-xl font-bold text-green-700 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span>（一）乡村振兴 / 三农问题</span>
+                        <span class="text-sm font-normal bg-green-100 text-green-800 px-3 py-1 rounded-full">最典型的"大题↔选择题"交替规律</span>
+                    </h3>
+                    <div class="pl-4 border-l-2 border-green-200 ml-2 space-y-4 relative">
+                        <div class="timeline-dot"><strong class="text-slate-800">2018年（大题）：</strong> 小岗村农村改革（生产力与生产关系辩证关系）</div>
+                        <div class="timeline-dot"><strong class="text-slate-800">2019年（大题）：</strong> 传统村落保护与乡村振兴</div>
+                        <div class="timeline-dot"><strong class="text-slate-800">2020年（大题）：</strong> "四会管村"村民自治机制（乡村振兴中的基层治理）</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2021年（选择）：</strong> 中央一号文件、农村公共基础设施建设</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2022年（选择）：</strong> 粮食安全、中央一号文件、美丽乡村建设</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2023年（选择）：</strong> "村BA"乡村球赛、乡村文化生活</div>
+                        <div class="timeline-dot"><strong class="text-slate-800">2024年（大题）：</strong> 大南坡村"美学经济"赋能乡村振兴（文化功能+辩证思维）</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2025年（选择）：</strong> 乡村振兴"党建链"串联"产业链"模式</div>
+                    </div>
+                    <div class="mt-6 bg-slate-50 p-4 rounded-lg text-sm text-slate-700">
+                        <p class="font-bold text-slate-900 mb-2">💡 规律与启示：</p>
+                        2018-2020年连续三年大题深度考查（改革动力→文化保护→治理机制），随后2021-2023年退居选择题进行碎片化巩固。2024年以更高维度"美学赋能+文化产业"强势回归大题。<br>
+                        <strong class="text-red-600">备考启示：</strong>当一个热点连续2-3年出现在大题后，通常转向选择题1-2年，随后以更新视角回归。关注该热点的"升级版表述"。
+                    </div>
+                </div>
+
+                <!-- 2. 消费 / 扩大内需 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span>（二）消费 / 扩大内需 / 进博会</span>
+                        <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">"选择→大题→选择"的完整周期</span>
+                    </h3>
+                    <div class="pl-4 border-l-2 border-blue-200 ml-2 space-y-4 relative">
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2018年（选择）：</strong> 消费和投资对经济增长贡献率</div>
+                        <div class="timeline-dot"><strong class="text-slate-800">2019年（大题）：</strong> 进博会、中国扩大进口对国内经济的积极影响</div>
+                        <div class="timeline-dot"><strong class="text-slate-800">2020年（大题）：</strong> 消费变化对我国生产的影响（第二届进博会背景）</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2023年（选择）：</strong> 消费补贴、供需曲线移动</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2024年（选择）：</strong> 促进消费增长举措、消费品"以旧换新"</div>
+                        <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2025年（选择）：</strong> 消费品以旧换新提高生活品质（新年贺词背景）</div>
+                    </div>
+                    <div class="mt-6 bg-slate-50 p-4 rounded-lg text-sm text-slate-700">
+                        <p class="font-bold text-slate-900 mb-2">💡 规律与启示：</p>
+                        2019-2020结合进博会连续大题考查，随后由于疫情出现空窗期。2023-2025随着"扩内需"战略密集回归选择题，"以旧换新"成为新表述。<br>
+                        <strong class="text-red-600">备考启示：</strong>重大国家战略有2-3年周期，大题通常在落地第一年或重大会议当年出现，之后持续跟踪。当前表述预示极可能再次升级大题。
+                    </div>
+                </div>
+
+                <!-- 3. 对外开放 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-xl font-bold text-indigo-700 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span>（三）对外开放 / 一带一路 / 国际经济</span>
+                        <span class="text-sm font-normal bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full">清晰的"选择题→大题"升级路径</span>
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="pl-4 border-l-2 border-indigo-200 ml-2 space-y-3 relative text-sm">
+                            <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2019年（选择）：</strong> "一带一路"国际合作高峰论坛</div>
+                            <div class="timeline-dot text-slate-500"><strong class="text-slate-600">2020年（选择）：</strong> CIPS、企业"跨界"生产</div>
+                            <div class="timeline-dot"><strong class="text-slate-800">2021年（大题）：</strong> 涉外领域立法（法治保障）</div>
+                        </div>
+                        <div class="pl-4 border-l-2 border-indigo-200 ml-2 space-y-3 relative text-sm">
+                            <div class="timeline-dot"><strong class="text-slate-800">2022年（大题）：</strong> 扩大高水平对外开放重要性</div>
+                            <div class="timeline-dot"><strong class="text-slate-800">2024年（大题）：</strong> 西部陆海新通道建设（经济全球化）</div>
+                            <div class="timeline-dot"><strong class="text-slate-800">2025年（大题）：</strong> 周边命运共同体（空间深化）</div>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-sm text-slate-600 p-3 bg-slate-50 rounded">
+                        <strong class="text-red-600">启示：</strong>从点状知识（选择题）向深度的"为什么/怎么办"（大题）演变。24-25年从全国层面深入到区域层面。选择题连考两年后，第三年极可能大题。
+                    </div>
+                </div>
+
+                <!-- 4. 科技创新 / 企业 / 数字经济 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-xl font-bold text-purple-700 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span>（四）科技创新 / 企业发展 / 数字经济</span>
+                        <span class="text-sm font-normal bg-purple-100 text-purple-800 px-3 py-1 rounded-full">2-3年一轮的"选择→大题"周期</span>
+                    </h3>
+                    <div class="space-y-2 mb-4 text-sm">
+                        <div class="flex items-center"><span class="w-24 font-bold shrink-0">企业管理：</span> <span class="text-slate-500">2018（选择：供应链）</span> <span class="mx-2 text-purple-500">→</span> <span class="font-bold text-slate-800">2021（大题：垂直整合到供应链开放）</span></div>
+                        <div class="flex items-center"><span class="w-24 font-bold shrink-0">数字数据：</span> <span class="text-slate-500">2020（选择：数据要素）</span> <span class="mx-2 text-purple-500">→</span> <span class="text-slate-500">2024（选择：数字政府）</span> <span class="mx-2 text-purple-500">→</span> <span class="font-bold text-slate-800">2025（大题：科创法治）</span></div>
+                        <div class="flex items-center"><span class="w-24 font-bold shrink-0">科技赋能：</span> <span class="text-slate-500">2022（选择：研发加计扣除）</span> <span class="mx-2 text-purple-500">→</span> <span class="font-bold text-slate-800">2023（大题：服务机器人与就业）</span></div>
+                    </div>
+                    <div class="text-sm text-slate-600 p-3 bg-slate-50 rounded">科技和经济交叉领域是命题升级高发区。选择题出现的新鲜材料，往往是大题的"试验田"。</div>
+                </div>
+
+                <!-- 5. 传统文化 -->
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+                    <h3 class="text-xl font-bold text-orange-700 mb-4 border-b pb-2 flex items-center justify-between">
+                        <span>（五）传统文化 / 文化遗产 / 文化自信</span>
+                        <span class="text-sm font-normal bg-orange-100 text-orange-800 px-3 py-1 rounded-full">交替出现、螺旋上升</span>
+                    </h3>
+                    <div class="flex flex-wrap gap-2 text-sm mb-4">
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded">2018 (选择)</span> <span class="text-orange-500 font-bold">→</span>
+                        <span class="bg-orange-100 text-orange-800 font-bold px-3 py-1 rounded border border-orange-300">2019 (大题：村落保护)</span> <span class="text-orange-500 font-bold">→</span>
+                        <span class="bg-orange-100 text-orange-800 font-bold px-3 py-1 rounded border border-orange-300">2020 (大题：中医药抗疫)</span> <span class="text-orange-500 font-bold">→</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded">2022 (选择)</span> <span class="text-orange-500 font-bold">→</span>
+                        <span class="bg-orange-100 text-orange-800 font-bold px-3 py-1 rounded border border-orange-300">2023 (大题：辩证否定创新)</span> <span class="text-orange-500 font-bold">→</span>
+                        <span class="bg-orange-100 text-orange-800 font-bold px-3 py-1 rounded border border-orange-300">2024 (大题：哲学实际出发)</span> <span class="text-orange-500 font-bold">→</span>
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded">2025 (选择：抗战文物/音乐)</span>
+                    </div>
+                    <div class="text-sm text-slate-600 p-3 bg-slate-50 rounded"><strong class="text-red-600">启示：</strong>具有"隔年大题"稳定性。大题越来越强调哲学思维（辩证否定、一切从实际出发）与文化生活的深度融合捆绑。</div>
+                </div>
+
+                <!-- 6. 党建 / 基层 / 新教材 -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-bold text-red-700 mb-3 border-b pb-2">（六）党建 / 基层治理 / 民主政治</h3>
+                        <p class="text-sm font-semibold text-slate-500 mb-3">常驻选择题考点，关键年份升级</p>
+                        <ul class="text-sm space-y-2 text-slate-700 list-disc pl-4 mb-4">
+                            <li><strong>每年覆盖：</strong> 2018-2025年均有选择题涉及（如2024社区党建，2025人大"流动茶馆"）。</li>
+                            <li><strong>事件驱动大题：</strong> 仅在2020考查"四会管村"村民自治（呼应乡村振兴意见强调自治）。</li>
+                        </ul>
+                        <div class="bg-red-50 p-2 rounded text-xs text-red-800">
+                            <strong>警惕：</strong> 连续两年未出大题但选择题高密度，极可能以"全过程人民民主"回归大题。
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+                        <h3 class="text-lg font-bold text-teal-700 mb-3 border-b pb-2">（七）法律与生活 (新教材)</h3>
+                        <p class="text-sm font-semibold text-slate-500 mb-3">从无到有、快速固化</p>
+                        <ul class="text-sm space-y-2 text-slate-700 list-disc pl-4 mb-4">
+                            <li><strong>2024年（大题首秀）：</strong> 相邻关系纠纷（甲乙宅基地）。</li>
+                            <li><strong>2025年（大题深化）：</strong> 新就业形态劳动者权益保障+侵权隐含，深度明显加强。</li>
+                        </ul>
+                        <div class="bg-teal-50 p-2 rounded text-xs text-teal-800">
+                            <strong>启示：</strong> 新模块前1-2年通常以大题"试水"立威，无观望期，固定化速度极快。
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 跨模块命题与转化路径 -->
+            <section id="cross-module" class="mb-16 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    跨模块命题与具体转化路径
+                </h2>
+
+                <div class="grid lg:grid-cols-2 gap-8">
+                    <!-- 跨模块分布规律 -->
+                    <div class="bg-slate-800 text-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-yellow-400 mb-4 border-b border-slate-600 pb-2">大题模块年度侧重演变</h3>
+                        <div class="space-y-3 text-sm font-light text-slate-300">
+                            <p><strong class="text-white">【经济生活】</strong> 几乎年年必考，角度从"宏观政策"向"微观企业"和"国际经济"延伸。</p>
+                            <p><strong class="text-white">【政治生活】</strong> 从"国内民主"向"国际政治经济"、"法治建设"扩展。</p>
+                            <p><strong class="text-white">【文化+哲学】</strong> 往往"捆绑出现"（同一材料分两问），跨模块融合是显著趋势。</p>
+                            <p><strong class="text-white">【模块变局】</strong> 2024-2025年，法律与生活加入，大题格局从传统的"3+1"演变为"4+1"。2025年呈现：政治(周边+法治) + 哲学(文化遗产) + 经济(劳动者) + 法律(新就业形态)。</p>
+                            <div class="mt-4 p-3 bg-slate-700 rounded border border-slate-600">
+                                <strong class="text-yellow-300 block mb-1">🔥 双轨并行（同年双保险考查）：</strong>
+                                2020年（数据要素/CIPS选择 + 消费生产大题）；2022年（粮食社区选择 + PPI剪刀差大题）；2024年（党纪数字选择 + 生态人大美学大题）。重大年份往往双轨覆盖。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 转化路径分析 -->
+                    <div class="bg-white rounded-xl shadow border border-slate-200 p-6">
+                        <h3 class="text-xl font-bold text-slate-800 mb-4 border-b pb-2">选择题知识点 → 大题转化路径</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded text-xs mr-3 mt-0.5">路径1</span>
+                                <div class="text-sm text-slate-700"><strong>具体政策 → 政策效应：</strong> 2018选择(大数据管理局职能) → 2024大题(数字政府建设/科创生态法治化)</div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded text-xs mr-3 mt-0.5">路径2</span>
+                                <div class="text-sm text-slate-700"><strong>图表数据 → 信息解读：</strong> 2018选择(消费投资图) → 2020大题(最终消费图) / 2022大题(PPI剪刀差图)</div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded text-xs mr-3 mt-0.5">路径3</span>
+                                <div class="text-sm text-slate-700"><strong>企业案例 → 转型分析：</strong> 2018选择(供应链管理) → 2021大题(甲企业供应链开放转型)</div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded text-xs mr-3 mt-0.5">路径4</span>
+                                <div class="text-sm text-slate-700"><strong>基层创新 → 机制分析：</strong> 2018选择(乡镇服务能力) → 2020大题("四会管村"村民自治)</div>
+                            </div>
+                            <div class="flex items-start">
+                                <span class="bg-blue-100 text-blue-800 font-bold px-2 py-1 rounded text-xs mr-3 mt-0.5">路径5</span>
+                                <div class="text-sm text-slate-700"><strong>文化现象 → 哲学分析：</strong> 2022选择(村BA) → 2024大题(美学赋能乡村振兴的文化功能+辩证思维)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 万能答题模板 -->
+            <section id="templates" class="mb-16 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    高分保障：万能答题框架重现
+                </h2>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <!-- 经济类 -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                        <h3 class="font-bold text-blue-900 text-lg mb-3 flex items-center"><span class="bg-blue-200 text-blue-800 px-2 py-0.5 rounded text-sm mr-2">框架1</span> 经济类大题</h3>
+                        <ul class="space-y-2 text-sm text-slate-700">
+                            <li><strong class="text-blue-800">① 理论：</strong> 贯彻新发展理念（创新、协调、绿色、开放、共享）</li>
+                            <li><strong class="text-blue-800">② 市场：</strong> 发挥市场在资源配置中的决定性作用</li>
+                            <li><strong class="text-blue-800">③ 政府：</strong> 科学的宏观调控，完善产业政策</li>
+                            <li><strong class="text-blue-800">④ 企业：</strong> 提高自主创新能力，优化产品结构</li>
+                            <li><strong class="text-blue-800">⑤ 消费：</strong> 满足人民日益增长的美好生活需要</li>
+                            <li><strong class="text-blue-800">⑥ 开放：</strong> 融入双循环新发展格局</li>
+                        </ul>
+                    </div>
+
+                    <!-- 政治类 -->
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-5">
+                        <h3 class="font-bold text-red-900 text-lg mb-3 flex items-center"><span class="bg-red-200 text-red-800 px-2 py-0.5 rounded text-sm mr-2">框架2</span> 政治类大题</h3>
+                        <ul class="space-y-2 text-sm text-slate-700">
+                            <li><strong class="text-red-800">① 制度：</strong> 坚持和完善中国特色社会主义制度</li>
+                            <li><strong class="text-red-800">② 主体：</strong> 党领导、人大立法、政府履职、政协协商</li>
+                            <li><strong class="text-red-800">③ 程序：</strong> 坚持民主集中制，科学民主依法决策</li>
+                            <li><strong class="text-red-800">④ 价值：</strong> 保障人民当家作主，维护人民根本利益</li>
+                            <li><strong class="text-red-800">⑤ 法治：</strong> 推进国家治理体系和治理能力现代化</li>
+                        </ul>
+                    </div>
+
+                    <!-- 文化类 -->
+                    <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-5">
+                        <h3 class="font-bold text-emerald-900 text-lg mb-3 flex items-center"><span class="bg-emerald-200 text-emerald-800 px-2 py-0.5 rounded text-sm mr-2">框架3</span> 文化类大题</h3>
+                        <ul class="space-y-2 text-sm text-slate-700">
+                            <li><strong class="text-emerald-800">① 功能：</strong> 引领风尚、教育人民、服务社会、推动发展</li>
+                            <li><strong class="text-emerald-800">② 传统：</strong> 创造性转化、创新性发展</li>
+                            <li><strong class="text-emerald-800">③ 自信：</strong> 坚定文化自信，增强文化认同</li>
+                            <li><strong class="text-emerald-800">④ 融合：</strong> 文化与经济深度融合，文旅产业发展</li>
+                            <li><strong class="text-emerald-800">⑤ 传播：</strong> 讲好中国故事，增强国际影响力</li>
+                        </ul>
+                    </div>
+
+                    <!-- 哲学类 -->
+                    <div class="bg-purple-50 border border-purple-200 rounded-lg p-5">
+                        <h3 class="font-bold text-purple-900 text-lg mb-3 flex items-center"><span class="bg-purple-200 text-purple-800 px-2 py-0.5 rounded text-sm mr-2">框架4</span> 哲学高频原理</h3>
+                        <ul class="space-y-3 text-sm text-slate-700">
+                            <li><strong class="text-purple-800 block">★ 矛盾观（最高频）：</strong> 矛盾普遍性与特殊性（试点推广）；主次矛盾/方面（两点论与重点论）</li>
+                            <li><strong class="text-purple-800 block">★ 认识论（次高频）：</strong> 实践是认识的基础；认识的反复性/无限性/上升性</li>
+                            <li><strong class="text-purple-800 block">★ 唯物论：</strong> 物质与意识（一切从实际出发）；规律客观性与主观能动性</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 2026年终极预测 -->
+            <section id="prediction2026" class="mb-16 scroll-mt-24">
+                <div class="bg-red-700 text-white p-8 rounded-2xl shadow-xl">
+                    <h2 class="text-3xl font-black mb-6 flex items-center border-b border-red-500 pb-4">
+                        <svg class="w-10 h-10 mr-3 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        【终极决战】 2026年高考政治命题热点全景预测
+                    </h2>
+
+                    <!-- 大题预测 TOP 6 -->
+                    <div class="mb-10">
+                        <h3 class="text-2xl font-bold text-yellow-300 mb-6 px-4 border-l-4 border-yellow-300">大题核心热点预测 (Top 6)</h3>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            
+                            <!-- 预测1 -->
+                            <div class="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/20">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-xl font-bold text-white">长征精神与革命文化传承</h4>
+                                    <span class="bg-red-900 text-yellow-300 text-xs font-bold px-2 py-1 rounded">极高 ★★★★★</span>
+                                </div>
+                                <div class="text-xs text-red-200 mb-2">【文化/哲学】时政背景：2026年是红军长征胜利90周年。逢十周年必考。</div>
+                                <div class="text-sm font-light">
+                                    <strong>考法：</strong>红色旅游/文物保护（文化功能/传承创新）；青年走好新长征（社会意识相对独立性/价值观导向）。
+                                    <div class="mt-1 text-red-300">轮动：2025仅以选择题(抗战文物)出现，极大概率升大题。</div>
+                                </div>
+                            </div>
+
+                            <!-- 预测2 -->
+                            <div class="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/20">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-xl font-bold text-white">全过程人民民主的生动实践</h4>
+                                    <span class="bg-red-900 text-yellow-300 text-xs font-bold px-2 py-1 rounded">极高 ★★★★★</span>
+                                </div>
+                                <div class="text-xs text-red-200 mb-2">【政治生活】时政背景：二十大核心要求。</div>
+                                <div class="text-sm font-light">
+                                    <strong>考法：</strong>立法联络站+民意平台（广泛/真实/管用）；人大代表履职（制度优势）。
+                                    <div class="mt-1 text-red-300">轮动：连续3年高密选择题(社区党建, 流动茶馆)，回归大题时机成熟。</div>
+                                </div>
+                            </div>
+
+                            <!-- 预测3 -->
+                            <div class="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/20">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-xl font-bold text-white">新质生产力与高质量发展</h4>
+                                    <span class="bg-red-800 text-yellow-200 text-xs font-bold px-2 py-1 rounded">高 ★★★★☆</span>
+                                </div>
+                                <div class="text-xs text-red-200 mb-2">【经济生活】时政背景："十五五"谋划与落地检阅。</div>
+                                <div class="text-sm font-light">
+                                    <strong>考法：</strong>数字化转型/新兴产业（现代化经济体系）；营商环境保护（激发创新）。
+                                    <div class="mt-1 text-red-300">轮动：数字经济/科创从20-25持续预热，可能深化为经济核心大题。</div>
+                                </div>
+                            </div>
+
+                            <!-- 预测4 -->
+                            <div class="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/20">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-xl font-bold text-white">人工智能治理与科技伦理</h4>
+                                    <span class="bg-red-800 text-yellow-200 text-xs font-bold px-2 py-1 rounded">高 ★★★★☆</span>
+                                </div>
+                                <div class="text-xs text-red-200 mb-2">【政治/法律/哲学】时政背景：大模型与数据安全全球升温。</div>
+                                <div class="text-sm font-light">
+                                    <strong>考法：</strong>AI治理法规（法治政府）；AI侵权纠纷（法律责任）；科技伦理（矛盾分析/价值判断）。
+                                </div>
+                            </div>
+
+                            <!-- 预测5 -->
+                            <div class="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/20">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-xl font-bold text-white">《民营经济促进法》与营商</h4>
+                                    <span class="bg-red-700 text-yellow-100 text-xs font-bold px-2 py-1 rounded">中高 ★★★☆☆</span>
+                                </div>
+                                <div class="text-xs text-red-200 mb-2">【经济/政治】时政背景：立法落地首年。</div>
+                                <div class="text-sm font-light">
+                                    <strong>考法：</strong>破除准入壁垒（市场经济意义）；法治保障民营（政府职能/依法治国）。
+                                </div>
+                            </div>
+
+                            <!-- 预测6 -->
+                            <div class="bg-white/10 backdrop-blur rounded-xl p-5 border border-white/20">
+                                <div class="flex justify-between items-start mb-2">
+                                    <h4 class="text-xl font-bold text-white">铸牢中华民族共同体意识</h4>
+                                    <span class="bg-red-700 text-yellow-100 text-xs font-bold px-2 py-1 rounded">中高 ★★★☆☆</span>
+                                </div>
+                                <div class="text-xs text-red-200 mb-2">【政治/文化】轮动背景：连续5年未以大题深考。</div>
+                                <div class="text-sm font-light">
+                                    <strong>考法：</strong>民族地区振兴/非遗传承（共同体意义）；促进共同繁荣（区域自治制度）。
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 预测概率清单 -->
+                    <div class="grid lg:grid-cols-3 gap-6 mb-8 bg-white text-slate-800 p-6 rounded-xl">
+                        <div>
+                            <h4 class="font-bold text-red-700 mb-3 border-b-2 border-red-200 pb-1">必考（概率 > 90%）</h4>
+                            <ul class="text-sm space-y-2 font-medium">
+                                <li class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> 矛盾普遍性与特殊性辩证关系</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> 实践是认识的基础</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> 党的领导（中国式现代化）</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> 文化自信与传统文化</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-red-500 rounded-full mr-2"></span> 新质生产力/高质量发展</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-orange-600 mb-3 border-b-2 border-orange-200 pb-1">极可能考（概率 70-90%）</h4>
+                            <ul class="text-sm space-y-2 font-medium">
+                                <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span> 全过程人民民主</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span> 基层治理创新</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span> 人工智能治理/数字经济</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span> 绿色低碳发展</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-orange-500 rounded-full mr-2"></span> 乡村振兴 (若2024未考透)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-blue-600 mb-3 border-b-2 border-blue-200 pb-1">关注时政（概率 50-70%）</h4>
+                            <ul class="text-sm space-y-2 font-medium">
+                                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 十五五规划相关内容</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 区域协调发展（西部大开发）</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 教育科技人才一体化</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 医药卫生体制改革</li>
+                                <li class="flex items-center"><span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span> 养老服务体系</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 选择题 10 大热点 & 模块分布 -->
+                    <div class="grid lg:grid-cols-2 gap-8 text-white">
+                        <div>
+                            <h3 class="text-xl font-bold text-yellow-300 mb-4 border-l-4 border-yellow-300 px-3">2026 选择题 10 大热点</h3>
+                            <div class="bg-red-800 rounded p-4 text-sm font-light space-y-2 h-full">
+                                <p><strong class="text-white">巩固25年考点：</strong> 1.新就业形态维权；2.周边外交与命运共同体。</p>
+                                <p><strong class="text-white">延续24/25高频：</strong> 3.党建引领基层机制；4.数字政府与智慧城市；5.扩大内需与消费升级(银发/数字)。</p>
+                                <p><strong class="text-white">新时政热点：</strong> 6."十五五"规划编制与民主参与；7.低空经济与商业航天；8.绿色转型(双碳/储能)；9.应对老龄化/延迟退休；10.网络文明建设/短视频治理。</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="text-xl font-bold text-yellow-300 mb-4 border-l-4 border-yellow-300 px-3">2026 各模块大题分布预测</h3>
+                            <table class="w-full text-sm text-left bg-red-800 rounded overflow-hidden">
+                                <thead>
+                                    <tr class="bg-red-900 border-b border-red-700 text-yellow-200">
+                                        <th class="p-2">模块</th><th class="p-2">大题概率</th><th class="p-2">最可能的考查角度</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-red-700">
+                                        <td class="p-2 font-bold">经济生活</td><td class="p-2">75%</td><td class="p-2">新质生产力、民营经济、扩大内需</td>
+                                    </tr>
+                                    <tr class="border-b border-red-700">
+                                        <td class="p-2 font-bold">政治生活</td><td class="p-2 text-yellow-300 font-bold">85%</td><td class="p-2">全过程人民民主、基层治理、AI治理</td>
+                                    </tr>
+                                    <tr class="border-b border-red-700">
+                                        <td class="p-2 font-bold">文化生活</td><td class="p-2 text-yellow-300 font-bold">90%</td><td class="p-2">长征精神/革命文化（周年极高概率）</td>
+                                    </tr>
+                                    <tr class="border-b border-red-700">
+                                        <td class="p-2 font-bold">哲学生活</td><td class="p-2">80%</td><td class="p-2">与文化/经济捆绑，单独考矛盾观</td>
+                                    </tr>
+                                    <tr class="border-b border-red-700">
+                                        <td class="p-2 font-bold">法律与生活</td><td class="p-2">60%</td><td class="p-2">侵权责任、知识产权、消费者权益</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-2 font-bold">逻辑与思维</td><td class="p-2">40%</td><td class="p-2">创新思维、辩证思维（作为第二问）</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 2026模拟卷 -->
+            <section id="mock-exam" class="mb-16 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    全真演练：2026年高考政治真题样式预测
+                </h2>
+
+                <!-- 大题模拟 -->
+                <div class="mb-10">
+                    <h3 class="text-2xl font-bold text-indigo-900 mb-6 border-l-4 border-indigo-500 pl-3">一、2026年高考大题预测（4道）</h3>
+                    
+                    <div class="grid lg:grid-cols-2 gap-6">
+                        <!-- 大题一 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                <h4 class="font-bold text-lg text-slate-800">【预测大题一】经济与社会</h4>
+                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold">低空经济与新质生产力</span>
+                            </div>
+                            <div class="text-sm text-slate-600 mb-4 bg-slate-50 p-4 rounded grow">
+                                <p class="mb-2"><strong class="text-slate-800">材料：</strong>2024年被称为"低空经济元年"，2025年多地出台低空经济发展行动方案。某市依托本地航空工业基础，规划建设低空经济产业园，重点引进无人机物流配送、eVTOL（电动垂直起降飞行器）研发制造、低空文旅等企业。</p>
+                                <p>市政府设立专项产业基金，对购置低空飞行器的企业给予补贴；简化低空飞行审批流程，建设"一网通管"的低空飞行服务平台；推动本地高校与龙头企业共建联合实验室，培养低空经济领域技术技能人才。截至2025年底，该市低空经济规模突破300亿元，带动上下游就业超10万人。</p>
+                            </div>
+                            <div class="text-sm font-bold text-slate-800 mb-3">设问：结合材料，运用《经济与社会》知识，分析该市是如何通过发展低空经济培育新质生产力、推动经济高质量发展的。（12分）</div>
+                            <div class="text-xs text-blue-800 bg-blue-50 p-3 rounded">
+                                <strong class="text-blue-900 block mb-1">【考查角度提示】</strong>
+                                ① 政府宏观调控（产业政策、财政补贴、优化营商环境）<br>
+                                ② 创新驱动发展战略（产学研融合、人才培养）<br>
+                                ③ 现代化产业体系建设（战略性新兴产业、产业链延伸）<br>
+                                ④ 高质量发展（扩大就业、供给侧结构性改革）
+                            </div>
+                        </div>
+
+                        <!-- 大题二 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                <h4 class="font-bold text-lg text-slate-800">【预测大题二】政治与法治</h4>
+                                <span class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded font-bold">全过程人民民主的基层实践</span>
+                            </div>
+                            <div class="text-sm text-slate-600 mb-4 bg-slate-50 p-4 rounded grow">
+                                <p class="mb-2"><strong class="text-slate-800">材料：</strong>某市人大常委会在基层设立"立法联系点+代表联络站+数字化民意平台"三位一体的民主实践阵地。在修订《市容环境卫生管理条例》过程中，立法联系点通过线上问卷收集市民意见2.3万条；代表联络站组织环卫工人、商户代表、物业公司召开6场专题座谈会；</p>
+                                <p>数字化平台利用AI技术对意见进行智能分类，提炼出"垃圾分类设施设置""流动摊贩管理"等12个焦点问题反馈给立法机关。最终，条例草案中7处条文根据基层意见作出修改，其中关于"设置临时便民摊点"的建议被完整采纳。</p>
+                            </div>
+                            <div class="text-sm font-bold text-slate-800 mb-3">设问：结合材料，运用《政治与法治》知识，说明该市的做法是如何体现全过程人民民主是最广泛、最真实、最管用的民主的。（12分）</div>
+                            <div class="text-xs text-red-800 bg-red-50 p-3 rounded">
+                                <strong class="text-red-900 block mb-1">【考查角度提示】</strong>
+                                ① 人民当家作主是社会主义民主政治的本质和核心<br>
+                                ② 民主立法、科学立法，人大密切联系群众<br>
+                                ③ 民主参与渠道的丰富与数字化赋能<br>
+                                ④ 人民意志上升为国家意志（法律），体现民主的真实性与管用性
+                            </div>
+                        </div>
+
+                        <!-- 大题三 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                <h4 class="font-bold text-lg text-slate-800">【预测大题三】哲学与文化</h4>
+                                <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded font-bold">长征精神的时代传承</span>
+                            </div>
+                            <div class="text-sm text-slate-600 mb-4 bg-slate-50 p-4 rounded grow">
+                                <p class="mb-2"><strong class="text-slate-800">材料：</strong>2026年是红军长征胜利90周年。某省依托长征沿线红色资源，建设"长征国家文化公园（某段）"，运用VR技术还原"飞夺泸定桥""翻越雪山"等历史场景，开发沉浸式研学课程；当地学校将长征故事编入校本教材，组织学生重走长征路，开展"寻找长征足迹"主题活动。</p>
+                                <p>公园建成以来，年接待游客超500万人次，带动沿线乡村旅游收入增长40%。许多青年游客表示："身临其境感受长征，才真正理解了什么是理想信念的力量。"</p>
+                            </div>
+                            <div class="text-sm font-bold text-slate-800 mb-3">
+                                设问：<br>
+                                （1）结合材料并运用"文化的功能"知识，分析建设长征国家文化公园、弘扬长征精神的意义。（10分）<br>
+                                （2）结合材料，运用价值观的相关知识，说明新时代青年为什么要"走好新时代长征路"。（10分）
+                            </div>
+                            <div class="text-xs text-purple-800 bg-purple-50 p-3 rounded grid grid-cols-2 gap-4">
+                                <div>
+                                    <strong class="text-purple-900 block mb-1">【第（1）问提示】</strong>
+                                    ① 引领风尚、教育人民等功能<br>
+                                    ② 传承革命文化，增强文化自信<br>
+                                    ③ 铸牢共同体意识，凝聚民族精神<br>
+                                    ④ 文化经济交融，带动乡村振兴
+                                </div>
+                                <div>
+                                    <strong class="text-purple-900 block mb-1">【第（2）问提示】</strong>
+                                    ① 价值观具有重要导向作用<br>
+                                    ② 自觉站在最广大人民立场上<br>
+                                    ③ 理想信念是青年精神养分<br>
+                                    ④ 在劳动和奉献中创造和实现价值
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 大题四 -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+                            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                                <h4 class="font-bold text-lg text-slate-800">【预测大题四】法律与生活</h4>
+                                <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded font-bold">AI时代的知识产权保护</span>
+                            </div>
+                            <div class="text-sm text-slate-600 mb-4 bg-slate-50 p-4 rounded grow">
+                                <p class="mb-2"><strong class="text-slate-800">材料：</strong>画家张某创作了一系列具有独特风格的山水画作品，并在个人网站公开展示。某AI绘画平台未经授权，将张某的120幅作品用于训练其图像生成模型。</p>
+                                <p>用户在该平台输入"张某风格山水画"等提示词后，平台可快速生成与张某作品高度相似的数字画作，部分用户还将生成画作在电商平台售卖。张某发现后，要求平台停止侵权并赔偿损失，平台辩称其生成的画作系AI"独创"，不属于对张某作品的复制，不构成侵权。</p>
+                            </div>
+                            <div class="text-sm font-bold text-slate-800 mb-3">设问：结合材料，运用《法律与生活》知识，对平台辩称加以评析，并为张某指明两条依法维权的途径。（10分）</div>
+                            <div class="text-xs text-teal-800 bg-teal-50 p-3 rounded">
+                                <strong class="text-teal-900 block mb-1">【考查角度提示】</strong>
+                                ① 平台辩称不成立：张某对画作享有知识产权，平台未经授权使用涉嫌侵犯信息网络传播权、复制权<br>
+                                ② AI生成内容若实质性相似于原作品，仍构成侵权；平台应承担侵权责任<br>
+                                ③ 维权途径：协商和解；提起诉讼；行政投诉；申请仲裁等
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 选择题模拟 -->
+                <div class="mb-10">
+                    <h3 class="text-2xl font-bold text-indigo-900 mb-6 border-l-4 border-indigo-500 pl-3">二、2026年选择题精选预测（5道）</h3>
+                    <div class="space-y-4">
+                        
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                            <div class="font-bold text-slate-800 mb-2">【预测选择一】经济：银发经济与扩大内需</div>
+                            <div class="text-sm text-slate-700 mb-3">2025年国务院办公厅印发《关于发展银发经济增进老年人福祉的意见》，提出培育智慧养老、康复辅具、老年旅游等新增长点。下列举措有助于推动银发经济发展的有（  ）<br>
+                                ① 扩大基本养老保险覆盖面，提高老年人消费能力<br>
+                                ② 放宽养老服务业市场准入，引导社会资本参与<br>
+                                ③ 对养老机构实施更严格的行政审批，规范市场秩序<br>
+                                ④ 推动养老产业与文旅、健康等产业融合发展
+                            </div>
+                            <div class="text-sm font-medium text-slate-600 mb-3">A. ①② &nbsp;&nbsp; B. ①③ &nbsp;&nbsp; C. ②④ &nbsp;&nbsp; D. ③④</div>
+                            <div class="text-sm bg-green-50 text-green-800 p-2 rounded inline-block font-bold">【答案】 C. ②④</div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                            <div class="font-bold text-slate-800 mb-2">【预测选择二】政治：党建引领基层治理</div>
+                            <div class="text-sm text-slate-700 mb-3">某街道推行"红色物业"工程，由社区党组织牵头，吸纳业主委员会、物业服务企业中的党员组建联合党支部，定期召开"三方联席会"协商解决小区停车难、环境整治等问题。这一做法（  ）<br>
+                                ① 丰富了基层群众自治组织的类型<br>
+                                ② 有利于把党的组织优势转化为治理效能<br>
+                                ③ 能够保证社区居民直接行使民主决策权<br>
+                                ④ 有助于形成共建共治共享的基层治理格局
+                            </div>
+                            <div class="text-sm font-medium text-slate-600 mb-3">A. ①② &nbsp;&nbsp; B. ①③ &nbsp;&nbsp; C. ②④ &nbsp;&nbsp; D. ③④</div>
+                            <div class="text-sm bg-green-50 text-green-800 p-2 rounded inline-block font-bold">【答案】 C. ②④</div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                            <div class="font-bold text-slate-800 mb-2">【预测选择三】文化：革命文化的时代价值</div>
+                            <div class="text-sm text-slate-700 mb-3">某校利用VR技术开发"沉浸式红色课堂"，学生戴上设备即可"走进"遵义会议会址、延安革命纪念馆等场景，与历史人物"对话"。这一做法（  ）<br>
+                                ① 创新了革命文化传播方式，增强了感染力<br>
+                                ② 借助科技手段赋予革命文化新的时代内涵<br>
+                                ③ 表明文化载体决定文化内容的呈现方式<br>
+                                ④ 有利于引导青少年树立正确的历史观、民族观
+                            </div>
+                            <div class="text-sm font-medium text-slate-600 mb-3">A. ①② &nbsp;&nbsp; B. ①④ &nbsp;&nbsp; C. ②③ &nbsp;&nbsp; D. ③④</div>
+                            <div class="text-sm bg-green-50 text-green-800 p-2 rounded inline-block font-bold">【答案】 B. ①④</div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                            <div class="font-bold text-slate-800 mb-2">【预测选择四】当代国际：周边命运共同体</div>
+                            <div class="text-sm text-slate-700 mb-3">2025年中国与东盟国家全面完成自贸区3.0版谈判，在数字经济、绿色经济、供应链互联互通等领域达成新合作框架。这表明我国（  ）<br>
+                                ① 以周边外交为重点，构建周边命运共同体<br>
+                                ② 通过区域经济一体化引领全球治理体系变革<br>
+                                ③ 坚持互利共赢的开放战略，深化发展融合<br>
+                                ④ 把维护周边国家利益作为对外活动的出发点
+                            </div>
+                            <div class="text-sm font-medium text-slate-600 mb-3">A. ①② &nbsp;&nbsp; B. ①③ &nbsp;&nbsp; C. ②④ &nbsp;&nbsp; D. ③④</div>
+                            <div class="text-sm bg-green-50 text-green-800 p-2 rounded inline-block font-bold">【答案】 B. ①③</div>
+                        </div>
+
+                        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-5">
+                            <div class="font-bold text-slate-800 mb-2">【预测选择五】逻辑与思维：推理方法</div>
+                            <div class="text-sm text-slate-700 mb-3">某学者研究明清商帮时发现：晋商"以义制利"，徽商"贾而好儒"，甬商"务实创新"，尽管地域文化不同，但他们都强调诚信经营、重视教育、善于把握市场机遇，因此都取得了商业上的巨大成功。该学者运用的推理方法是（  ）<br>
+                                ① 完全归纳推理 &nbsp;&nbsp; ② 不完全归纳推理<br>
+                                ③ 求同法 &nbsp;&nbsp; ④ 求异法
+                            </div>
+                            <div class="text-sm font-medium text-slate-600 mb-3">A. ①③ &nbsp;&nbsp; B. ①④ &nbsp;&nbsp; C. ②③ &nbsp;&nbsp; D. ②④</div>
+                            <div class="text-sm bg-green-50 text-green-800 p-2 rounded inline-block font-bold">【答案】 C. ②③</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- 试卷组合方案预测 -->
+                <div>
+                    <h3 class="text-2xl font-bold text-indigo-900 mb-6 border-l-4 border-indigo-500 pl-3">三、2026年命题组合预测（完整试卷视角）</h3>
+                    <p class="text-sm text-slate-600 mb-4">基于前述所有规律与热点，2026年高考政治全国卷（或新课标卷）最可能出现的大题组合为以下两种方案：</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-slate-800 text-white p-6 rounded-xl shadow-md">
+                            <h4 class="font-bold text-yellow-400 text-lg border-b border-slate-600 pb-2 mb-4">【方案A：周年驱动型】</h4>
+                            <ul class="space-y-3 text-sm text-slate-300 font-light">
+                                <li><strong class="text-white">第16题（经济）：</strong> 低空经济 / 民营经济（新质生产力）</li>
+                                <li><strong class="text-white">第17题（政治）：</strong> 全过程人民民主（基层立法联系点 / 人大制度）</li>
+                                <li><strong class="text-white">第18题（文化+哲学）：</strong> 长征国家文化公园（文化传承+价值观）</li>
+                                <li><strong class="text-white">第19题（法律）：</strong> 人工智能侵权 / 知识产权保护</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="bg-slate-800 text-white p-6 rounded-xl shadow-md">
+                            <h4 class="font-bold text-blue-400 text-lg border-b border-slate-600 pb-2 mb-4">【方案B：时政深化型】</h4>
+                            <ul class="space-y-3 text-sm text-slate-300 font-light">
+                                <li><strong class="text-white">第16题（经济）：</strong> 消费扩容提质 / 银发经济（扩内需）</li>
+                                <li><strong class="text-white">第17题（政治）：</strong> AI治理与法治政府 / 科学立法</li>
+                                <li><strong class="text-white">第18题（文化+哲学）：</strong> 长征精神 / 革命文化 + 社会意识相对独立性</li>
+                                <li><strong class="text-white">第19题（国际）：</strong> 周边命运共同体 / 中国-东盟合作</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-yellow-50 text-yellow-900 border border-yellow-200 rounded-lg text-sm flex items-start">
+                        <svg class="w-6 h-6 mr-2 shrink-0 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        <p>无论采用哪种方案，<strong>“长征胜利90周年”相关的文化/哲学大题几乎可以视为2026年的“高概率必考点”</strong>，请广大考生务必重点准备！</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: 备考策略 -->
+            <section id="strategy" class="mb-8 scroll-mt-24">
+                <h2 class="text-3xl font-bold text-slate-800 mb-6 flex items-center">
+                    <svg class="w-8 h-8 mr-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    决战指南：备考策略与时间规划
+                </h2>
+                
+                <div class="grid lg:grid-cols-2 gap-8 mb-6">
+                    <!-- 方法与技巧 -->
+                    <div class="bg-white p-6 rounded-xl shadow border border-slate-200">
+                        <h3 class="text-xl font-bold text-slate-800 border-b pb-3 mb-4">执行策略</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="font-bold text-blue-700 mb-1">1. 选择题突围</h4>
+                                <ul class="text-sm text-slate-600 list-disc pl-5 space-y-1">
+                                    <li>优先刷2018-2025真题，掌握"四选二"排除技巧。</li>
+                                    <li>整理易混概念库（如：政府职能≠党的作用，人大≠政协）。</li>
+                                    <li>重点关注当年1-3月时政热点。</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-blue-700 mb-1">2. 大题攻坚</h4>
+                                <ul class="text-sm text-slate-600 list-disc pl-5 space-y-1">
+                                    <li>背诵上文的4个万能答题框架。</li>
+                                    <li>跨模块训练常态化："经济+政治"、"文化+哲学"、"政治+法律"。</li>
+                                    <li>重点攻克"矛盾观"和"认识论"的材料应用。</li>
+                                    <li>开放题准备3-5套通用建议模板。</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-blue-700 mb-1">3. 时政敏锐度</h4>
+                                <ul class="text-sm text-slate-600 list-disc pl-5 space-y-1">
+                                    <li>盯紧周年节点：2026年是长征胜利90周年（重点）。</li>
+                                    <li>追踪25年下半年至26年春季的"十五五"规划建议出台等大事件。</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 考场时间管理 -->
+                    <div class="bg-blue-900 text-white p-6 rounded-xl shadow-lg flex flex-col justify-center">
+                        <h3 class="text-xl font-bold text-yellow-300 border-b border-blue-700 pb-3 mb-6">实战时间分配参考 (总纲)</h3>
+                        <div class="space-y-4 font-medium">
+                            <div class="flex justify-between items-center bg-blue-800 p-3 rounded">
+                                <span class="flex items-center"><svg class="w-5 h-5 mr-2 text-blue-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg> 选择题 (12题)</span>
+                                <span class="text-yellow-300 font-bold">20 - 25 分钟 <span class="text-xs text-blue-200 font-normal">(均2分钟/题)</span></span>
+                            </div>
+                            <div class="flex justify-between items-center bg-blue-800 p-3 rounded">
+                                <span class="flex items-center"><svg class="w-5 h-5 mr-2 text-blue-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg> 第13题 (经济)</span>
+                                <span class="text-yellow-300 font-bold">15 - 18 分钟</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-blue-800 p-3 rounded">
+                                <span class="flex items-center"><svg class="w-5 h-5 mr-2 text-blue-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg> 第14题 (政治/法律)</span>
+                                <span class="text-yellow-300 font-bold">12 - 15 分钟</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-blue-800 p-3 rounded">
+                                <span class="flex items-center"><svg class="w-5 h-5 mr-2 text-blue-300" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg> 第15题 (文化+哲学)</span>
+                                <span class="text-yellow-300 font-bold">20 - 25 分钟</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 文档最终说明 -->
+                <div class="text-center text-sm text-slate-500 mt-16 mb-4 border-t pt-8 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                    <p class="font-bold text-slate-700 mb-2">【 文档说明 】</p>
+                    <div class="space-y-1 font-light max-w-3xl mx-auto text-left">
+                        <p>本文档包含三部分核心内容：</p>
+                        <p>第一部分：2018-2025年选择题与大题轮动规律总结</p>
+                        <p>第二部分：2026年高考政治命题热点预测</p>
+                        <p>第三部分：2026年高考政治真题样式模拟预测</p>
+                    </div>
+                    <p class="mt-4 max-w-3xl mx-auto">所有预测均基于历史真题规律、重大时政节点及学科命题周期理论，仅供复习参考。考生应以教材知识为根本，以能力提升为核心，切勿过度依赖押题。</p>
+                    <p class="mt-6 font-bold text-blue-600 text-lg tracking-widest">祝 2026 届高考学子金榜题名！</p>
+                </div>
+            </section>
+
+        </main>
     </div>
-  </div>
 
-  <!-- 大题规律 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">📝</div>
-      <div>
-        <h2>大题规律</h2>
-        <div class="sub">3大题 × (14 + 12 + 26分) = 52分</div>
-      </div>
-    </div>
-    <div class="tbl-wrap">
-      <table class="big-topic-row">
-        <thead>
-          <tr>
-            <th>题号</th>
-            <th>分值</th>
-            <th>模块组合</th>
-            <th>设问类型</th>
-            <th>材料主题</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>第13题</td>
-            <td>14分</td>
-            <td>经济</td>
-            <td>原因 / 意义 / 措施</td>
-            <td>产业 / 企业</td>
-          </tr>
-          <tr>
-            <td>第14题</td>
-            <td>12分</td>
-            <td>政治 / 法治</td>
-            <td>体现 / 说明 / 评析</td>
-            <td>制度 / 治理</td>
-          </tr>
-          <tr>
-            <td>第15题</td>
-            <td>26分</td>
-            <td>文化(10) + 哲学(10) + 开放(6)</td>
-            <td>意义 + 原理 + 建议</td>
-            <td>文化 / 改革</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+    <!-- Smooth Scrolling Script & Active State Tracker -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('#sidebar nav a');
 
-  <div class="section-divider"><hr><span>高频知识点</span><hr></div>
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 150) {
+                        current = section.getAttribute('id');
+                    }
+                });
 
-  <!-- TOP10 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">🏆</div>
-      <div>
-        <h2>高频重现知识点 TOP10</h2>
-        <div class="sub">2018–2025 八年统计</div>
-      </div>
-    </div>
-    <ul class="top10-list">
-      <li>
-        <div class="rank-badge rank-1">1</div>
-        <div class="top10-info">
-          <div class="name">矛盾普遍性与特殊性辩证关系</div>
-          <div class="meta">选择 + 大题</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:100%"></div></div>
-          <div class="freq-label">8年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-2">2</div>
-        <div class="top10-info">
-          <div class="name">实践是认识的基础</div>
-          <div class="meta">选择 + 大题</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:87%"></div></div>
-          <div class="freq-label">7年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-3">3</div>
-        <div class="top10-info">
-          <div class="name">党的领导与党的建设</div>
-          <div class="meta">选择 + 大题</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:100%"></div></div>
-          <div class="freq-label">8年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">4</div>
-        <div class="top10-info">
-          <div class="name">文化的作用与文化自信</div>
-          <div class="meta">选择 + 大题</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:87%"></div></div>
-          <div class="freq-label">7年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">5</div>
-        <div class="top10-info">
-          <div class="name">价值判断与价值选择</div>
-          <div class="meta">选择 + 大题</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:75%"></div></div>
-          <div class="freq-label">6年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">6</div>
-        <div class="top10-info">
-          <div class="name">企业经营与发展</div>
-          <div class="meta">选择 + 大题</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:75%"></div></div>
-          <div class="freq-label">6年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">7</div>
-        <div class="top10-info">
-          <div class="name">政府职能与依法行政</div>
-          <div class="meta">选择题为主</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:75%"></div></div>
-          <div class="freq-label">6年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">8</div>
-        <div class="top10-info">
-          <div class="name">传统文化创造性转化</div>
-          <div class="meta">大题为主</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:62%"></div></div>
-          <div class="freq-label">5年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">9</div>
-        <div class="top10-info">
-          <div class="name">人大制度与立法过程</div>
-          <div class="meta">大题为主</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:62%"></div></div>
-          <div class="freq-label">5年/8年</div>
-        </div>
-      </li>
-      <li>
-        <div class="rank-badge rank-other">10</div>
-        <div class="top10-info">
-          <div class="name">国际关系与外交政策</div>
-          <div class="meta">选择题为主</div>
-        </div>
-        <div class="freq-bar-wrap">
-          <div class="freq-bar"><div class="freq-bar-fill" style="width:62%"></div></div>
-          <div class="freq-label">5年/8年</div>
-        </div>
-      </li>
-    </ul>
-  </div>
-
-  <div class="section-divider"><hr><span>材料主题</span><hr></div>
-
-  <!-- 主题轮回 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">🔄</div>
-      <div>
-        <h2>材料主题轮回周期</h2>
-        <div class="sub">历年规律 · 2026预测</div>
-      </div>
-    </div>
-    <div class="theme-grid">
-      <div class="theme-card">
-        <div class="theme-name">农村改革 / 乡村振兴</div>
-        <div class="years">📅 2018、2021、2024 &nbsp;·&nbsp; 周期 3年</div>
-        <span class="pred-badge pred-likely">★★★ 2026可能考</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">宪法 / 法治建设</div>
-        <div class="years">📅 2018、2020、2023 &nbsp;·&nbsp; 周期 3–4年</div>
-        <span class="pred-badge pred-maybe">★★☆ 可能轮换</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">对外开放 / 一带一路</div>
-        <div class="years">📅 2019、2022、2025 &nbsp;·&nbsp; 周期 3年</div>
-        <span class="pred-badge pred-likely">★★★ 2026可能轮换</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">传统文化保护</div>
-        <div class="years">📅 2020、2023、2024 &nbsp;·&nbsp; 周期 2–3年</div>
-        <span class="pred-badge pred-maybe">★★☆ 2026可能考</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">生态 / 绿色发展</div>
-        <div class="years">📅 2022、2024、2025 &nbsp;·&nbsp; 周期 1–2年</div>
-        <span class="pred-badge pred-likely">★★★ 持续关注</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">科技创新 / 新质生产力</div>
-        <div class="years">📅 2022、2024、2025 &nbsp;·&nbsp; 周期 1–2年</div>
-        <span class="pred-badge pred-must">★★★ 必考</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">全过程人民民主</div>
-        <div class="years">📅 2023、2024、2025 &nbsp;·&nbsp; 每年</div>
-        <span class="pred-badge pred-must">★★★ 必考</span>
-      </div>
-      <div class="theme-card">
-        <div class="theme-name">新就业形态 / 民生保障</div>
-        <div class="years">📅 2020、2023、2025 &nbsp;·&nbsp; 周期 2–3年</div>
-        <span class="pred-badge pred-maybe">★★☆ 可能考</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-divider"><hr><span>答题模板</span><hr></div>
-
-  <!-- 答题模板 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">📋</div>
-      <div>
-        <h2>答题模板重现</h2>
-        <div class="sub">四大模块万能框架</div>
-      </div>
-    </div>
-    <div class="template-grid">
-      <div class="template-box">
-        <h4>📊 经济类大题</h4>
-        <ol>
-          <li><strong>理念：</strong>贯彻新发展理念（创新、协调、绿色、开放、共享）</li>
-          <li><strong>市场：</strong>发挥市场在资源配置中的决定性作用</li>
-          <li><strong>政府：</strong>科学的宏观调控，完善产业政策</li>
-          <li><strong>企业：</strong>提高自主创新能力，优化产品结构</li>
-          <li><strong>消费：</strong>满足人民日益增长的美好生活需要</li>
-          <li><strong>开放：</strong>融入双循环新发展格局</li>
-        </ol>
-      </div>
-      <div class="template-box">
-        <h4>🏛️ 政治类大题</h4>
-        <ol>
-          <li><strong>制度：</strong>坚持和完善中国特色社会主义制度</li>
-          <li><strong>主体：</strong>党领导、人大立法、政府履职、政协协商</li>
-          <li><strong>程序：</strong>坚持民主集中制，科学民主依法决策</li>
-          <li><strong>价值：</strong>保障人民当家作主，维护人民根本利益</li>
-          <li><strong>法治：</strong>推进国家治理体系和治理能力现代化</li>
-        </ol>
-      </div>
-      <div class="template-box">
-        <h4>🎭 文化类大题</h4>
-        <ol>
-          <li><strong>功能：</strong>引领风尚、教育人民、服务社会、推动发展</li>
-          <li><strong>传统：</strong>创造性转化、创新性发展</li>
-          <li><strong>自信：</strong>坚定文化自信，增强文化认同</li>
-          <li><strong>融合：</strong>文化与经济深度融合，文旅产业发展</li>
-          <li><strong>传播：</strong>讲好中国故事，增强国际影响力</li>
-        </ol>
-      </div>
-      <div class="template-box">
-        <h4>🧠 哲学类高频原理</h4>
-        <div class="phil-box" style="margin-top:0;padding:10px 12px;">
-          <h4>矛盾观 <span class="freq-chip freq-high">最高频</span></h4>
-          <ul>
-            <li>矛盾普遍性与特殊性辩证关系（试点→推广）</li>
-            <li>主次矛盾 / 矛盾主次方面</li>
-          </ul>
-        </div>
-        <div class="phil-box" style="padding:10px 12px;">
-          <h4>认识论 <span class="freq-chip freq-mid">次高频</span></h4>
-          <ul>
-            <li>实践是认识的基础（来源、动力、检验标准、目的）</li>
-            <li>认识的反复性、无限性、上升性</li>
-          </ul>
-        </div>
-        <div class="phil-box" style="padding:10px 12px;">
-          <h4>唯物论 <span class="freq-chip freq-norm">常考</span></h4>
-          <ul>
-            <li>物质与意识辩证关系（一切从实际出发）</li>
-            <li>规律客观性与主观能动性（生态治理）</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-divider"><hr><span>2026预测</span><hr></div>
-
-  <!-- 预测 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">🎯</div>
-      <div>
-        <h2>2026备考预测</h2>
-        <div class="sub">基于规律推演</div>
-      </div>
-    </div>
-    <div class="pred-grid">
-      <div class="pred-col">
-        <div class="pred-col-header pred-must-h">🔴 必考（概率 &gt;90%）</div>
-        <div class="pred-col-body">
-          <div class="pred-item">矛盾普遍性与特殊性辩证关系</div>
-          <div class="pred-item">实践是认识的基础</div>
-          <div class="pred-item">党的领导（中国式现代化）</div>
-          <div class="pred-item">文化自信与传统文化</div>
-          <div class="pred-item">新质生产力 / 高质量发展</div>
-        </div>
-      </div>
-      <div class="pred-col">
-        <div class="pred-col-header pred-likely-h">🟡 极可能考（70–90%）</div>
-        <div class="pred-col-body">
-          <div class="pred-item">全过程人民民主</div>
-          <div class="pred-item">基层治理创新</div>
-          <div class="pred-item">人工智能治理 / 数字经济</div>
-          <div class="pred-item">绿色低碳发展</div>
-          <div class="pred-item">乡村振兴（如2024未考透）</div>
-        </div>
-      </div>
-      <div class="pred-col">
-        <div class="pred-col-header pred-maybe-h">⚪ 关注时政（50–70%）</div>
-        <div class="pred-col-body">
-          <div class="pred-item">十五五规划相关内容</div>
-          <div class="pred-item">区域协调发展（西部大开发、东北振兴）</div>
-          <div class="pred-item">教育科技人才一体化</div>
-          <div class="pred-item">医药卫生体制改革</div>
-          <div class="pred-item">养老服务体系</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-divider"><hr><span>备考建议</span><hr></div>
-
-  <!-- 备考建议 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">💡</div>
-      <div>
-        <h2>备考建议</h2>
-        <div class="sub">策略 · 方法 · 时间</div>
-      </div>
-    </div>
-    <div class="tips-grid">
-      <div class="tip-box">
-        <h4>✏️ 选择题策略</h4>
-        <ul>
-          <li>优先刷2018–2025真题，掌握"四选二"排除技巧</li>
-          <li>整理易混概念（政府职能≠党的作用，人大≠政协）</li>
-          <li>关注当年1–3月时政热点</li>
-        </ul>
-      </div>
-      <div class="tip-box">
-        <h4>📝 大题策略</h4>
-        <ul>
-          <li>背诵4个万能答题框架</li>
-          <li>重点练习"矛盾观"和"认识论"原理应用</li>
-          <li>开放题准备3–5套通用建议模板</li>
-        </ul>
-      </div>
-      <div class="tip-box">
-        <h4>⏱️ 时间安排</h4>
-        <div class="time-table" style="margin-top:10px">
-          <div class="time-item">
-            <div class="label">选择题</div>
-            <div class="mins">20–25<span>分钟</span></div>
-          </div>
-          <div class="time-item">
-            <div class="label">第13题</div>
-            <div class="mins">15–18<span>分钟</span></div>
-          </div>
-          <div class="time-item">
-            <div class="label">第14题</div>
-            <div class="mins">12–15<span>分钟</span></div>
-          </div>
-          <div class="time-item">
-            <div class="label">第15题</div>
-            <div class="mins">20–25<span>分钟</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="section-divider"><hr><span>规律总结</span><hr></div>
-
-  <!-- 5个凡是 -->
-  <div class="card">
-    <div class="section-title">
-      <div class="icon">⚡</div>
-      <div>
-        <h2>规律总结：5个"凡是"</h2>
-        <div class="sub">考场黄金法则</div>
-      </div>
-    </div>
-    <ul class="rules-list">
-      <li>凡是考<strong>经济</strong>，必考"<strong>新发展理念 + 高质量发展</strong>"</li>
-      <li>凡是考<strong>政治</strong>，必考"<strong>制度优势 + 人民当家作主</strong>"</li>
-      <li>凡是考<strong>文化</strong>，必考"<strong>传统转化 + 文化自信</strong>"</li>
-      <li>凡是考<strong>哲学</strong>，必考"<strong>矛盾分析 + 实践观点</strong>"</li>
-      <li>凡是考<strong>时政</strong>，必考"<strong>当年中央重大决策</strong>"</li>
-    </ul>
-  </div>
-
-</div>
+                navLinks.forEach(link => {
+                    link.classList.remove('bg-blue-100', 'text-blue-900', 'font-bold', 'bg-indigo-100', 'text-indigo-900');
+                    // Skip specific colored button reset
+                    const href = link.getAttribute('href');
+                    if(href !== '#prediction2026') {
+                       if (href.substring(1) === current) {
+                            if(href === '#mock-exam') {
+                                link.classList.add('bg-indigo-100', 'text-indigo-900', 'font-bold');
+                            } else {
+                                link.classList.add('bg-blue-100', 'text-blue-900', 'font-bold');
+                            }
+                        } 
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
