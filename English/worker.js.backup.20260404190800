@@ -1,125 +1,67 @@
-// worker.js
-var worker_default = {
+/**
+ * =========================================================
+ * Cloudflare Worker 全栈单文件架构 (Frontend + D1 Backend)
+ * 版本号: v1.2.0 (已新增 Learning English Beyond the Classroom 报告及知识点)
+ * =========================================================
+ * * 部署指南：
+ * 1. 在 Cloudflare D1 控制台创建一个名为 `english-review` 的数据库，并执行以下建表语句：
+ * * CREATE TABLE IF NOT EXISTS ebbinghaus_records (
+ * id TEXT PRIMARY KEY,
+ * user_profile TEXT NOT NULL,
+ * question_id INTEGER NOT NULL,
+ * level INTEGER NOT NULL DEFAULT 1,
+ * next_review_time INTEGER NOT NULL,
+ * last_updated INTEGER NOT NULL
+ * );
+ * CREATE INDEX idx_user_review ON ebbinghaus_records(user_profile, next_review_time);
+ * * 2. 创建一个 Worker，将此代码粘贴进去。
+ * 3. 在 Worker 的 Settings -> Variables -> D1 Database Bindings 中，绑定刚才创建的 `english-review` 数据库，且变量名(Variable name)必须严格填写为 "DB"。
+ */
+
+export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
     // ==========================================
-    // 新增：发送邮件报告的 API 接口 (已更换为 EmailJS)
+    // 后端 API: 获取用户的艾宾浩斯记忆数据
     // ==========================================
-    if (url.pathname === "/api/send-email" && request.method === "POST") {
+    if (url.pathname === '/api/memory/get' && request.method === 'GET') {
+      const userProfile = url.searchParams.get('userProfile');
+      if (!userProfile) return new Response('Missing userProfile', { status: 400 });
+
       try {
-        const data = await request.json();
-        // 接收前端传来的结构化日志数组 logs
-        const { profile, score, total, logs } = data;
-
-        // ⚠ EmailJS 必需配置区域
-        const serviceID = 'service_j2ak28v';   // 你的 Service ID
-        const templateID = 'template_ol3ws9o'; // 你的 Template ID
-        const publicKey = 'bGbqCw1wlTrkCwfFo';   // 你的 Public Key
-        const privateKey = 'DZc0GWCYIN_tMdOsQ27AM'; // ⚠ 你的 Private Key (在 Account -> API Keys 中获取)
-
-        // 获取当前时间，格式化为中国时区
-        const currentTime = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-
-        // --- 核心优化：按要求重新组装邮件文本 ---
-        const correctLogs = logs.filter(l => l.isCorrect);
-        const incorrectLogs = logs.filter(l => !l.isCorrect);
-
-        let reportMessage = `亲爱的家长/老师：\n`;
-        reportMessage += `学习者 ${profile} 刚刚完成了识字/错题打卡！\n`;
-        reportMessage += `⏰ 时间：${currentTime}\n`;
-        reportMessage += `🏆 最终得分： ${score} / ${total} 分\n\n`;
-
-        reportMessage += `📚 今天学习的所有内容：\n`;
-        logs.forEach((log, index) => {
-            reportMessage += `${index + 1}. [${log.tag}] 原句：${log.context}\n   (错：${log.incorrect} ➔ 正：${log.correct})\n`;
-        });
-
-        reportMessage += `\n✅ 已经完全掌握（一次全对）：\n`;
-        if (correctLogs.length > 0) {
-            correctLogs.forEach(log => {
-                reportMessage += ` - ${log.correct} (考点: ${log.tag})\n`;
-            });
-        } else {
-            reportMessage += ` - 无\n`;
-        }
-
-        reportMessage += `\n⚠️ 尚未完全掌握（需要复习）：\n`;
-        if (incorrectLogs.length > 0) {
-            incorrectLogs.forEach(log => {
-                reportMessage += ` - 误用: ${log.incorrect} ➔ 正确: ${log.correct}\n   (原句: ${log.context})\n`;
-            });
-        } else {
-            reportMessage += ` - 无\n`;
-        }
-        // ----------------------------------------
-
-        // 使用 EmailJS REST API 发送邮件 (Cloudflare Worker 后端调用方式)
-        const emailRes = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            service_id: serviceID,
-            template_id: templateID,
-            user_id: publicKey,
-            accessToken: privateKey, // 严格模式下必需的私钥验证
-            template_params: {
-              title: `打卡报告：${profile} 错题挑战完成`,
-              name: profile,
-              time: currentTime,
-              message: reportMessage // 将拼装好的富文本赋给 message 变量
-            }
-          })
-        });
-
-        // EmailJS 成功通常返回文本 "OK"，而不是 JSON
-        const responseText = await emailRes.text();
-        
-        // 优化错误捕获，将 EmailJS 原始报错直接返回给前端
-        if (!emailRes.ok) {
-          return new Response(JSON.stringify({ success: false, error: responseText }), {
-            headers: { "Content-Type": "application/json" }
-          });
-        }
-
-        return new Response(JSON.stringify({ success: true, message: responseText }), {
-          headers: { "Content-Type": "application/json" }
-        });
-      } catch (e) {
-        return new Response(JSON.stringify({ success: false, error: e.message }), { 
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-    }
-
-    if (url.pathname === "/api/memory/get" && request.method === "GET") {
-      const userProfile = url.searchParams.get("userProfile");
-      if (!userProfile) return new Response("Missing userProfile", { status: 400 });
-      try {
+        // 直接执行 D1 SQL 查询
         const { results } = await env.DB.prepare(
           "SELECT * FROM ebbinghaus_records WHERE user_profile = ? ORDER BY next_review_time ASC"
         ).bind(userProfile).all();
-        const formattedResults = results.map((row) => ({
+
+        // 格式化为前端所需的驼峰命名
+        const formattedResults = results.map(row => ({
           id: row.id,
           questionId: row.question_id,
           level: row.level,
           nextReviewTime: row.next_review_time
         }));
+
         return new Response(JSON.stringify(formattedResults), {
-          headers: { "Content-Type": "application/json" }
+          headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500 });
       }
     }
-    if (url.pathname === "/api/memory/upsert" && request.method === "POST") {
+
+    // ==========================================
+    // 后端 API: 更新或插入错题记录
+    // ==========================================
+    if (url.pathname === '/api/memory/upsert' && request.method === 'POST') {
       try {
         const data = await request.json();
         const { userProfile, questionId, level, nextReviewTime } = data;
-        const id = userProfile + "_" + questionId;
+        const id = userProfile + '_' + questionId;
         const now = Date.now();
+
+        // 执行 SQL: 若存在则更新，若不存在则插入
         await env.DB.prepare(`
           INSERT INTO ebbinghaus_records (id, user_profile, question_id, level, next_review_time, last_updated)
           VALUES (?1, ?2, ?3, ?4, ?5, ?6)
@@ -128,36 +70,52 @@ var worker_default = {
           next_review_time = excluded.next_review_time, 
           last_updated = excluded.last_updated
         `).bind(id, userProfile, questionId, level, nextReviewTime, now).run();
+
         return new Response(JSON.stringify({ success: true }), {
-          headers: { "Content-Type": "application/json" }
+          headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500 });
       }
     }
-    if (url.pathname === "/api/memory/clear" && request.method === "POST") {
+
+    // ==========================================
+    // 后端 API: 清除指定用户的所有记忆数据
+    // ==========================================
+    if (url.pathname === '/api/memory/clear' && request.method === 'POST') {
       try {
         const data = await request.json();
         const { userProfile } = data;
+        
         await env.DB.prepare("DELETE FROM ebbinghaus_records WHERE user_profile = ?").bind(userProfile).run();
+
         return new Response(JSON.stringify({ success: true }), {
-          headers: { "Content-Type": "application/json" }
+          headers: { 'Content-Type': 'application/json' }
         });
       } catch (e) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500 });
       }
     }
+
+    // ==========================================
+    // 前端路由: 返回完整的 HTML SPA 页面
+    // ==========================================
     return new Response(HTML_CONTENT, {
-      headers: { "Content-Type": "text/html;charset=UTF-8" }
+      headers: { 'Content-Type': 'text/html;charset=UTF-8' }
     });
   }
 };
-var HTML_CONTENT = `<!DOCTYPE html>
+
+// ==========================================
+// 前端 HTML / CSS / JS 代码字符串
+// （已将所有内部逻辑重构为基于同源 Fetch API 的请求）
+// ==========================================
+const HTML_CONTENT = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英语作文批改与复习系统 - Ebbinghaus Pro (Cloudflare) v1.6.0</title>
+    <title>英语作文批改与复习系统 - Ebbinghaus Pro (Cloudflare) v1.3.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -193,7 +151,7 @@ var HTML_CONTENT = `<!DOCTYPE html>
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center">
                     <i class="fa-solid fa-graduation-cap text-blue-600 text-2xl mr-3"></i>
-                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">英语作文批改与复习助手 <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2 border">v1.6.0</span></h1>
+                    <h1 class="text-xl font-bold text-gray-900 hidden sm:block">英语作文批改与复习助手 <span class="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-1 rounded-full ml-2 border">v1.3.0</span></h1>
                 </div>
                 <div class="flex space-x-2 sm:space-x-8 overflow-x-auto hide-scrollbar">
                     <button onclick="window.goHome()" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center hover:text-blue-600">
@@ -203,16 +161,11 @@ var HTML_CONTENT = `<!DOCTYPE html>
                         AI助力学习报告
                     </button>
                     <button onclick="window.switchTab('report2')" id="tab-report2" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
-                        读后续写报告1
+                        读后续写报告
                     </button>
+                    <!-- 新增的 Report 3 标签 -->
                     <button onclick="window.switchTab('report3')" id="tab-report3" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
                         课外英语学习
-                    </button>
-                    <button onclick="window.switchTab('report4')" id="tab-report4" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
-                        读后续写精批2
-                    </button>
-                    <button onclick="window.switchTab('report5')" id="tab-report5" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
-                        寒假新鲜事
                     </button>
                     <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
                         <i class="fa-solid fa-clipboard-check mr-2"></i> 错题复习挑战
@@ -336,7 +289,7 @@ var HTML_CONTENT = `<!DOCTYPE html>
                         <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
                             <li><span class="wrong-text">There has</span> → <span class="correct-text">There are</span> (There be句型误用)</li>
                             <li><span class="wrong-text">listen English</span> → <span class="correct-text">listen to English</span> (不及物动词缺少介词)</li>
-                            <li><span class="wrong-text">watching</span> → <span class="correct-text">watch</span> (平行结构不一致)</li>
+                            <li><span class="wrong-text">watching</span> → <span class="correct-text">watch</span> (并列结构不一致)</li>
                             <li><span class="wrong-text">This ways</span> → <span class="correct-text">These ways</span> (指示代词单复数不匹配)</li>
                             <li><span class="wrong-text">communicate</span> → <span class="correct-text">communicating</span> (动名词作主语)</li>
                             <li><span class="wrong-text">used to afraid</span> → <span class="correct-text">used to be afraid</span> (used to后接原形动词/be动词)</li>
@@ -367,249 +320,6 @@ var HTML_CONTENT = `<!DOCTYPE html>
                             Furthermore, engaging in <span class="font-bold text-teal-600">authentic conversations</span> with native speakers is highly beneficial. Although I previously lacked the confidence to speak up, I now <span class="font-bold text-teal-600">take great pleasure in</span> exchanging ideas. Ultimately, integrating English into our daily routines <span class="font-bold text-teal-600">yields profound benefits</span>.
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Report 4: 读后续写精批 (Empty Nest Mother) -->
-            <div id="view-report4" class="hidden fade-in space-y-6">
-                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-rose-500">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-pen-nib mr-2"></i>逐句精批诊断 (Diagnosis)</h2>
-                    <div class="bg-gray-50 p-4 rounded text-sm text-gray-700 essay-content">
-                        <span class="font-bold block mb-2">Student Essay & Corrections (错题标记):</span>
-                        <div class="space-y-3">
-                            <p>
-                                <span class="wrong-text">Because I realized my two sons have grown, they could need experiencet to help them.</span><br>
-                                <span class="correct-text">I realized my two sons had grown up, and they needed their own experiences to guide them.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">And I needed their company to make the silence began to feel relax.</span><br>
-                                <span class="correct-text">And I needed their company to break the heavy silence in the house.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">At night, I said I didn't confront any people in our home to Mark and Leo.</span><br>
-                                <span class="correct-text">That night, I sat down with Mark and Leo, promising I wouldn't confront them so harshly anymore.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">They answered I would often look after me and every week to company with I.</span><br>
-                                <span class="correct-text">They agreed, promising to look after themselves and visit every week to keep me company.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">From then On,we began to together deal with guension.</span><br>
-                                <span class="correct-text">From then on, we began to deal with our tension together peacefully.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">And they often went home to company me so that I began to feel relax.</span><br>
-                                <span class="correct-text">They often came home to accompany me, which made me feel truly relaxed.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">" one day of success shall calm your anxious heart".this say make me realized, my two sons has been teenager.</span><br>
-                                <span class="correct-text">As the saying goes, "Understanding is the bridge to love." This made me realize my two sons had grown into independent individuals.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">The forrgetabe exerpience was like an everlasting flwoer blooming in my memories.</span><br>
-                                <span class="correct-text">This unforgettable experience was like an everlasting flower blooming in my memories.</span>
-                            </p>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-red-50 p-4 rounded-lg mt-4">
-                        <h3 class="font-bold text-red-700 mb-2">核心丢分项总结 (Key Errors)</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li><strong>高频拼写错误：</strong>长难词（如 experience, unforgettable）全军覆没。</li>
-                            <li><strong>词性严重混淆：</strong>多次将名词（company）作动词使用。</li>
-                            <li><strong>代词指代混乱：</strong>I/me/my 混用，介词后未使用宾格 (with I)。</li>
-                            <li><strong>中式英语：</strong>句子结构和语序受中文思维影响严重。</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">升格示范</h3>
-                    </div>
-                    <div class="p-6">
-                        <div class="essay-content text-gray-800">
-                            <h4 class="font-bold mb-3 text-rose-600">Masterpiece (高分示范版)</h4>
-                            <p class="mb-4">
-                                <span class="font-bold text-blue-600">His words struck me deeply and I started making small changes.</span> 
-                                I realized that my two sons had grown up and needed space to experience life on their own. Instead of complaining, I hoped to break the heavy silence in the house with their cheerful presence. That night, I sat down with Mark and Leo. "I am sorry for being so harsh," I said sincerely. "You are young adults now. I will give you more freedom to develop your own life skills, but I also hope you can spend more time with me." Hearing this, their eyes lit up. They warmly agreed, promising to look after themselves and visit every week to keep me company.
-                            </p>
-                            <p>
-                                <span class="font-bold text-blue-600">Our bond shifted and I really appreciated their company.</span> 
-                                From then on, we began to deal with our family tension through peaceful communication. They often came home on weekends to accompany me, which made me feel truly relaxed and happy. As a saying goes, "Understanding is the bridge to love." This conflict made me realize that my boys had stepped into a new stage of life. In the future, I will respect their choices and support them to gain more life experience. This unforgettable lesson of letting go is like an everlasting flower blooming in my sweet memories.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Report 5: 寒假新鲜事 -->
-            <div id="view-report5" class="hidden fade-in space-y-6 overflow-y-auto pb-20">
-                
-                <!-- === 原有内容：寒假新鲜事作文诊断（保留）=== -->
-                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-cyan-500">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-plane-departure mr-2"></i>寒假新鲜事作文诊断</h2>
-                    <div class="bg-gray-50 p-4 rounded text-sm text-gray-700 essay-content">
-                        <span class="font-bold block mb-2">Student Essay (原文标记):</span>
-                        I'm glad to tell you <span class="wrong-text">my</span> <span class="correct-text">(about my)</span> special holiday experience. The most exciting <span class="wrong-text">news</span> <span class="correct-text">(thing)</span> is that I traveled to <span class="wrong-text">sea</span> <span class="correct-text">(the sea)</span> with my family! <span class="wrong-text">The blue sky and sea.</span> <span class="correct-text">(We enjoyed the beautiful blue sky and sea.)</span> <span class="wrong-text">we</span> <span class="correct-text">(We)</span> also tried local specialties like <span class="wrong-text">Russian- style</span> <span class="correct-text">(Russian-style)</span> bread. This trip <span class="wrong-text">gives</span> <span class="correct-text">(gave)</span> me many unforgettable memories. I now feel braver to explore the unknown. Have you done anything exciting during your <span class="wrong-text">holioay.</span> <span class="correct-text">(holiday?)</span>
-                    </div>
-                    
-                    <div class="bg-red-50 p-4 rounded-lg mt-4">
-                        <h3 class="font-bold text-red-700 mb-2">典型错点解析 (Key Errors)</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li><span class="wrong-text">tell you my</span> → <span class="correct-text">tell you about my</span> (介词搭配：tell sb. about sth.)</li>
-                            <li><span class="wrong-text">news / sea</span> → <span class="correct-text">thing / the sea</span> (用词不当及冠词缺失)</li>
-                            <li><span class="wrong-text">The blue sky and sea.</span> → <span class="correct-text">We enjoyed the beautiful...</span> (句子结构不完整，无谓语残句)</li>
-                            <li><span class="wrong-text">we / Russian- style</span> → <span class="correct-text">We / Russian-style</span> (句首大小写及连字符格式规范)</li>
-                            <li><span class="wrong-text">gives</span> → <span class="correct-text">gave</span> (时态问题：发生在过去应用一般过去时)</li>
-                            <li><span class="wrong-text">holioay.</span> → <span class="correct-text">holiday?</span> (拼写错误及疑问句必须使用问号)</li>
-                        </ul>
-                    </div>
-                    <div class="bg-purple-50 p-4 rounded-lg mt-4">
-                        <h3 class="font-bold text-purple-700 mb-2">✨ 闪光点表扬</h3>
-                        <p class="text-sm text-gray-700">文中的 <code>explore the unknown</code> 和 <code>Russian-style bread</code> 非常亮眼，不仅语言高级，而且内容生动具体。继续保持这种增加具体细节的写作习惯！</p>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">修改与范文</h3>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex space-x-2 mb-4">
-                            <button onclick="window.toggleVersion('holiday', 'standard')" class="px-3 py-1 bg-cyan-100 text-cyan-700 rounded-full text-sm font-medium hover:bg-cyan-200">修改后完美版</button>
-                            <button onclick="window.toggleVersion('holiday', 'advanced')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium hover:bg-blue-200">满分参考范文</button>
-                        </div>
-                        
-                        <div id="holiday-standard" class="essay-content text-gray-800">
-                            <h4 class="font-bold mb-2 text-cyan-600">Standard Version (完美修正版)</h4>
-                            I'm glad to tell you <span class="font-bold text-cyan-600">about</span> my special holiday experience. The most exciting <span class="font-bold text-cyan-600">thing</span> is that I traveled to <span class="font-bold text-cyan-600">the</span> sea with my family! <span class="font-bold text-cyan-600">We enjoyed the beautiful</span> blue sky and sea. <span class="font-bold text-cyan-600">We</span> also tried local specialties like <span class="font-bold text-cyan-600">Russian-style</span> bread. This trip <span class="font-bold text-cyan-600">gave</span> me many unforgettable memories. I now feel braver to explore the unknown. Have you done anything exciting during your <span class="font-bold text-cyan-600">holiday?</span>
-                        </div>
-
-                        <div id="holiday-advanced" class="hidden essay-content text-gray-800">
-                            <h4 class="font-bold mb-2 text-blue-600">Advanced Version (参考范文)</h4>
-                            Dear Tom,
-                            <br><br>
-                            How is everything going?
-                            <br><br>
-                            I am writing to share a special experience from my winter vacation. I went to Harbin with my family and saw the breathtaking ice sculptures for the first time! We also tried skiing, which was extremely challenging but thrilling. Standing on the snow, I felt like I was in a fairy-tale world. I am so proud of myself for stepping out of my comfort zone.
-                            <br><br>
-                            Did you experience anything interesting during your winter holiday?
-                            <br><br>
-                            I'm looking forward to your reply.
-                            <br>
-                            Yours,
-                            <br>
-                            Li Hua
-                        </div>
-                    </div>
-                </div>
-
-                <!-- === 新增内容：Type1 Exam 2026.04.04 详细批改报告 === -->
-                <div class="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
-                    <h3 class="font-bold text-indigo-800 text-center"><i class="fa-solid fa-file-pen mr-2"></i>以下是 2026.04.04 Type1 考试详细批改报告</h3>
-                </div>
-
-                <!-- 第一部分：作文题目 -->
-                <div class="bg-white rounded-xl p-6 shadow">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4 flex items-center border-b-2 border-gray-200 pb-2">
-                        <span class="inline-block w-1 h-5 bg-indigo-600 mr-3 rounded"></span>第一部分：作文题目
-                    </h2>
-                    <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-gray-300 whitespace-pre-wrap text-gray-700">第一节 (满分 15 分)
-46. 假定你是李华，你的英国笔友 Tom 来信询问你的寒假生活。在刚刚过去的寒假中，你经历了许多新鲜有趣的事情。请你给他回一封邮件，分享一件你的"寒假新鲜事"。
-内容包括：
-1. 介绍你的"寒假新鲜事"；
-2. 分享你的感受；
-3. 询问对方的新鲜事。
-注意：
-1. 词数 80 左右；
-2. 可以适当增加细节，以使行文连贯；
-3. 开头和结尾已为你写好，不计入总词数。</div>
-                </div>
-
-                <!-- 第二部分：你的解答 -->
-                <div class="bg-white rounded-xl p-6 shadow">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4 flex items-center border-b-2 border-gray-200 pb-2">
-                        <span class="inline-block w-1 h-5 bg-indigo-600 mr-3 rounded"></span>第二部分：你的解答
-                    </h2>
-                    <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-amber-400 whitespace-pre-wrap text-gray-700">How is everything going?
-During this winter holiday?The holiday gave me an unforgettable experience.On one hand,I traveled with my parents to the chengdu. The food in chengdu was amazing! We tried Kung Pao chicken, which was sweet. On the other hand, the trip made me realize that the best part of traveling is not just seeing beautiful views, but also meeting kind people and trying delicious food.
-Have you been to any interesting places lately? I'm looking forward to your story.</div>
-                </div>
-
-                <!-- 第三部分：语法纠错与分析 -->
-                <div class="bg-white rounded-xl p-6 shadow">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4 flex items-center border-b-2 border-gray-200 pb-2">
-                        <span class="inline-block w-1 h-5 bg-indigo-600 mr-3 rounded"></span>第三部分：语法纠错与分析
-                    </h2>
-                    
-                    <div class="mb-4 pb-4 border-b border-dashed border-gray-200">
-                        <div><span class="text-red-500 line-through font-medium">During this winter holiday?The holiday gave me</span> ➔ <span class="text-emerald-600 font-semibold">You asked about my winter holiday. It gave me</span></div>
-                        <div class="text-sm text-gray-500 mt-2 bg-red-50 p-2 rounded"><strong>解析：</strong>"During this winter holiday?" 是一个介词短语，不能单独成句，且标点符号使用不当。建议改成一句完整的话来回应对方的询问，起到承上启下的作用。</div>
-                    </div>
-
-                    <div class="mb-4 pb-4 border-b border-dashed border-gray-200">
-                        <div><span class="text-red-500 line-through font-medium">On one hand,I traveled... On the other hand, the trip made me...</span> ➔ <span class="text-emerald-600 font-semibold">First, I traveled... Furthermore, the trip made me... (或直接删除)</span></div>
-                        <div class="text-sm text-gray-500 mt-2 bg-red-50 p-2 rounded"><strong>解析：</strong>"On (the) one hand... On the other hand..." 主要用于表达<strong>相对立、相矛盾</strong>的两个方面（一方面...另一方面...）。而你文中的意思是"我去旅游了，而且我有所感悟"，这两者是递进或顺承关系，并不对立。建议去掉，或者用 "What's more", "Through this trip" 等过渡。</div>
-                    </div>
-
-                    <div class="mb-4 pb-4 border-b border-dashed border-gray-200">
-                        <div><span class="text-red-500 line-through font-medium">to the chengdu</span> ➔ <span class="text-emerald-600 font-semibold">to Chengdu</span></div>
-                        <div class="text-sm text-gray-500 mt-2 bg-red-50 p-2 rounded"><strong>解析：</strong>"Chengdu" 是专有名词（城市名），首字母必须<strong>大写</strong>，且前面不需要加定冠词 "the"。</div>
-                    </div>
-
-                    <div>
-                        <div><span class="text-red-500 line-through font-medium">The food in chengdu</span> ➔ <span class="text-emerald-600 font-semibold">The food in Chengdu</span></div>
-                        <div class="text-sm text-gray-500 mt-2 bg-red-50 p-2 rounded"><strong>解析：</strong>同样，地名首字母需要大写。</div>
-                    </div>
-                </div>
-
-                <!-- 第四部分：润色后的升级版 -->
-                <div class="bg-white rounded-xl p-6 shadow">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4 flex items-center border-b-2 border-gray-200 pb-2">
-                        <span class="inline-block w-1 h-5 bg-indigo-600 mr-3 rounded"></span>第四部分：润色后的升级版
-                    </h2>
-                    <p class="text-gray-500 -mt-2 mb-4 text-sm">在保留你原本思路的基础上，修复了语法错误，并使表达更地道。</p>
-                    <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-emerald-500 whitespace-pre-wrap text-gray-800 text-base">Dear Tom,
-
-How is everything going? <strong>You asked about my winter holiday in your last letter. Well, it gave me an unforgettable experience.</strong>
-
-<strong>During the holiday,</strong> I traveled with my parents to <strong>Chengdu</strong>. The food there was amazing! We tried Kung Pao chicken, which was surprisingly sweet and delicious. <strong>More importantly</strong>, the trip made me realize that the best part of traveling is not just seeing beautiful views, but also meeting kind people and trying local delicious food.
-
-Have you been to any interesting places lately? I'm looking forward to your story.
-
-Yours,
-Li Hua</div>
-                </div>
-
-                <!-- 第五部分：高分范文 -->
-                <div class="bg-white rounded-xl p-6 shadow">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4 flex items-center border-b-2 border-gray-200 pb-2">
-                        <span class="inline-block w-1 h-5 bg-indigo-600 mr-3 rounded"></span>第五部分：高分范文 (提供另一种思路)
-                    </h2>
-                    <div class="bg-slate-50 p-4 rounded-lg border-l-4 border-emerald-500 whitespace-pre-wrap text-gray-800 text-base">Dear Tom,
-
-How is everything going? Knowing that you are curious about my winter holiday, I'm writing to share a fresh and unforgettable experience with you. 
-
-I went ice-skating for the first time! Initially, I could barely stand steadily and fell down several times on the ice. However, with my friends' encouragement, I gradually found my balance and managed to glide smoothly. It felt exactly like flying! This experience made me deeply realize the joy of stepping out of my comfort zone.
-
-Did anything interesting happen to you during the holiday? I'm looking forward to your reply.
-
-Yours,
-Li Hua</div>
-                </div>
-
-                <!-- 第六部分：学习建议 -->
-                <div class="bg-white rounded-xl p-6 shadow">
-                    <h2 class="text-xl font-semibold text-indigo-600 mb-4 flex items-center border-b-2 border-gray-200 pb-2">
-                        <span class="inline-block w-1 h-5 bg-indigo-600 mr-3 rounded"></span>第六部分：学习建议
-                    </h2>
-                    <ul class="pl-5 list-disc">
-                        <li class="mb-2"><strong>注意大小写规范：</strong> 地名、人名等专有名词（如成都 Chengdu）的首字母一定要大写，这是书面表达中最基础但也容易丢分的点。</li>
-                        <li class="mb-2"><strong>避免句子碎片：</strong> 英语中一个完整的句子必须要有主语和谓语动词。"During this winter holiday" 只是一个时间状语，不能独立加上问号或句号成为一个句子。</li>
-                        <li class="mb-2"><strong>准确使用逻辑连接词：</strong> 高中作文很看重连接词的使用，但一定要用对语境。记住 <code>On one hand... On the other hand...</code> 经常用来讨论事物的两面性（比如手机的利与弊），而不是用来罗列游记的先后顺序。</li>
-                        <li><strong>亮点表扬：</strong> 你写的这句 <span class="bg-yellow-200 px-1 rounded">"the trip made me realize that the best part of traveling is not just seeing beautiful views, but also meeting kind people..."</span> 非常棒！不仅使用了 <code>not just... but also...</code> 句型，而且升华了文章的主题，符合题目要求中的"分享感受"，这是本文的一大亮点！</li>
-                    </ul>
                 </div>
             </div>
 
@@ -666,14 +376,6 @@ Li Hua</div>
                         <button onclick="window.showMemoryDashboard()" class="w-full mt-3 bg-white text-purple-600 border border-purple-200 py-3 px-6 rounded-lg font-bold hover:bg-purple-50 transition shadow-sm">
                             <i class="fa-solid fa-database mr-1"></i> 查看当前账号 SQL 记忆库
                         </button>
-                        
-                        <!-- 新增：发送测试邮件按钮 -->
-                        <div class="mt-4 pt-4 border-t border-gray-100">
-                            <button onclick="window.testEmail()" class="w-full bg-white text-green-600 border border-green-200 py-3 px-6 rounded-lg font-bold hover:bg-green-50 transition shadow-sm">
-                                <i class="fa-solid fa-envelope mr-1"></i> 发送 EmailJS 测试邮件
-                            </button>
-                            <div id="test-email-status" class="text-sm font-medium mt-2 min-h-[24px] text-center"></div>
-                        </div>
                     </div>
                 </div>
 
@@ -714,17 +416,11 @@ Li Hua</div>
                                 </span>
                             </div>
 
-                            <!-- 核心修改：新增原句语境展示区 -->
-                            <div class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-100 shadow-inner">
-                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block"><i class="fa-solid fa-quote-left mr-1"></i> Original Context / 原句语境</span>
-                                <div id="q-full-context" class="text-gray-800 text-base sm:text-lg font-serif italic leading-relaxed"></div>
-                            </div>
-
-                            <h3 class="text-base sm:text-lg text-gray-800 mb-5 leading-relaxed font-medium flex items-center flex-wrap">
-                                识别到的错误：
-                                <span id="q-context" class="font-mono text-red-500 bg-red-50 px-2 py-1 rounded-md font-bold mx-2 shadow-sm border border-red-100"></span>
+                            <h3 class="text-lg sm:text-xl text-gray-800 mb-6 leading-relaxed">
+                                原句中的错误部分是：<br>
+                                "<span id="q-context" class="font-mono text-red-500 bg-red-50 px-1 rounded"></span>"
                             </h3>
-                            <p class="text-gray-600 mb-4 text-sm font-bold"><i class="fa-solid fa-wand-magic-sparkles text-blue-500 mr-1"></i> 请选择正确的修正表达：</p>
+                            <p class="text-gray-600 mb-6 text-sm">请选择正确的修正表达：</p>
 
                             <div id="options-container" class="space-y-3"></div>
                         </div>
@@ -752,10 +448,7 @@ Li Hua</div>
                             <i class="fa-solid fa-trophy text-4xl"></i>
                         </div>
                         <h2 class="text-2xl font-bold text-gray-900 mb-2">复习完成!</h2>
-                        <p class="text-gray-600 mb-2">今日得分: <span id="final-score" class="text-3xl font-bold text-blue-600"></span></p>
-                        
-                        <!-- Email Notification Status -->
-                        <div id="email-status" class="text-sm font-medium mt-2 mb-6 min-h-[24px]"></div>
+                        <p class="text-gray-600 mb-6">今日得分: <span id="final-score" class="text-3xl font-bold text-blue-600"></span></p>
                         
                         <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 justify-center mb-6">
                             <button onclick="window.switchTab('review'); document.getElementById('quiz-results').classList.add('hidden'); document.getElementById('quiz-start').classList.remove('hidden');" class="bg-blue-100 text-blue-700 py-2 px-6 rounded-lg font-medium hover:bg-blue-200">
@@ -813,7 +506,7 @@ Li Hua</div>
         </div>
     </div>
 
-    <!-- 前端逻辑 -->
+    <!-- 前端逻辑 (Fetch 访问同源 Cloudflare API) -->
     <script>
         let userRecords = []; 
         let currentProfile = 'user1';
@@ -821,9 +514,6 @@ Li Hua</div>
         let score = 0;
         let quizData = [];
         let isAnswered = false;
-        
-        // 用于存储单次复习的做题明细，用于邮件发送
-        let sessionLog = [];
 
         const EBBINGHAUS_INTERVALS = [
             0, 
@@ -838,7 +528,7 @@ Li Hua</div>
             30 * 24 * 60 * 60 * 1000 // Lv.9: 30天 (Mastered)
         ];
 
-        // 扩充至 41 个知识点 (含新增的寒假新鲜事考点)
+        // 扩充至 25 个知识点 (含 Learning English Beyond the Classroom)
         const mistakeDatabase = [
             { id: 1, tag: "代词 (Pronoun)", context: "...help our to better study...", incorrect: "help our", correct: "help us", explanation: "Help 是动词，后面应该接宾格 (us)，而 our 是形容词性物主代词。", distractors: ["help ours", "helps our"] },
             { id: 2, tag: "不可数名词 (Uncountable)", context: "...learn knowledges...", incorrect: "knowledges", correct: "knowledge", explanation: "Knowledge 是不可数名词，不能加 's'。", distractors: ["a knowledge", "many knowledges"] },
@@ -851,6 +541,7 @@ Li Hua</div>
             { id: 9, tag: "介词多余 (Preposition)", context: "I asked for them to help...", incorrect: "asked for them", correct: "asked them", explanation: "Ask sb. to do sth. 是固定用法，不需要加 for。", distractors: ["asked to them", "asked at them"] },
             { id: 10, tag: "拼写 (Spelling)", context: "When they heared my topics...", incorrect: "heared", correct: "heard", explanation: "Hear 的过去式是 heard，是不规则变化。", distractors: ["heareded", "hear"] },
             
+            // 以下为从 Report 1 & 2 HTML 文本内容中额外提取补充的 8 个知识点
             { id: 11, tag: "代词/限定词 (Determiner)", context: "I'm glad to share some my opinions with you.", incorrect: "some my", correct: "some of my", explanation: "当名词前已有 my/your 等物主代词时，前面的 some/many 需加 of，即 some of my opinions。", distractors: ["some mine", "some me"] },
             { id: 12, tag: "句子结构 (Fragment)", context: "Firstly, with the development of society.", incorrect: "with the development of society.", correct: "(连接主句，去除句号)", explanation: "这是一个介词短语，不能单独成句，应该作为状语连接到后面的主句中，中间用逗号隔开。", distractors: ["with society developing.", "society develop."] },
             { id: 13, tag: "副词位置 (Adverb Position)", context: "AI can help us to better study.", incorrect: "better study", correct: "study better", explanation: "修饰动词 study 的副词 better 通常放在动词或其宾语之后，即 study better。", distractors: ["more good study", "study good"] },
@@ -860,34 +551,14 @@ Li Hua</div>
             { id: 17, tag: "语序 (Word Order)", context: "I with they went to the hospital.", incorrect: "I with they went", correct: "I went with them", explanation: "典型的中式英语语序。英语中主谓通常紧密相连，介词短语(伴随状语)放后面，且介词后接宾格 them。", distractors: ["I went with they", "I with them went"] },
             { id: 18, tag: "单词拼写 (Spelling)", context: "Thank those kindmans for their help.", incorrect: "kindmans", correct: "kind people", explanation: "英语中没有 kindmans 这个词，表达'好心人'通常用 kind people (复数) 或 a kind person (单数)。", distractors: ["kind men", "kind mans"] },
 
+            // 以下为从新增 Report 3 (Learning English Beyond the Classroom) 中提取的 7 个知识点
             { id: 19, tag: "There be 句型 (There be)", context: "...There has many ways to learn...", incorrect: "There has", correct: "There are", explanation: "表示'存在有'应用 There be 句型，且 ways 是复数，故用 There are。绝对不能用 There has。", distractors: ["There have", "They has"] },
             { id: 20, tag: "不及物动词与介词 (Intransitive Verb)", context: "...we can listen English songs...", incorrect: "listen English", correct: "listen to English", explanation: "Listen 是不及物动词，接宾语时必须加上介词 to。", distractors: ["listening English", "listen at English"] },
             { id: 21, tag: "平行结构 (Parallel Structure)", context: "...listen to English songs and watching...", incorrect: "watching", correct: "watch", explanation: "and 连接两个并列的动词，前面是 listen (原形，跟在 can 后面)，后面也应保持一致用动词原形 watch。", distractors: ["watches", "to watch"] },
             { id: 22, tag: "指示代词 (Demonstrative Pronoun)", context: "This ways can improve...", incorrect: "This ways", correct: "These ways", explanation: "Ways 是复数名词，前面的指示代词必须用复数 these，不能用单数 this。", distractors: ["That ways", "This way can"] },
             { id: 23, tag: "非谓语动词作主语 (Gerund as Subject)", context: "...communicate with foreigners is also...", incorrect: "communicate", correct: "communicating", explanation: "动词原形不能直接作主语，应改为动名词 (doing) 或不定式 (to do)。这里作一般性主语常用动名词。", distractors: ["communicated", "communicates"] },
             { id: 24, tag: "固定搭配 (Fixed Phrase)", context: "I used to afraid of speaking...", incorrect: "used to afraid", correct: "used to be afraid", explanation: "Afraid 是形容词，不能直接跟在 used to (to 是不定式符号，后接动词原形) 后面，需要加 be 动词。", distractors: ["used to afraid of", "using to afraid"] },
-            { id: 25, tag: "动词用法 (Verb + doing)", context: "...I enjoy to share my ideas.", incorrect: "enjoy to share", correct: "enjoy sharing", explanation: "Enjoy 后面接动词时，必须使用动名词形式 (enjoy doing sth)。", distractors: ["enjoy share", "enjoying to share"] },
-
-            { id: 26, tag: "词汇与拼写 (Spelling)", context: "...they could need experiencet to help them.", incorrect: "experiencet", correct: "experiences", explanation: "Experience作为可数名词表示“经历”时需用复数experiences，且注意原句拼写错误。", distractors: ["experiencets", "experence"] },
-            { id: 27, tag: "词性误用 (Part of Speech)", context: "...to company with I.", incorrect: "company with I", correct: "keep me company", explanation: "Company 是名词，不能作动词（“陪某人”是 keep sb. company 或 accompany sb.）。且介词with后必须接宾格me。", distractors: ["company me", "accompany with I"] },
-            { id: 28, tag: "词汇拼写 (Spelling)", context: "...deal with guension.", incorrect: "guension", correct: "tension", explanation: "“紧张关系”的正确拼写为 tension。", distractors: ["tention", "gension"] },
-            { id: 29, tag: "词性误用 (Part of Speech)", context: "...so that I began to feel relax.", incorrect: "feel relax", correct: "feel relaxed", explanation: "Relax 是动词，表示主语感受到放松应使用形容词 relaxed。", distractors: ["feel relaxing", "feels relax"] },
-            { id: 30, tag: "主谓一致与时态 (Tense)", context: "...this say make me realized...", incorrect: "this say make me", correct: "this saying made me", explanation: "“俗话说”应为 saying (名词)。描述过去的顿悟，谓语动词make应使用过去式made。", distractors: ["this saying make me", "this say made me"] },
-            { id: 31, tag: "长难词拼写 (Spelling)", context: "The forrgetabe exerpience was like...", incorrect: "forrgetabe exerpience", correct: "unforgettable experience", explanation: "严重拼写错误：难忘的经历应正确拼写为 unforgettable experience。", distractors: ["unforgetable experienc", "forgetable experience"] },
-            
-            // ===== 新增：寒假新鲜事作文错误知识点 =====
-            { id: 32, tag: "介词与搭配", context: "I'm glad to tell you my special holiday experience.", incorrect: "tell you my", correct: "tell you about my", explanation: "“告诉某人关于某事”通常用 tell sb. about sth.。", distractors: ["tell you of my", "tell for you my"] },
-            { id: 33, tag: "冠词缺失", context: "The most exciting news is that I traveled to sea!", incorrect: "traveled to sea", correct: "traveled to the sea", explanation: "去海边应该用 travel to the sea 或 travel to the seaside。", distractors: ["traveled to a sea", "travels to sea"] },
-            { id: 34, tag: "无谓语残句", context: "The blue sky and sea.", incorrect: "The blue sky and sea.", correct: "We enjoyed the blue sky and sea.", explanation: "英语完整的句子必须要有主语和谓语动词，The blue sky and sea. 只是一个名词短语。", distractors: ["Have blue sky and sea.", "The blue sky and sea is."] },
-            { id: 35, tag: "大小写与格式", context: "we also tried local specialties like Russian- style bread.", incorrect: "we / Russian- style", correct: "We / Russian-style", explanation: "句首字母必须大写(We)。另外，连字符两边通常不加空格，应写为 Russian-style。", distractors: ["We / Russian - style", "we / Russian-style"] },
-            { id: 36, tag: "时态一致性", context: "This trip gives me many unforgettable memories.", incorrect: "gives", correct: "gave", explanation: "旅行发生在刚刚过去的寒假，动作已经完成，所以谓语动词应该用一般过去时 gave。", distractors: ["has given", "give"] },
-            { id: 37, tag: "拼写与标点", context: "Have you done anything exciting during your holioay.", incorrect: "holioay.", correct: "holiday?", explanation: "holiday 拼写错误。并且这是一个疑问句，句末必须使用问号 ?。", distractors: ["holioay?", "holiday."] },
-            
-            // ===== 新增：Type1 Exam 2026.04.04 寒假新鲜事作文错误知识点 =====
-            { id: 38, tag: "句子结构 (Fragment)", context: "During this winter holiday?The holiday gave me an unforgettable experience.", incorrect: "During this winter holiday?", correct: "You asked about my winter holiday. Well, it gave me", explanation: "During this winter holiday? 是一个介词短语，不能单独成句，且标点符号使用不当。建议改成完整的话来承上启下。", distractors: ["During this winter holiday,", "In this winter holiday?"] },
-            { id: 39, tag: "逻辑连接词 (Logic)", context: "On one hand,I traveled with my parents to the chengdu. On the other hand, the trip made me realize...", incorrect: "On one hand... On the other hand", correct: "First... Furthermore / Through this trip", explanation: "On (the) one hand... On the other hand... 主要用于表达相对立的两个方面。而文中'去旅游'和'有所感悟'是递进关系，并不对立。", distractors: ["However", "Therefore"] },
-            { id: 40, tag: "专有名词与冠词 (Proper Noun)", context: "...traveled with my parents to the chengdu.", incorrect: "to the chengdu", correct: "to Chengdu", explanation: "Chengdu 是专有名词（城市名），首字母必须大写，且前面不需要加定冠词 the。", distractors: ["to the Chengdu", "to chengdu"] },
-            { id: 41, tag: "专有名词大小写 (Capitalization)", context: "The food in chengdu was amazing!", incorrect: "in chengdu", correct: "in Chengdu", explanation: "地名首字母需要大写。", distractors: ["in Chengdus", "in the Chengdu"] }
+            { id: 25, tag: "动词用法 (Verb + doing)", context: "...I enjoy to share my ideas.", incorrect: "enjoy to share", correct: "enjoy sharing", explanation: "Enjoy 后面接动词时，必须使用动名词形式 (enjoy doing sth)。", distractors: ["enjoy share", "enjoying to share"] }
         ];
 
         document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
@@ -940,12 +611,14 @@ Li Hua</div>
                 }
 
                 if (newData) {
+                    // 更新本地内存
                     if (existingIndex !== -1) {
                         userRecords[existingIndex] = newData;
                     } else {
                         userRecords.push(newData);
                     }
                     
+                    // 发送 POST 到同源 Cloudflare API
                     await fetch('/api/memory/upsert', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -970,10 +643,10 @@ Li Hua</div>
         };
 
         window.switchTab = function(tabName) {
-            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-review'].forEach(id => {
+            ['view-report1', 'view-report2', 'view-report3', 'view-review'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-review'].forEach(id => {
+            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-review'].forEach(id => {
                 document.getElementById(id).className = "tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
             });
             document.getElementById('view-' + tabName).classList.remove('hidden');
@@ -1023,11 +696,6 @@ Li Hua</div>
                 document.getElementById('beyond-standard').classList.add('hidden');
                 document.getElementById('beyond-advanced').classList.add('hidden');
                 document.getElementById('beyond-' + version).classList.remove('hidden');
-            } else if (essay === 'holiday') {
-                // 处理寒假新鲜事新加的功能
-                document.getElementById('holiday-standard').classList.add('hidden');
-                document.getElementById('holiday-advanced').classList.add('hidden');
-                document.getElementById('holiday-' + version).classList.remove('hidden');
             }
         };
 
@@ -1092,7 +760,6 @@ Li Hua</div>
             document.getElementById('quiz-pre-review').classList.add('hidden');
             document.getElementById('quiz-container').classList.remove('hidden');
             
-            sessionLog = []; // 清空答题日志
             currentQuestionIndex = 0;
             score = 0;
             document.getElementById('total-q').innerText = quizData.length;
@@ -1110,11 +777,6 @@ Li Hua</div>
             document.getElementById('progress-bar').style.width = (((currentQuestionIndex) / quizData.length) * 100) + '%';
             
             document.getElementById('q-tag').innerText = q.tag;
-            
-            // 核心修改：渲染原句语境，并高亮错误部分
-            const highlightedContext = q.context.replace(q.incorrect, '<span class="text-red-500 font-bold underline decoration-wavy">' + q.incorrect + '</span>');
-            document.getElementById('q-full-context').innerHTML = '"' + highlightedContext + '"';
-            
             document.getElementById('q-context').innerText = q.incorrect;
             document.getElementById('feedback-area').classList.add('hidden');
 
@@ -1141,14 +803,6 @@ Li Hua</div>
             isAnswered = true;
 
             const allBtns = document.getElementById('options-container').children;
-            
-            sessionLog.push({
-                tag: questionData.tag,
-                isCorrect: selectedOption.isCorrect,
-                context: questionData.context,
-                incorrect: questionData.incorrect,
-                correct: questionData.correct
-            });
 
             if (selectedOption.isCorrect) {
                 score++;
@@ -1203,62 +857,10 @@ Li Hua</div>
             }
         };
 
-        window.testEmail = function() {
-            const statusDiv = document.getElementById('test-email-status');
-            statusDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i> <span class="text-blue-600">正在发送测试邮件...</span>';
-            
-            const testLogs = [
-                { tag: "代词", isCorrect: true, context: "...help our to better study...", incorrect: "help our", correct: "help us" },
-                { tag: "动词用法", isCorrect: true, context: "...I enjoy to share my ideas.", incorrect: "enjoy to share", correct: "enjoy sharing" },
-                { tag: "拼写", isCorrect: false, context: "When they heared my topics...", incorrect: "heared", correct: "heard" }
-            ];
-
-            fetch('/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    profile: currentProfile + " (测试模式)",
-                    score: 2,
-                    total: 3,
-                    logs: testLogs
-                })
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    statusDiv.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 mr-1"></i> <span class="text-green-600">测试邮件发送成功！请检查邮箱看排版。</span>';
-                } else {
-                    statusDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> <span class="text-red-500">发送失败：' + (data.error || '未知错误') + '</span>';
-                }
-            }).catch(e => {
-                statusDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> <span class="text-red-500">网络或系统错误，调用接口失败。</span>';
-            });
-        };
-
         function showResults() {
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('quiz-results').classList.remove('hidden');
             document.getElementById('final-score').innerText = score + ' / ' + quizData.length;
-            
-            const emailStatus = document.getElementById('email-status');
-            emailStatus.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-blue-500"></i> <span class="text-blue-600">正在生成报告并发送到 EmailJS...</span>';
-
-            fetch('/api/send-email', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    profile: currentProfile,
-                    score: score,
-                    total: quizData.length,
-                    logs: sessionLog
-                })
-            }).then(res => res.json()).then(data => {
-                if(data.success) {
-                    emailStatus.innerHTML = '<i class="fa-solid fa-check-circle text-green-500 text-lg mr-1"></i> <span class="text-green-600">排版优化版学习报告已成功发送！</span>';
-                } else {
-                    emailStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> <span class="text-red-500">发送失败：<br>' + (data.error || '未知错误') + '</span>';
-                }
-            }).catch(e => {
-                emailStatus.innerHTML = '<i class="fa-solid fa-triangle-exclamation text-red-500 mr-1"></i> <span class="text-red-500">系统错误，无法调用发送接口。</span>';
-            });
         }
 
         window.showMemoryDashboard = function() {
@@ -1315,9 +917,6 @@ Li Hua</div>
 
         // 启动应用
         initApp();
-    <\/script>
+    </script>
 </body>
 </html>`;
-export {
-  worker_default as default
-};

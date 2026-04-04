@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语作文批改报告</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-light: #6b7280;
+            --error-color: #ef4444;
+            --success-color: #10b981;
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .card-title {
+            font-size: 1.25em;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+
+        .card-title::before {
+            content: '';
+            display: inline-block;
+            width: 5px;
+            height: 20px;
+            background-color: var(--primary-color);
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+
+        .prompt-text, .original-text, .model-text {
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #cbd5e1;
+            font-family: inherit;
+            white-space: pre-wrap;
+        }
+
+        .original-text {
+            border-left-color: #fbbf24;
+        }
+
+        .model-text {
+            border-left-color: var(--success-color);
+            font-size: 1.05em;
+        }
+
+        .correction-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #e5e7eb;
+        }
+
+        .correction-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .error {
+            color: var(--error-color);
+            text-decoration: line-through;
+            font-weight: 500;
+        }
+
+        .correction {
+            color: var(--success-color);
+            font-weight: 600;
+        }
+
+        .explanation {
+            font-size: 0.9em;
+            color: var(--text-light);
+            margin-top: 5px;
+            background: #fef2f2;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+
+        .suggestion-list {
+            padding-left: 20px;
+        }
+
+        .suggestion-list li {
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background-color: #fef08a;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 英语作文批改报告</h1>
+
+    <!-- Section 1: 题目 -->
+    <div class="card">
+        <h2 class="card-title">第一部分：作文题目</h2>
+        <div class="prompt-text">第一节 (满分 15 分)
+46. 假定你是李华，你的英国笔友 Tom 来信询问你的寒假生活。在刚刚过去的寒假中，你经历了许多新鲜有趣的事情。请你给他回一封邮件，分享一件你的“寒假新鲜事”。
+内容包括：
+1. 介绍你的“寒假新鲜事”；
+2. 分享你的感受；
+3. 询问对方的新鲜事。
+注意：
+1. 词数 80 左右；
+2. 可以适当增加细节，以使行文连贯；
+3. 开头和结尾已为你写好，不计入总词数。</div>
+    </div>
+
+    <!-- Section 2: 你的原卷 -->
+    <div class="card">
+        <h2 class="card-title">第二部分：你的解答</h2>
+        <div class="original-text">How is everything going?
+During this winter holiday?The holiday gave me an unforgettable experience.On one hand,I traveled with my parents to the chengdu. The food in chengdu was amazing! We tried Kung Pao chicken, which was sweet. On the other hand, the trip made me realize that the best part of traveling is not just seeing beautiful views, but also meeting kind people and trying delicious food.
+Have you been to any interesting places lately? I’m looking forward to your story.</div>
+    </div>
+
+    <!-- Section 3: 详细批改 -->
+    <div class="card">
+        <h2 class="card-title">第三部分：语法纠错与分析</h2>
+        
+        <div class="correction-item">
+            <div><span class="error">During this winter holiday?The holiday gave me</span> ➡️ <span class="correction">You asked about my winter holiday. It gave me</span></div>
+            <div class="explanation"><strong>解析：</strong>"During this winter holiday?" 是一个介词短语，不能单独成句，且标点符号使用不当。建议改成一句完整的话来回应对方的询问，起到承上启下的作用。</div>
+        </div>
+
+        <div class="correction-item">
+            <div><span class="error">On one hand,I traveled... On the other hand, the trip made me...</span> ➡️ <span class="correction">First, I traveled... Furthermore, the trip made me... (或直接删除)</span></div>
+            <div class="explanation"><strong>解析：</strong>"On (the) one hand... On the other hand..." 主要用于表达<strong>相对立、相矛盾</strong>的两个方面（一方面...另一方面...）。而你文中的意思是“我去旅游了，而且我有所感悟”，这两者是递进或顺承关系，并不对立。建议去掉，或者用 "What's more", "Through this trip" 等过渡。</div>
+        </div>
+
+        <div class="correction-item">
+            <div><span class="error">to the chengdu</span> ➡️ <span class="correction">to Chengdu</span></div>
+            <div class="explanation"><strong>解析：</strong>"Chengdu" 是专有名词（城市名），首字母必须<strong>大写</strong>，且前面不需要加定冠词 "the"。</div>
+        </div>
+
+        <div class="correction-item">
+            <div><span class="error">The food in chengdu</span> ➡️ <span class="correction">The food in Chengdu</span></div>
+            <div class="explanation"><strong>解析：</strong>同样，地名首字母需要大写。</div>
+        </div>
+    </div>
+
+    <!-- Section 4: 润色后的版本 -->
+    <div class="card">
+        <h2 class="card-title">第四部分：润色后的升级版</h2>
+        <p style="color: var(--text-light); margin-top: -10px; margin-bottom: 15px; font-size: 0.9em;">在保留你原本思路的基础上，修复了语法错误，并使表达更地道。</p>
+        <div class="model-text">Dear Tom,
+
+How is everything going? <strong>You asked about my winter holiday in your last letter. Well, it gave me an unforgettable experience.</strong>
+
+<strong>During the holiday,</strong> I traveled with my parents to <strong>Chengdu</strong>. The food there was amazing! We tried Kung Pao chicken, which was surprisingly sweet and delicious. <strong>More importantly</strong>, the trip made me realize that the best part of traveling is not just seeing beautiful views, but also meeting kind people and trying local delicious food.
+
+Have you been to any interesting places lately? I’m looking forward to your story.
+
+Yours,
+Li Hua</div>
+    </div>
+
+    <!-- Section 5: 推荐范文 -->
+    <div class="card">
+        <h2 class="card-title">第五部分：高分范文 (提供另一种思路)</h2>
+        <div class="model-text">Dear Tom,
+
+How is everything going? Knowing that you are curious about my winter holiday, I'm writing to share a fresh and unforgettable experience with you. 
+
+I went ice-skating for the first time! Initially, I could barely stand steadily and fell down several times on the ice. However, with my friends' encouragement, I gradually found my balance and managed to glide smoothly. It felt exactly like flying! This experience made me deeply realize the joy of stepping out of my comfort zone.
+
+Did anything interesting happen to you during the holiday? I’m looking forward to your reply.
+
+Yours,
+Li Hua</div>
+    </div>
+
+    <!-- Section 6: 老师的建议 -->
+    <div class="card">
+        <h2 class="card-title">第六部分：学习建议</h2>
+        <ul class="suggestion-list">
+            <li><strong>注意大小写规范：</strong> 地名、人名等专有名词（如成都 Chengdu）的首字母一定要大写，这是书面表达中最基础但也容易丢分的点。</li>
+            <li><strong>避免句子碎片：</strong> 英语中一个完整的句子必须要有主语和谓语动词。"During this winter holiday" 只是一个时间状语，不能独立加上问号或句号成为一个句子。</li>
+            <li><strong>准确使用逻辑连接词：</strong> 高中作文很看重连接词的使用，但一定要用对语境。记住 <code>On one hand... On the other hand...</code> 经常用来讨论事物的两面性（比如手机的利与弊），而不是用来罗列游记的先后顺序。</li>
+            <li><strong>亮点表扬：</strong> 你写的这句 <span class="highlight">"the trip made me realize that the best part of traveling is not just seeing beautiful views, but also meeting kind people..."</span> 非常棒！不仅使用了 <code>not just... but also...</code> 句型，而且升华了文章的主题，符合题目要求中的“分享感受”，这是本文的一大亮点！</li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
