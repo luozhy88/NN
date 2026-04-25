@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高中英语读后续写批改报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入 html2pdf 库来实现真实的 PDF 下载 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+        .highlight-error {
+            background-color: #fee2e2;
+            color: #b91c1c;
+            text-decoration: line-through;
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+        .highlight-correct {
+            background-color: #dcfce7;
+            color: #15803d;
+            font-weight: 600;
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+            }
+            .max-w-4xl {
+                max-width: 100% !important;
+                margin: 0 !important;
+            }
+            .shadow-sm {
+                box-shadow: none !important;
+            }
+            section, header {
+                border: 1px solid #e5e7eb !important;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 antialiased py-8 px-4 sm:px-6 lg:px-8">
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="relative bg-white rounded-2xl shadow-sm p-8 text-center border-t-4 border-indigo-500">
+            <button id="downloadBtn" onclick="downloadPDF()" class="no-print absolute top-6 right-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium py-2 px-4 rounded-lg border border-indigo-100 transition-colors flex items-center text-sm">
+                <i class="fas fa-download mr-2"></i>下载 PDF
+            </button>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-4 sm:mt-0">高中英语读后续写批改报告</h1>
+            <p class="text-gray-500"><i class="fas fa-file-signature mr-2"></i>亲情、成长与接纳</p>
+        </header>
+
+        <!-- 一、 题目说明 -->
+        <section class="bg-white rounded-2xl shadow-sm p-8">
+            <h2 class="text-xl font-bold text-indigo-600 mb-4 flex items-center">
+                <i class="fas fa-book-open mr-3"></i> 一、 题目说明
+            </h2>
+            <div class="bg-indigo-50 rounded-xl p-5 space-y-3 text-sm leading-relaxed">
+                <p><strong>故事背景：</strong> 作者的父亲患有唇腭裂，但他乐观、善良。小时候作者觉得父亲是英雄，但到了青春期，开始对父亲的外貌感到尴尬。</p>
+                <p><strong>冲突事件：</strong> 同学来家里玩，悄悄问作者“你爸爸怎么了？”，作者感到羞耻，赶走同学并对父亲态度冷淡。</p>
+                <div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100">
+                    <p class="font-semibold text-gray-700">续写任务：</p>
+                    <ul class="list-disc pl-5 mt-2 space-y-2 text-gray-600">
+                        <li><strong>第一段开头：</strong> <code>Amid the noise of my classmates leaving, I caught the look of hurt in Dad’s eyes.</code>（重点描写父亲受伤的反应及作者的愧疚）。</li>
+                        <li><strong>第二段开头：</strong> <code>I knew I had to make it right.</code>（重点描写道歉、父亲的宽容及积极影响）。</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 二、 你的原文展现 -->
+        <section class="bg-white rounded-2xl shadow-sm p-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-pen-nib mr-3 text-gray-500"></i> 二、 你的原文展现
+            </h2>
+            <div class="bg-gray-50 rounded-xl p-6 font-serif text-gray-700 leading-relaxed border border-gray-200">
+                <p class="mb-4"><strong>Paragraph 1:</strong><br>
+                Amid the noise of my classmates leaving, I caught the look of hurt in Dad’s eyes. latching sight of the look of hurt in Dad's eyes amid the noise of my classmates leaving. I felt a sharp pang of guitt piercing my heart. His smile faded instantly,and he stood rooted to the spot. The science between us heavier than any words,The creak of the floor boards echoing my regret. Determining that I had to make it right, I marched to Dad's room that I had to make it right, I marched to Dad's room that night.</p>
+                
+                <p><strong>Paragraph 2:</strong><br>
+                I knew I had to make it right.My mind made up to apologize sincerely, my hands trembling signtly with nervousness, I telling him how deeply sorry I was for my nude behavior, Dad pulled me into a warm hug,Trom that moment on, which was deeply engraved in my mind and had a profound influence on ne the rest of my life.</p>
+            </div>
+        </section>
+
+        <!-- 三、 详细批改 -->
+        <section class="bg-white rounded-2xl shadow-sm p-8">
+            <h2 class="text-xl font-bold text-red-500 mb-6 flex items-center">
+                <i class="fas fa-check-double mr-3"></i> 三、 对你答案的详细批改
+            </h2>
+            <p class="text-gray-600 mb-6 bg-red-50 p-4 rounded-lg">你的续写在<strong>情感走向和情节设计</strong>上非常准确，尝试使用了高级词汇和句型（如独立主格结构）。但存在较多<strong>拼写错误、语法错误以及语句重复</strong>问题。</p>
+            
+            <div class="space-y-6">
+                <!-- 批改项 1 -->
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                        <span class="text-sm font-bold text-gray-500">第一段 - 句 1</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> ...Dad’s eyes. <span class="highlight-error">latching sight of the look of hurt in Dad's eyes amid the noise of my classmates leaving.</span></p>
+                        <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> 语意严重重复，且拼写有误(catching)。既然给定的首句已表达此意，后半句应直接删除。</p>
+                    </div>
+                </div>
+
+                <!-- 批改项 2 -->
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                        <span class="text-sm font-bold text-gray-500">第一段 - 句 2</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> I felt a sharp pang of <span class="highlight-error">guitt</span> piercing my heart.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> I felt a sharp pang of <span class="highlight-correct">guilt</span> piercing my heart.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> 拼写错误。但句型 <code>a sharp pang of... piercing my heart</code> 用得非常好！</p>
+                    </div>
+                </div>
+
+                <!-- 批改项 3 -->
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                        <span class="text-sm font-bold text-gray-500">第一段 - 句 3</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> The <span class="highlight-error">science</span> between us heavier than any words, <span class="highlight-error">T</span>he creak of the floor boards echoing my regret.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> The <span class="highlight-correct">silence</span> between us <span class="highlight-correct">was</span> heavier than any words, <span class="highlight-correct">and the</span> creak of the floor boards <span class="highlight-correct">echoed</span> my regret.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> `science` (科学)应为 `silence` (沉默)。缺乏谓语动词，建议改成并列句或规范的独立主格。</p>
+                    </div>
+                </div>
+
+                <!-- 批改项 4 -->
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                        <span class="text-sm font-bold text-gray-500">第二段 - 句 1</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> My mind made up to apologize sincerely, my hands trembling <span class="highlight-error">signtly</span> with nervousness, I <span class="highlight-error">telling</span> him how deeply sorry I was for my <span class="highlight-error">nude</span> behavior,</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> My mind made up to apologize sincerely, <span class="highlight-correct">and</span> my hands trembling <span class="highlight-correct">slightly</span> with nervousness, I <span class="highlight-correct">told</span> him how deeply sorry I was for my <span class="highlight-correct">rude</span> behavior.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> 严重拼写失误：`nude`(裸体的) -> `rude`(粗鲁的)。`telling` 不能作谓语，应改为 `told`。逗号过多导致流水句。</p>
+                    </div>
+                </div>
+                
+                <!-- 批改项 5 -->
+                <div class="border border-gray-200 rounded-xl overflow-hidden">
+                    <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                        <span class="text-sm font-bold text-gray-500">第二段 - 句 2</span>
+                    </div>
+                    <div class="p-5 space-y-3">
+                        <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> Dad pulled me into a warm hug, <span class="highlight-error">Trom</span> that moment on, <span class="highlight-error">which was</span> deeply engraved in my mind and had a profound influence on <span class="highlight-error">ne</span> the rest of my life.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> Dad pulled me into a warm hug. <span class="highlight-correct">That moment was</span> deeply engraved in my mind and had a profound influence on <span class="highlight-correct">me for</span> the rest of my life.</p>
+                        <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> `which` 定语从句用法错误，强行揉在一起。应断句使其表意清晰。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 四、 优质范文 -->
+        <section class="bg-blue-50 rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+            <div class="bg-blue-600 text-white p-5">
+                <h2 class="text-xl font-bold flex items-center">
+                    <i class="fas fa-star mr-3 text-yellow-300"></i> 四、 优质范文 (Model Essay)
+                </h2>
+            </div>
+            <div class="p-8 font-serif text-gray-800 leading-loose space-y-6 text-lg">
+                <p>
+                    <strong>Amid the noise of my classmates leaving, I caught the look of hurt in Dad’s eyes.</strong> The warm smile that always graced his face vanished, replaced by a mixture of confusion and sorrow. He stood rooted to the spot, holding a tray of untouched popcorn. At that moment, a sharp pang of guilt pierced my heart. The silence between us was heavier than any words, making me realize how deeply my cold attitude had wounded the man who loved me most. Silently, he placed the snacks on the table and retreated to his room. Looking at his slightly hunched back, my face burned not with embarrassment, but with profound shame for my own shallowness.
+                </p>
+                <p>
+                    <strong>I knew I had to make it right.</strong> Later that evening, with my hands trembling slightly out of nervousness, I hesitantly knocked on his door. Taking a deep breath, I walked up to him and choked out a sincere apology, tears welling up in my eyes. I told him how deeply sorry I was for my rude behavior and reassured him that he would always be my lifelong hero. Without a word of blame, Dad smiled gently and pulled me into a warm, forgiving hug. That moment was deeply engraved in my mind, teaching me that true beauty lies not in a flawless appearance, but in a loving heart.
+                </p>
+            </div>
+        </section>
+
+        <!-- 五、 学习建议 -->
+        <section class="bg-white rounded-2xl shadow-sm p-8 border-l-8 border-green-500">
+            <h2 class="text-xl font-bold text-green-600 mb-5 flex items-center">
+                <i class="fas fa-lightbulb mr-3"></i> 五、 给你的学习建议
+            </h2>
+            <ul class="space-y-4 text-gray-700">
+                <li class="flex items-start">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h4 class="font-bold text-gray-900">极其注意拼写和笔误</h4>
+                        <p class="text-sm mt-1">你的词汇积累不错，但像 <code>nude/rude</code>、<code>science/silence</code> 这种形近词的拼写错误在考试中是致命的，不仅扣分，还会改变句意。平时打字或书写要多复查。</p>
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h4 class="font-bold text-gray-900">避免句子重复和串段</h4>
+                        <p class="text-sm mt-1">给定的首句不要在正文中再抄写一遍。注意段落任务分配：第一段主写<strong>情绪（愧疚）</strong>，第二段再写<strong>行动（走向房间道歉）</strong>，避免第一段把第二段的剧情抢先写完。</p>
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h4 class="font-bold text-gray-900">攻克长难句的“流水”问题</h4>
+                        <p class="text-sm mt-1">尝试高级语法是加分项，但要牢记：<strong>一个英语句子里必须且只能有一个主句的谓语动词</strong>。长串修饰语写完后，务必检查主谓结构是否完整。</p>
+                    </div>
+                </li>
+                <li class="flex items-start">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h4 class="font-bold text-gray-900">积累升华句型</h4>
+                        <p class="text-sm mt-1">结尾的升华 <code>had a profound influence on me</code> 很好。还可以结合主题加入 <code>true beauty lies in a loving heart</code> 这样的点睛之笔，做到首尾呼应。</p>
+                    </div>
+                </li>
+            </ul>
+        </section>
+        
+        <footer class="text-center text-gray-400 text-sm pb-8">
+            <p>Keep up the good work! 期待你写出更优秀的文章。</p>
+        </footer>
+
+    </div>
+
+    <script>
+        function downloadPDF() {
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            
+            // 改变按钮状态，提示用户正在生成
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
+            btn.style.pointerEvents = 'none';
+
+            // 选择要转换为PDF的内容区域（这里选择整个网页body）
+            const element = document.body;
+            
+            // PDF 配置参数
+            const opt = {
+                margin:       10,
+                filename:     '英语作文批改报告.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // 临时隐藏下载按钮，以免它出现在 PDF 中
+            btn.style.opacity = '0';
+
+            // 执行转换并下载
+            html2pdf().set(opt).from(element).save().then(() => {
+                // 恢复按钮状态
+                btn.style.opacity = '1';
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+            }).catch(err => {
+                console.error('PDF生成失败:', err);
+                btn.style.opacity = '1';
+                btn.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>生成失败';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.pointerEvents = 'auto';
+                }, 3000);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -160,6 +160,7 @@ var HTML_CONTENT = `<!DOCTYPE html>
     <title>英语作文批改与复习系统 - Ebbinghaus Pro (Cloudflare) v1.6.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f3f4f6; }
         .tab-active { border-bottom: 2px solid #2563eb; color: #2563eb; font-weight: 600; }
@@ -183,6 +184,15 @@ var HTML_CONTENT = `<!DOCTYPE html>
         /* Table styles for Dashboard */
         .db-table th { background-color: #f8fafc; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; color: #64748b; }
         .db-table td { font-size: 0.875rem; color: #334155; }
+        .highlight-error { background-color: #fee2e2; color: #b91c1c; text-decoration: line-through; padding: 0 4px; border-radius: 4px; }
+        .highlight-correct { background-color: #dcfce7; color: #15803d; font-weight: 600; padding: 0 4px; border-radius: 4px; }
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white !important; }
+            .max-w-4xl { max-width: 100% !important; margin: 0 !important; }
+            .shadow-sm { box-shadow: none !important; }
+            section, header { border: 1px solid #e5e7eb !important; page-break-inside: avoid; }
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
@@ -209,10 +219,13 @@ var HTML_CONTENT = `<!DOCTYPE html>
                         课外英语学习
                     </button>
                     <button onclick="window.switchTab('report4')" id="tab-report4" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
-                        读后续写精批2
+                        行李箱之旅(2026.04.12)
                     </button>
                     <button onclick="window.switchTab('report5')" id="tab-report5" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
                         寒假新鲜事
+                    </button>
+                    <button onclick="window.switchTab('report6')" id="tab-report6" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
+                        读后续写报告2
                     </button>
                     <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
                         <i class="fa-solid fa-clipboard-check mr-2"></i> 错题复习挑战
@@ -370,76 +383,123 @@ var HTML_CONTENT = `<!DOCTYPE html>
                 </div>
             </div>
 
-            <!-- Report 4: 读后续写精批 (Empty Nest Mother) -->
+            <!-- Report 4: 读后续写批改报告 - 行李箱之旅 (2026.04.12) -->
             <div id="view-report4" class="hidden fade-in space-y-6">
-                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-rose-500">
-                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-pen-nib mr-2"></i>逐句精批诊断 (Diagnosis)</h2>
-                    <div class="bg-gray-50 p-4 rounded text-sm text-gray-700 essay-content">
-                        <span class="font-bold block mb-2">Student Essay & Corrections (错题标记):</span>
-                        <div class="space-y-3">
-                            <p>
-                                <span class="wrong-text">Because I realized my two sons have grown, they could need experiencet to help them.</span><br>
-                                <span class="correct-text">I realized my two sons had grown up, and they needed their own experiences to guide them.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">And I needed their company to make the silence began to feel relax.</span><br>
-                                <span class="correct-text">And I needed their company to break the heavy silence in the house.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">At night, I said I didn't confront any people in our home to Mark and Leo.</span><br>
-                                <span class="correct-text">That night, I sat down with Mark and Leo, promising I wouldn't confront them so harshly anymore.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">They answered I would often look after me and every week to company with I.</span><br>
-                                <span class="correct-text">They agreed, promising to look after themselves and visit every week to keep me company.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">From then On,we began to together deal with guension.</span><br>
-                                <span class="correct-text">From then on, we began to deal with our tension together peacefully.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">And they often went home to company me so that I began to feel relax.</span><br>
-                                <span class="correct-text">They often came home to accompany me, which made me feel truly relaxed.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">" one day of success shall calm your anxious heart".this say make me realized, my two sons has been teenager.</span><br>
-                                <span class="correct-text">As the saying goes, "Understanding is the bridge to love." This made me realize my two sons had grown into independent individuals.</span>
-                            </p>
-                            <p>
-                                <span class="wrong-text">The forrgetabe exerpience was like an everlasting flwoer blooming in my memories.</span><br>
-                                <span class="correct-text">This unforgettable experience was like an everlasting flower blooming in my memories.</span>
-                            </p>
+                
+                <!-- 一、题目回顾 -->
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-book-open mr-2"></i>一、题目回顾 (The Prompt)</h2>
+                    <div class="bg-blue-50 p-4 rounded-lg text-sm text-slate-700 space-y-3">
+                        <p><strong>第二节(满分 25 分)</strong><br>
+                        阅读下列材料，根据其内容和所给段落开头语续写两段，使之构成一篇完整的短文。</p>
+                        <p class="italic text-slate-600 bg-white p-3 rounded border border-blue-100">It all began at my local Portland airport as I was checking in for my flight for Salt Lake City. Panic hit: my suitcase was still at home. It held everything for a week-long conference in Utah: my tailored suit, a folder of printed presentations, even the novel I planned to finally read on the flight. With no time to turn back, I called my wife, who promised to send it on the next flight. An agent reassured me that it would reach my hotel by evening. Armed with that promise, I boarded, unaware of the incredible journey that awaited my suitcase.</p>
+                        <p class="italic text-slate-600 bg-white p-3 rounded border border-blue-100">That night at my hotel, no suitcase arrived. I called Delta Airlines and Peter, a baggage service agent, informed me that the connecting flight had been canceled. "Don't worry. It'll be on the first flight tomorrow and delivered to your hotel by 9 a.m." he promised.</p>
+                        <p class="italic text-slate-600 bg-white p-3 rounded border border-blue-100">The next morning at 9 a.m., nothing. I called Delta again, my voice shaking over the phone. "Where's my bag?" Peter responded calmly, "Can you make it through today?" "But I need the staff in my bag!" Peter explained that without a baggage ticket number, tracking was difficult, but he would keep trying. Frustrated, I washed my only shirt in the washbowl, hung it near the heater, and hoped it would dry up for the conference in the afternoon.</p>
+                        <p class="italic text-slate-600 bg-white p-3 rounded border border-blue-100">By noon, Peter called. His voice apologetic and sympathetic, he told me that there had been a mistake and now my suitcase was traveling to New York's LaGuardia Airport. "All you can do is focus on today", he advised, trying to ease my anger and anxiety, "Just take it as a light travel". Just then, a well-dressed stranger approached me. To my astonishment, he reached into his own carry-on and pulled out a neatly folded new shirt and a pair of socks. "Traveling Light?" he smiled, his eyes twinkling with understanding. As he offered them to me, I mumbled thanks, overwhelmed with a blend of embarrassment and gratitude.</p>
+                        <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
+                            <p><strong>Paragraph 1:</strong> Peter's advice, paired with the stranger's kindness, kept me going through that week.</p>
+                            <p><strong>Paragraph 2:</strong> A week later, at Salt Lake Airport in Utah, I spotted my dusty bag on the conveyor belt.</p>
                         </div>
-                    </div>
-                    
-                    <div class="bg-red-50 p-4 rounded-lg mt-4">
-                        <h3 class="font-bold text-red-700 mb-2">核心丢分项总结 (Key Errors)</h3>
-                        <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                            <li><strong>高频拼写错误：</strong>长难词（如 experience, unforgettable）全军覆没。</li>
-                            <li><strong>词性严重混淆：</strong>多次将名词（company）作动词使用。</li>
-                            <li><strong>代词指代混乱：</strong>I/me/my 混用，介词后未使用宾格 (with I)。</li>
-                            <li><strong>中式英语：</strong>句子结构和语序受中文思维影响严重。</li>
-                        </ul>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                        <h3 class="font-bold text-gray-800">升格示范</h3>
+                <!-- 二、学生原文 -->
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-amber-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-pen-to-square mr-2"></i>二、学生原文 (Student Essay)</h2>
+                    <div class="bg-gray-50 p-4 rounded text-sm text-slate-700 essay-content space-y-3">
+                        <p class="mb-4">One day before the conference, I found out my <span class="wrong-text">Suitcase</span> was lost. I was worried <span class="wrong-text">becase</span> I had no clean clothes or my presentation <span class="wrong-text">waterials</span>. Then, a stranger gave me a shirt and <span class="wrong-text">a pair of money</span>. I wore the borrowed clothes and bought a cheap jacket to attend the conference.</p>
+                        <p>I <span class="wrong-text">cheacked</span> it right away, and everything was still there - my nice suit, the presentation papers, even the novel. I called <span class="wrong-text">peter</span> to share the good news. On the way home, I thought about the stranger and <span class="wrong-text">peter</span>. <span class="wrong-text">I The</span> kindness of others can turn it into a <span class="wrong-text">youd</span> memory.</p>
                     </div>
-                    <div class="p-6">
-                        <div class="essay-content text-gray-800">
-                            <h4 class="font-bold mb-3 text-rose-600">Masterpiece (高分示范版)</h4>
-                            <p class="mb-4">
-                                <span class="font-bold text-blue-600">His words struck me deeply and I started making small changes.</span> 
-                                I realized that my two sons had grown up and needed space to experience life on their own. Instead of complaining, I hoped to break the heavy silence in the house with their cheerful presence. That night, I sat down with Mark and Leo. "I am sorry for being so harsh," I said sincerely. "You are young adults now. I will give you more freedom to develop your own life skills, but I also hope you can spend more time with me." Hearing this, their eyes lit up. They warmly agreed, promising to look after themselves and visit every week to keep me company.
-                            </p>
-                            <p>
-                                <span class="font-bold text-blue-600">Our bond shifted and I really appreciated their company.</span> 
-                                From then on, we began to deal with our family tension through peaceful communication. They often came home on weekends to accompany me, which made me feel truly relaxed and happy. As a saying goes, "Understanding is the bridge to love." This conflict made me realize that my boys had stepped into a new stage of life. In the future, I will respect their choices and support them to gain more life experience. This unforgettable lesson of letting go is like an everlasting flower blooming in my sweet memories.
-                            </p>
+                </div>
+
+                <!-- 三、语法错误与内容问题分析 -->
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-triangle-exclamation mr-2"></i>三、语法错误与内容问题分析</h2>
+                    
+                    <div class="mb-6 p-4 bg-red-100 text-red-900 rounded-lg border border-red-200">
+                        <h3 class="font-bold text-lg mb-2 flex items-center">🚨 致命硬伤：未抄写并衔接段首句！</h3>
+                        <p>读后续写<strong>必须</strong>在答题卡上抄写题目给定的段落开头句，并顺着它往下写！</p>
+                        <ul class="list-disc pl-5 mt-2 text-sm space-y-1">
+                            <li>你完全丢弃了第一段的开头句，且第一段内容在<strong>复述前文已经发生过的事情</strong>（发现行李丢失、陌生人给衣服），未推动情节发展。这在考试中是严重扣分项。</li>
+                            <li>第二段直接以 "I cheacked it..." 开头，没有承接原文给出的 "A week later... I spotted my dusty bag..."，导致衔接断裂。</li>
+                        </ul>
+                    </div>
+
+                    <h3 class="font-bold text-slate-800 mb-3">📝 拼写、词汇与语法错误：</h3>
+                    <ul class="space-y-4">
+                        <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-slate-600">❌ ...my <span class="wrong-text">Suitcase</span> was lost.</p>
+                            <p class="text-sm mt-1">✅ 订正：<span class="correct-text">suitcase</span> （句中普通名词不需要大写首字母）。</p>
+                        </li>
+                        <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-slate-600">❌ ...worried <span class="wrong-text">becase</span> I had no clean clothes or my presentation <span class="wrong-text">waterials</span>.</p>
+                            <p class="text-sm mt-1">✅ 订正：<span class="correct-text">because</span> （拼写错误）， <span class="correct-text">materials</span> （拼写错误）。</p>
+                        </li>
+                        <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-slate-600">❌ ...a stranger gave me a shirt and <span class="wrong-text">a pair of money</span>.</p>
+                            <p class="text-sm mt-1">✅ 订正：<span class="correct-text">a pair of socks</span> （逻辑与词汇双重错误！原文中陌生人给的是一双袜子，且 money 是不可数名词，不能用 a pair of 修饰）。</p>
+                        </li>
+                        <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-slate-600">❌ I <span class="wrong-text">cheacked</span> it right away...</p>
+                            <p class="text-sm mt-1">✅ 订正：<span class="correct-text">checked</span> （拼写错误，多写了一个 a）。</p>
+                        </li>
+                        <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-slate-600">❌ I called <span class="wrong-text">peter</span>...</p>
+                            <p class="text-sm mt-1">✅ 订正：<span class="correct-text">Peter</span> （专有名词/人名首字母必须大写，文中出现了两次该错误）。</p>
+                        </li>
+                        <li class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <p class="text-slate-600">❌ <span class="wrong-text">I The</span> kindness of others can turn it into a <span class="wrong-text">youd</span> memory.</p>
+                            <p class="text-sm mt-1">✅ 订正：<span class="correct-text">I realized that the kindness of others could turn a bad experience into a good memory.</span> （句法混乱，多了一个孤立的主语 "I"；"youd" 拼写错误，应为 "good"；时态不统一，此处应用过去时 could）。</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- 四、参考范文 -->
+                <div class="bg-white rounded-lg shadow overflow-hidden">
+                    <div class="bg-indigo-50 border-b border-indigo-100 px-6 py-3">
+                        <h3 class="font-bold text-indigo-800 flex items-center">
+                            <i class="fa-solid fa-check-circle mr-2"></i>四、参考范文 (Sample Revision)
+                        </h3>
+                    </div>
+                    <div class="p-6 text-slate-700 text-base leading-relaxed font-serif space-y-4">
+                        <p><strong class="text-indigo-600">Peter's advice, paired with the stranger's kindness, kept me going through that week.</strong> Wearing the neatly folded shirt provided by the warm-hearted stranger, I confidently stepped into the conference hall. Although I didn't have my printed materials, I managed to deliver my presentations smoothly purely from memory. To my surprise, when I shared my "traveling light" story, the audience burst into understanding laughter and warmly applauded my resilience. Over the next few days, Peter called me regularly to update me on the location of my suitcase. His reassuring voice and the stranger's timely help acted as a comforting breeze, wiping out my initial anxiety.</p>
+                        <p><strong class="text-indigo-600">A week later, at Salt Lake Airport in Utah, I spotted my dusty bag on the conveyor belt.</strong> I rushed forward, grabbed it eagerly, and unzipped it right away. A profound wave of relief washed over me as I found everything was still exactly where I had left it—my tailored suit, the presentation folders, and even the novel. Overjoyed, I immediately made a call to Peter, sharing the good news and expressing my deepest gratitude for his patience. Sitting on the flight back home, I looked out of the window with a smile. I realized that while losing my luggage was a disaster, the warmth and kindness of others had turned it into a precious memory.</p>
+                    </div>
+                </div>
+
+                <!-- 五、提分建议 -->
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-emerald-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-lightbulb mr-2"></i>五、提分建议</h2>
+                    <div class="space-y-3">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-0.5"><span class="text-emerald-500 font-bold">1.</span></div>
+                            <p class="ml-2 text-sm text-slate-700"><strong>牢记"抄写+衔接"铁律：</strong> 考试时先把给出的两句话抄在答题卡上，第一段重点写"会议期间我是如何在他们帮助下度过的"，第二段重点写"找回行李的激动心情及感悟"。</p>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-0.5"><span class="text-emerald-500 font-bold">2.</span></div>
+                            <p class="ml-2 text-sm text-slate-700"><strong>注重情节扩展与细节描写：</strong> 增加动作描写（如打开行李箱翻看）和心理描写（如失而复得的喜悦、对陌生人的感激），以此丰富内容，达到字数要求。</p>
+                        </div>
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 mt-0.5"><span class="text-emerald-500 font-bold">3.</span></div>
+                            <p class="ml-2 text-sm text-slate-700"><strong>狠抓单词拼写与基本盘：</strong> 交卷前务必留出2分钟通读全文，重点检查：过去式是否统一、首字母大小写、单复数、以及 because/checked/materials 等常用词拼写。</p>
                         </div>
                     </div>
+                </div>
+
+                <!-- 预估得分 -->
+                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+                    <h2 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-chart-line mr-2"></i>预估得分范围</h2>
+                    <div class="text-center mb-4">
+                        <span class="text-4xl font-black text-slate-800">6 - 9</span>
+                        <span class="text-xl text-slate-500"> / 25分</span>
+                    </div>
+                    <p class="text-sm text-slate-600 bg-slate-50 p-3 rounded border border-slate-100">
+                        <strong>评分档次：</strong> 属于第五档或第四档末（较差）。<br><br>
+                        <strong>扣分核心原因：</strong><br>
+                        1. <strong>字数严重不足</strong>：原文加起来不足 100 词，远低于 150 词的要求。<br>
+                        2. <strong>脱离续写规范</strong>：未抄写并衔接段首句，偏离了考场基本要求。<br>
+                        3. <strong>语言基础薄弱</strong>：短短几句话中出现了大量基础单词拼写错误、大小写错误及严重的逻辑词汇错误。
+                    </p>
                 </div>
             </div>
 
@@ -613,6 +673,188 @@ Li Hua</div>
                 </div>
             </div>
 
+
+
+
+
+            <!-- Report 6: 高中英语读后续写批改报告 2026.04.25 -->
+            <div id="view-report6" class="hidden fade-in space-y-6 pb-20">
+                <!-- Header -->
+                <header class="relative bg-white rounded-2xl shadow-sm p-8 text-center border-t-4 border-indigo-500">
+                    <button id="downloadBtn" onclick="downloadPDF()" class="no-print absolute top-6 right-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium py-2 px-4 rounded-lg border border-indigo-100 transition-colors flex items-center text-sm">
+                        <i class="fas fa-download mr-2"></i>下载 PDF
+                    </button>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-4 sm:mt-0">高中英语读后续写批改报告</h1>
+                    <p class="text-gray-500"><i class="fas fa-file-signature mr-2"></i>亲情、成长与接纳</p>
+                </header>
+
+                <!-- 一、 题目说明 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8">
+                    <h2 class="text-xl font-bold text-indigo-600 mb-4 flex items-center">
+                        <i class="fas fa-book-open mr-3"></i> 一、 题目说明
+                    </h2>
+                    <div class="bg-indigo-50 rounded-xl p-5 space-y-3 text-sm leading-relaxed">
+                        <p><strong>故事背景：</strong> 作者的父亲患有唇腭裂，但他乐观、善良。小时候作者觉得父亲是英雄，但到了青春期，开始对父亲的外貌感到尴尬。</p>
+                        <p><strong>冲突事件：</strong> 同学来家里玩，悄悄问作者“你爸爸怎么了？”，作者感到羞耻，赶走同学并对父亲态度冷淡。</p>
+                        <div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100">
+                            <p class="font-semibold text-gray-700">续写任务：</p>
+                            <ul class="list-disc pl-5 mt-2 space-y-2 text-gray-600">
+                                <li><strong>第一段开头：</strong> <code>Amid the noise of my classmates leaving, I caught the look of hurt in Dad’s eyes.</code>（重点描写父亲受伤的反应及作者的愧疚）。</li>
+                                <li><strong>第二段开头：</strong> <code>I knew I had to make it right.</code>（重点描写道歉、父亲的宽容及积极影响）。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 二、 你的原文展现 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-pen-nib mr-3 text-gray-500"></i> 二、 你的原文展现
+                    </h2>
+                    <div class="bg-gray-50 rounded-xl p-6 font-serif text-gray-700 leading-relaxed border border-gray-200">
+                        <p class="mb-4"><strong>Paragraph 1:</strong><br>
+                        Amid the noise of my classmates leaving, I caught the look of hurt in Dad’s eyes. latching sight of the look of hurt in Dad's eyes amid the noise of my classmates leaving. I felt a sharp pang of guitt piercing my heart. His smile faded instantly,and he stood rooted to the spot. The science between us heavier than any words,The creak of the floor boards echoing my regret. Determining that I had to make it right, I marched to Dad's room that I had to make it right, I marched to Dad's room that night.</p>
+
+                        <p><strong>Paragraph 2:</strong><br>
+                        I knew I had to make it right.My mind made up to apologize sincerely, my hands trembling signtly with nervousness, I telling him how deeply sorry I was for my nude behavior, Dad pulled me into a warm hug,Trom that moment on, which was deeply engraved in my mind and had a profound influence on ne the rest of my life.</p>
+                    </div>
+                </section>
+
+                <!-- 三、 详细批改 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8">
+                    <h2 class="text-xl font-bold text-red-500 mb-6 flex items-center">
+                        <i class="fas fa-check-double mr-3"></i> 三、 对你答案的详细批改
+                    </h2>
+                    <p class="text-gray-600 mb-6 bg-red-50 p-4 rounded-lg">你的续写在<strong>情感走向和情节设计</strong>上非常准确，尝试使用了高级词汇和句型（如独立主格结构）。但存在较多<strong>拼写错误、语法错误以及语句重复</strong>问题。</p>
+
+                    <div class="space-y-6">
+                        <!-- 批改项 1 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第一段 - 句 1</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> ...Dad’s eyes. <span class="highlight-error">latching sight of the look of hurt in Dad's eyes amid the noise of my classmates leaving.</span></p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> 语意严重重复，且拼写有误(catching)。既然给定的首句已表达此意，后半句应直接删除。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 2 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第一段 - 句 2</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> I felt a sharp pang of <span class="highlight-error">guitt</span> piercing my heart.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> I felt a sharp pang of <span class="highlight-correct">guilt</span> piercing my heart.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> 拼写错误。但句型 <code>a sharp pang of... piercing my heart</code> 用得非常好！</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 3 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第一段 - 句 3</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> The <span class="highlight-error">science</span> between us heavier than any words, <span class="highlight-error">T</span>he creak of the floor boards echoing my regret.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> The <span class="highlight-correct">silence</span> between us <span class="highlight-correct">was</span> heavier than any words, <span class="highlight-correct">and the</span> creak of the floor boards <span class="highlight-correct">echoed</span> my regret.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> \`science\` (科学)应为 \`silence\` (沉默)。缺乏谓语动词，建议改成并列句或规范的独立主格。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 4 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第二段 - 句 1</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> My mind made up to apologize sincerely, my hands trembling <span class="highlight-error">signtly</span> with nervousness, I <span class="highlight-error">telling</span> him how deeply sorry I was for my <span class="highlight-error">nude</span> behavior,</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> My mind made up to apologize sincerely, <span class="highlight-correct">and</span> my hands trembling <span class="highlight-correct">slightly</span> with nervousness, I <span class="highlight-correct">told</span> him how deeply sorry I was for my <span class="highlight-correct">rude</span> behavior.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> 严重拼写失误：\`nude\`(裸体的) -> \`rude\`(粗鲁的)。\`telling\` 不能作谓语，应改为 \`told\`。逗号过多导致流水句。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 5 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第二段 - 句 2</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> Dad pulled me into a warm hug, <span class="highlight-error">Trom</span> that moment on, <span class="highlight-error">which was</span> deeply engraved in my mind and had a profound influence on <span class="highlight-error">ne</span> the rest of my life.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> Dad pulled me into a warm hug. <span class="highlight-correct">That moment was</span> deeply engraved in my mind and had a profound influence on <span class="highlight-correct">me for</span> the rest of my life.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> \`which\` 定语从句用法错误，强行揉在一起。应断句使其表意清晰。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 四、 优质范文 -->
+                <section class="bg-blue-50 rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+                    <div class="bg-blue-600 text-white p-5">
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-star mr-3 text-yellow-300"></i> 四、 优质范文 (Model Essay)
+                        </h2>
+                    </div>
+                    <div class="p-8 font-serif text-gray-800 leading-loose space-y-6 text-lg">
+                        <p>
+                            <strong>Amid the noise of my classmates leaving, I caught the look of hurt in Dad’s eyes.</strong> The warm smile that always graced his face vanished, replaced by a mixture of confusion and sorrow. He stood rooted to the spot, holding a tray of untouched popcorn. At that moment, a sharp pang of guilt pierced my heart. The silence between us was heavier than any words, making me realize how deeply my cold attitude had wounded the man who loved me most. Silently, he placed the snacks on the table and retreated to his room. Looking at his slightly hunched back, my face burned not with embarrassment, but with profound shame for my own shallowness.
+                        </p>
+                        <p>
+                            <strong>I knew I had to make it right.</strong> Later that evening, with my hands trembling slightly out of nervousness, I hesitantly knocked on his door. Taking a deep breath, I walked up to him and choked out a sincere apology, tears welling up in my eyes. I told him how deeply sorry I was for my rude behavior and reassured him that he would always be my lifelong hero. Without a word of blame, Dad smiled gently and pulled me into a warm, forgiving hug. That moment was deeply engraved in my mind, teaching me that true beauty lies not in a flawless appearance, but in a loving heart.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- 五、 学习建议 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8 border-l-8 border-green-500">
+                    <h2 class="text-xl font-bold text-green-600 mb-5 flex items-center">
+                        <i class="fas fa-lightbulb mr-3"></i> 五、 给你的学习建议
+                    </h2>
+                    <ul class="space-y-4 text-gray-700">
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">极其注意拼写和笔误</h4>
+                                <p class="text-sm mt-1">你的词汇积累不错，但像 <code>nude/rude</code>、<code>science/silence</code> 这种形近词的拼写错误在考试中是致命的，不仅扣分，还会改变句意。平时打字或书写要多复查。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">避免句子重复和串段</h4>
+                                <p class="text-sm mt-1">给定的首句不要在正文中再抄写一遍。注意段落任务分配：第一段主写<strong>情绪（愧疚）</strong>，第二段再写<strong>行动（走向房间道歉）</strong>，避免第一段把第二段的剧情抢先写完。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">攻克长难句的“流水”问题</h4>
+                                <p class="text-sm mt-1">尝试高级语法是加分项，但要牢记：<strong>一个英语句子里必须且只能有一个主句的谓语动词</strong>。长串修饰语写完后，务必检查主谓结构是否完整。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">积累升华句型</h4>
+                                <p class="text-sm mt-1">结尾的升华 <code>had a profound influence on me</code> 很好。还可以结合主题加入 <code>true beauty lies in a loving heart</code> 这样的点睛之笔，做到首尾呼应。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+                <footer class="text-center text-gray-400 text-sm pb-8">
+                    <p>Keep up the good work! 期待你写出更优秀的文章。</p>
+                </footer>
+            </div>
             <!-- Review Mode: Quiz -->
             <div id="view-review" class="hidden fade-in h-full flex flex-col items-center justify-center pt-2 sm:pt-8">
                 
@@ -887,7 +1129,18 @@ Li Hua</div>
             { id: 38, tag: "句子结构 (Fragment)", context: "During this winter holiday?The holiday gave me an unforgettable experience.", incorrect: "During this winter holiday?", correct: "You asked about my winter holiday. Well, it gave me", explanation: "During this winter holiday? 是一个介词短语，不能单独成句，且标点符号使用不当。建议改成完整的话来承上启下。", distractors: ["During this winter holiday,", "In this winter holiday?"] },
             { id: 39, tag: "逻辑连接词 (Logic)", context: "On one hand,I traveled with my parents to the chengdu. On the other hand, the trip made me realize...", incorrect: "On one hand... On the other hand", correct: "First... Furthermore / Through this trip", explanation: "On (the) one hand... On the other hand... 主要用于表达相对立的两个方面。而文中'去旅游'和'有所感悟'是递进关系，并不对立。", distractors: ["However", "Therefore"] },
             { id: 40, tag: "专有名词与冠词 (Proper Noun)", context: "...traveled with my parents to the chengdu.", incorrect: "to the chengdu", correct: "to Chengdu", explanation: "Chengdu 是专有名词（城市名），首字母必须大写，且前面不需要加定冠词 the。", distractors: ["to the Chengdu", "to chengdu"] },
-            { id: 41, tag: "专有名词大小写 (Capitalization)", context: "The food in chengdu was amazing!", incorrect: "in chengdu", correct: "in Chengdu", explanation: "地名首字母需要大写。", distractors: ["in Chengdus", "in the Chengdu"] }
+            { id: 41, tag: "专有名词大小写 (Capitalization)", context: "The food in chengdu was amazing!", incorrect: "in chengdu", correct: "in Chengdu", explanation: "地名首字母需要大写。", distractors: ["in Chengdus", "in the Chengdu"] },
+            
+            // ===== 新增：Type2.exam.20260412 行李箱之旅 读后续写错误知识点 =====
+            { id: 42, tag: "名词大小写 (Noun Capitalization)", context: "...my Suitcase was lost.", incorrect: "Suitcase", correct: "suitcase", explanation: "句中普通名词不需要大写首字母，只有专有名词或句首才需要大写。", distractors: ["SUITCASE", "the Suitcase"] },
+            { id: 43, tag: "拼写 (Spelling)", context: "...worried becase I had no clean clothes...", incorrect: "becase", correct: "because", explanation: "Because 是常用连词，正确拼写为 b-e-c-a-u-s-e，不要遗漏字母 u。", distractors: ["becouse", "becasee"] },
+            { id: 44, tag: "拼写 (Spelling)", context: "...my presentation waterials.", incorrect: "waterials", correct: "materials", explanation: "Materials 正确拼写为 m-a-t-e-r-i-a-l-s，注意是 ma 而非 wa 开头。", distractors: ["materals", "materiels"] },
+            { id: 45, tag: "词汇逻辑 (Logic & Vocabulary)", context: "...a stranger gave me a shirt and a pair of money.", incorrect: "a pair of money", correct: "a pair of socks", explanation: "Money 是不可数名词，不能用 a pair of 修饰；根据原文，陌生人给的是一双袜子 (socks)。", distractors: ["a pair of moneys", "a money"] },
+            { id: 46, tag: "拼写 (Spelling)", context: "I cheacked it right away...", incorrect: "cheacked", correct: "checked", explanation: "Check 的过去式是 checked，注意不要多写字母 a，直接加 ed 即可。", distractors: ["checkted", "chekced"] },
+            { id: 47, tag: "专有名词大小写 (Proper Noun)", context: "I called peter to share the good news.", incorrect: "peter", correct: "Peter", explanation: "人名是专有名词，首字母必须大写。Peter 而非 peter。", distractors: ["peter", "PETRE"] },
+            { id: 48, tag: "句法结构 (Sentence Structure)", context: "I The kindness of others can turn it into a youd memory.", incorrect: "I The", correct: "The", explanation: "句中不能有两个孤立的主语。应删除 I 或改为 I realized that the kindness...。", distractors: ["I the", "Me The"] },
+            { id: 49, tag: "拼写 (Spelling)", context: "...turn it into a youd memory.", incorrect: "youd", correct: "good", explanation: "根据语境，这里应表达“美好的回忆”，正确拼写为 good，而非 youd。", distractors: ["yold", "youded"] },
+            { id: 50, tag: "时态一致性 (Tense Consistency)", context: "...the kindness of others can turn it into a good memory.", incorrect: "can turn", correct: "could turn", explanation: "在回忆/叙述中，主句用了过去时 (realized)，宾语从句也应使用相应的过去时态 could 而非 can。", distractors: ["will turn", "turned"] }
         ];
 
         document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
@@ -970,10 +1223,10 @@ Li Hua</div>
         };
 
         window.switchTab = function(tabName) {
-            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-review'].forEach(id => {
+            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-report6', 'view-review'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-review'].forEach(id => {
+            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-report6', 'tab-review'].forEach(id => {
                 document.getElementById(id).className = "tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
             });
             document.getElementById('view-' + tabName).classList.remove('hidden');
@@ -1008,6 +1261,35 @@ Li Hua</div>
                 console.error(e);
                 alert('清除失败，请检查网络或后端配置。');
             }
+        };
+
+        window.downloadPDF = function() {
+            const btn = document.getElementById('downloadBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>生成中...';
+            btn.style.pointerEvents = 'none';
+            const element = document.body;
+            const opt = {
+                margin:       10,
+                filename:     '英语作文批改报告.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            btn.style.opacity = '0';
+            html2pdf().set(opt).from(element).save().then(() => {
+                btn.style.opacity = '1';
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+            }).catch(err => {
+                console.error('PDF生成失败:', err);
+                btn.style.opacity = '1';
+                btn.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>生成失败';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.pointerEvents = 'auto';
+                }, 3000);
+            });
         };
 
         window.toggleVersion = function(essay, version) {
