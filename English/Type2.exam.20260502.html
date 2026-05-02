@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>读后续写互动批改报告</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Chosen Palette: Warm Scholars (stone-50 background, emerald-600 primary, slate-800 text, rose-500 for errors, amber-500 for structure warnings) -->
+    <!-- Application Structure Plan: Dashboard & Interactive Analysis. The app is divided into 4 main logical sections: 1. Overview (Dashboard with chart summarizing skills), 2. Source Context (Tabbed view of the prompt), 3. Deep Analysis (Split-screen interactive critique linking text to errors), 4. Model & Advice (Clean reading view). This transforms a static markdown report into an exploratory learning tool, prioritizing immediate visual feedback (chart) and contextual learning (clicking errors to see explanations). -->
+    <!-- Visualization & Content Choices: 
+        1. Overview -> Goal: Inform -> Radar Chart (Chart.js). Justification: Quickly visualizes qualitative feedback (good emotion, poor structure/grammar) into actionable metrics. 
+        2. Student Text vs Errors -> Goal: Relationships/Inform -> Interactive Split-Pane (HTML/JS). Justification: Connects abstract grammar rules to the student's exact writing context. NO SVG/Mermaid used.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        
+        /* Mandatory Chart Container Styling */
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 500px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
+        }
+        @media (min-width: 768px) { .chart-container { height: 400px; } }
+
+        /* Interactive Highlights */
+        .err-hl { 
+            background-color: #fecdd3; /* rose-200 */
+            border-bottom: 2px solid #e11d48; /* rose-600 */
+            padding: 0 4px;
+            border-radius: 2px;
+        }
+        .struct-hl {
+            background-color: #fef08a; /* yellow-200 */
+            border-left: 4px solid #ca8a04; /* yellow-600 */
+            padding-left: 8px;
+            display: block;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+
+        /* Custom Scrollbar for inner elements */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center py-4">
+                <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                    <span class="text-2xl">📝</span>
+                    <h1 class="text-xl font-bold text-emerald-800">读后续写互动批改报告</h1>
+                </div>
+                <nav class="flex space-x-1 sm:space-x-4 overflow-x-auto w-full md:w-auto pb-2 md:pb-0">
+                    <a href="#sec-overview" class="nav-btn px-3 py-2 text-sm font-medium rounded-md hover:bg-stone-100 transition-colors active text-emerald-700 bg-emerald-50 border-b-4 border-emerald-600">📊 报告总览</a>
+                    <a href="#sec-context" class="nav-btn px-3 py-2 text-sm font-medium rounded-md hover:bg-stone-100 transition-colors text-slate-600">📖 原文回顾</a>
+                    <a href="#sec-analysis" class="nav-btn px-3 py-2 text-sm font-medium rounded-md hover:bg-stone-100 transition-colors text-slate-600">🔍 深度批改</a>
+                    <a href="#sec-learn" class="nav-btn px-3 py-2 text-sm font-medium rounded-md hover:bg-stone-100 transition-colors text-slate-600">🚀 范文与建议</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- SECTION 1: Overview -->
+        <section id="sec-overview" class="scroll-mt-24">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 md:p-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-emerald-500 pb-2 inline-block">批改总评</h2>
+                    <p class="mt-4 text-slate-600 leading-relaxed">
+                        本区域展示了对你本次读后续写练习的整体评估。你的文章在**情感把握**上做得非常出色，生动的细节描写展现了你良好的词汇基础。然而，在**篇章结构**和**语法准确度**上存在较大的提升空间，尤其是未进行分段的硬伤需要引起高度重视。请参考下方的雷达图了解你的各项能力分布。
+                    </p>
+                </div>
+
+                <!-- 单栏结构：图表居中，总结卡片置于下方 -->
+                <div class="flex flex-col items-center gap-8">
+                    <div class="w-full max-w-2xl">
+                        <div class="chart-container">
+                            <canvas id="skillsRadarChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="p-5 bg-emerald-50 rounded-lg border border-emerald-100">
+                            <h3 class="font-bold text-emerald-800 flex items-center mb-2"><span>🌟</span> <span class="ml-2">核心亮点</span></h3>
+                            <p class="text-sm text-slate-700">情感把握准确，使用了 "drooping shoulders" 等生动的细节描写，很好地刻画了人物形象。</p>
+                        </div>
+                        <div class="p-5 bg-rose-50 rounded-lg border border-rose-100">
+                            <h3 class="font-bold text-rose-800 flex items-center mb-2"><span>⚠️</span> <span class="ml-2">致命失误</span></h3>
+                            <p class="text-sm text-slate-700">读后续写要求**分两段**。你将两段揉进了一段，且错用了第二段的首句，这会导致严重扣分。</p>
+                        </div>
+                        <div class="p-5 bg-amber-50 rounded-lg border border-amber-100">
+                            <h3 class="font-bold text-amber-800 flex items-center mb-2"><span>✍️</span> <span class="ml-2">语法与拼写</span></h3>
+                            <p class="text-sm text-slate-700">存在多处低级拼写错误 (如 withont, realied) 以及缺漏谓语动词的现象。基础需进一步夯实。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Source Context -->
+        <section id="sec-context" class="scroll-mt-24">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 md:p-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-emerald-500 pb-2 inline-block">阅读原文与要求</h2>
+                    <p class="mt-4 text-slate-600 leading-relaxed">
+                        在进行写作之前，重新审视原文的情感基调和段首语的要求至关重要。这部分提供了原题目的完整信息，帮助你回顾写作的起点和设定的情境。
+                    </p>
+                </div>
+
+                <!-- 单栏结构：要求与段首语置于原文上方 -->
+                <div class="space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-100">
+                            <h3 class="font-bold text-lg mb-4 text-indigo-900">📌 续写要求</h3>
+                            <ul class="list-disc pl-5 text-indigo-800 space-y-2 text-sm">
+                                <li>续写词数应为150个左右。</li>
+                                <li>必须按如下格式（两段，并使用给定的段首语）作答。</li>
+                            </ul>
+                        </div>
+                        <div class="bg-amber-50 p-6 rounded-lg border border-amber-200">
+                            <h3 class="font-bold text-lg mb-4 text-amber-900">📝 给定段首语</h3>
+                            <div class="space-y-4 text-amber-800 font-serif">
+                                <div>
+                                    <span class="font-bold block text-sm opacity-70 uppercase tracking-wider">Paragraph 1</span>
+                                    <p class="mt-1 font-medium bg-amber-100 p-2 rounded">Amid the noise of my classmates leaving, I caught the look of hurt in Dad's eyes.</p>
+                                </div>
+                                <div>
+                                    <span class="font-bold block text-sm opacity-70 uppercase tracking-wider">Paragraph 2</span>
+                                    <p class="mt-1 font-medium bg-amber-100 p-2 rounded">I knew I had to make it right.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-50 p-6 md:p-8 rounded-lg border border-stone-200 text-slate-700 leading-relaxed">
+                        <h3 class="font-bold text-lg mb-4 text-slate-800 border-l-4 border-slate-400 pl-3">📖 原文阅读</h3>
+                        <p class="mb-4">I was in high school before I realized my father had a birth problem. He had a harelip and cleft palate, but to me, he'd looked the same since the day I was born. I still remember kissing him goodnight as a kid and asking if my nose would go flat after a lifetime of kisses. He smiled and assured me it wouldn't, but I remembered a twinkle in his eyes. I was sure he was marveling about a daughter who thought her kisses, not thirty-three operations, had reshaped his face.</p>
+                        <p class="mb-4">My father was kind, patient, thoughtful and loving, my lifelong hero. Never did he let his appearance hold him back. When rejected for sales work for being "too unattractive", he delivered goods by bike and made his own route. When turned away by the army, he became a volunteer. People always accepted his disability calmly when they met his warm smile and positive spirit.</p>
+                        <p class="mb-4">But as a so-called "sophisticated teen", I grew embarrassed by him, barely tolerating being in the same room with the man who'd let me watch him shave every morning for a decade. The man I once admired now seemed hopelessly old-fashioned, especially compared to my trendy friends.</p>
+                        <p>One afternoon, my classmates and I were hanging out at my home, laughing and playing games in the living room. Suddenly, Dad walked in, his usual gentle smile on his face. He was eager to host them, hurrying to the kitchen to pour cold sodas and pop fresh popcorn, chatting softly with my friends as he handed out the snacks. Just then, one of my classmates tugged my sleeve and whispered, "What's wrong with your dad?" His words hit me hard. I felt a sharp sting of shame. I mumbled an excuse, hurried all my classmates out and spoke to Dad in an impatient, cold tone when he looked at me in confusion, my face burning with embarrassment.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: Deep Analysis -->
+        <section id="sec-analysis" class="scroll-mt-24">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 md:p-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-emerald-500 pb-2 inline-block">逐句深度批改</h2>
+                    <p class="mt-4 text-slate-600 leading-relaxed">
+                        上方是你的原始作答（带有对应序号），下方是全部展开的详细修改建议和语法解析。请上下对照阅读。
+                    </p>
+                </div>
+
+                <!-- 单栏结构：原稿在上，批注在下 -->
+                <div class="space-y-8 w-full">
+                    
+                    <!-- Student Text -->
+                    <div class="bg-stone-50 p-6 md:p-8 rounded-xl border border-stone-200 text-lg leading-loose shadow-inner relative">
+                        <div class="absolute top-0 right-0 bg-stone-200 text-stone-600 px-4 py-1 text-sm font-bold rounded-bl-lg rounded-tr-xl">你的原稿</div>
+                        
+                        <p class="font-serif mt-2">
+                            <span class="font-bold text-emerald-700">Amid the noise of my classmates leaving, I caught the look of hurt in Dad's eyes.</span> 
+                            Fixing my eyes on his drooping shoulders, I felt my face burning with shame. 
+                            <span class="inline-flex items-center justify-center bg-rose-500 text-white text-xs font-bold w-5 h-5 rounded-full mx-1 translate-y-[-2px]">1</span><span class="err-hl">A sense of guilt me when I thought of his kindness over the years.</span>
+                            <span class="inline-flex items-center justify-center bg-orange-500 text-white text-xs font-bold w-5 h-5 rounded-full mx-1 translate-y-[-2px]">2</span><span class="err-hl">It was then that I realied how ungrateful, taking his love for granted,</span>
+                            
+                            <span class="struct-hl">
+                                <span class="block text-xs font-bold text-yellow-700 mb-1">
+                                    <span class="inline-flex items-center justify-center bg-yellow-600 text-white text-xs font-bold w-5 h-5 rounded-full mr-1">构</span>
+                                    【结构错误：未换段，直接混入第二段首句且时态错误】
+                                </span>
+                                <span class="err-hl bg-transparent border-none" style="padding:0">I know I had to make it right.</span>
+                            </span>
+                            
+                            <span class="inline-flex items-center justify-center bg-amber-500 text-white text-xs font-bold w-5 h-5 rounded-full mx-1 translate-y-[-2px]">3</span><span class="err-hl">withont delay, I walked to the kitchen,wrapped my arms around him from behind in his ear.</span>
+                            After what seemed like ages, we sat down together, and he told me stories about his struggles. 
+                            <span class="inline-flex items-center justify-center bg-blue-500 text-white text-xs font-bold w-5 h-5 rounded-full mx-1 translate-y-[-2px]">4</span><span class="err-hl">Never before had I got such a unique exerprience, which was deeply engraved in my mind and had a Profound influnence on me.</span>
+                        </p>
+                    </div>
+
+                    <!-- Feedback Panel -->
+                    <div class="pt-6 border-t border-stone-200">
+                        <h3 class="font-bold text-xl flex items-center text-slate-800 mb-6">
+                            <span>💡</span> <span class="ml-2">全部批注与建议</span>
+                        </h3>
+                        
+                        <!-- List Content Area -->
+                        <div class="space-y-6">
+                            
+                            <div class="bg-rose-50 border-l-4 border-rose-500 p-5 rounded shadow-sm">
+                                <h4 class="font-bold text-rose-800 text-lg mb-3 flex items-center">
+                                    <span class="inline-flex items-center justify-center bg-rose-500 text-white text-xs font-bold w-6 h-6 rounded-full mr-2">构</span>
+                                    致命结构与抄写错误
+                                </h4>
+                                <p class="text-sm text-slate-700 mb-2"><strong>问题说明：</strong></p>
+                                <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                                    <li><strong>未分段：</strong> 读后续写必须严格分为两段。你把所有内容写成了一段。</li>
+                                    <li><strong>位置错误：</strong> <code>I knew I had to make it right.</code> 必须作为第二段的开头第一句话。</li>
+                                    <li><strong>抄写错误：</strong> 你把原题给的过去时 <code>knew</code> 抄成了现在的 <code>know</code>。段首语必须<strong>一字不差</strong>。</li>
+                                </ul>
+                            </div>
+
+                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
+                                <div class="mb-4">
+                                    <span class="inline-flex items-center bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                                        <span class="bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">1</span>
+                                        语法错误：缺漏谓语动词
+                                    </span>
+                                    <p class="text-slate-600 text-sm line-through decoration-rose-500">A sense of guilt me when I thought of his kindness over the years.</p>
+                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
+                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1">A sense of guilt <strong class="text-emerald-700">overwhelmed / hit / struck</strong> me when I thought of his kindness over the years.</p>
+                                </div>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded">
+                                    <strong>解析：</strong> <code>guilt</code>（内疚感）是名词，不能直接作动词连接宾语 <code>me</code>。你需要加上一个动词，如 <code>overwhelmed</code>（淹没）或者 <code>hit/struck</code>（击中），表达“内疚感淹没了我”。
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
+                                <div class="mb-4">
+                                    <span class="inline-flex items-center bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                                        <span class="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">2</span>
+                                        拼写与语法缺失
+                                    </span>
+                                    <p class="text-slate-600 text-sm line-through decoration-orange-500">It was then that I realied how ungrateful, taking his love for granted,</p>
+                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
+                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1">It was then that I <strong class="text-emerald-700">realized</strong> how ungrateful <strong class="text-emerald-700">I had been</strong>, taking his love for granted.</p>
+                                </div>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded space-y-2">
+                                    <p><strong>1. 拼写错误：</strong> <code>realied</code> -> <code>realized</code>。</p>
+                                    <p><strong>2. 语法缺失：</strong> <code>how ungrateful</code> 是一个感叹结构，后面需要补充完整的主谓语才能构成宾语从句，改为 <code>how ungrateful I had been</code>。</p>
+                                    <p><strong>3. 标点：</strong> 这里的句号应该在 granted 之后结束该句。</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
+                                <div class="mb-4">
+                                    <span class="inline-flex items-center bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                                        <span class="bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">3</span>
+                                        拼写与逻辑漏洞
+                                    </span>
+                                    <p class="text-slate-600 text-sm line-through decoration-amber-500">withont delay, I walked to the kitchen,wrapped my arms around him from behind in his ear.</p>
+                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
+                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1"><strong class="text-emerald-700">Without</strong> delay, I walked to the kitchen, wrapped my arms around him from behind <strong class="text-emerald-700">and whispered</strong> in his ear.</p>
+                                </div>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded space-y-2">
+                                    <p><strong>1. 拼写错误：</strong> <code>withont</code> -> <code>without</code>。且句首字母 W 需要大写。</p>
+                                    <p><strong>2. 逻辑缺失：</strong> “从背后抱住他，然后在耳边......” 干什么？漏掉了动词。必须加上 <code>and whispered</code> (低语) 或描述你说了什么话，否则句子意思不完整。</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
+                                <div class="mb-4">
+                                    <span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                                        <span class="bg-blue-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">4</span>
+                                        拼写与套话改进
+                                    </span>
+                                    <p class="text-slate-600 text-sm line-through decoration-blue-500">Never before had I got such a unique exerprience, which was deeply engraved in my mind and had a Profound influnence on me.</p>
+                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
+                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1">Never before had I <strong class="text-emerald-700">had</strong> such a unique <strong class="text-emerald-700">experience</strong>, which was deeply engraved in my mind and had a <strong class="text-emerald-700">profound influence</strong> on me.</p>
+                                </div>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded space-y-2">
+                                    <p><strong>1. 拼写及大小写：</strong> <code>exerprience</code> -> <code>experience</code>; <code>influnence</code> -> <code>influence</code>。Profound 中间的 P 不应大写。</p>
+                                    <p><strong>2. 表达习惯建议：</strong> 语法虽然改对了，但这句结尾过于“模板化”。高考结尾最好扣回核心矛盾（女儿嫌弃父亲的容貌）。建议把落脚点放回“不再为父亲感到羞耻，他永远是英雄”上，更能拿高分。</p>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: Model & Advice -->
+        <section id="sec-learn" class="scroll-mt-24">
+            <div class="bg-white rounded-xl shadow-sm border border-stone-200 p-6 md:p-8">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-slate-800 border-b-2 border-emerald-500 pb-2 inline-block">推荐范文与建议</h2>
+                    <p class="mt-4 text-slate-600 leading-relaxed">
+                        请仔细体会范文是如何严格遵循两段式结构，并在第二段通过语言和动作描写实现情感升华的。
+                    </p>
+                </div>
+                
+                <!-- 单栏结构：范文在上，学习建议在下 -->
+                <div class="space-y-10">
+                    
+                    <!-- Model Essay -->
+                    <div class="space-y-6 font-serif text-lg text-slate-800 leading-relaxed bg-stone-50 p-6 md:p-8 rounded-lg border border-stone-200 shadow-inner">
+                        <p class="indent-8">
+                            <strong class="text-emerald-800">Amid the noise of my classmates leaving, I caught the look of hurt in Dad's eyes.</strong> 
+                            His usual warm smile vanished, replaced by a forced, awkward curve of his lips as he quietly began picking up the half-empty soda cans. Fixing my eyes on his drooping shoulders, I felt my face burning with shame. A heavy wave of guilt overwhelmed me. I remembered his thirty-three operations, his endless patience, and how he had never let his appearance define him. Yet, his own daughter had just treated him like a shameful secret. The sharp contrast between his unconditional love and my selfish vanity made me hate myself.
+                        </p>
+                        <p class="indent-8">
+                            <strong class="text-emerald-800">I knew I had to make it right.</strong> 
+                            Without delay, I walked into the kitchen where he was silently washing the cups. I wrapped my arms around his waist from behind and buried my face in his back. "Dad, I'm so sorry," I choked out, tears streaming down my cheeks. "I was foolish and mean." He paused, dried his hands, and turned around to pull me into a tight embrace. "It's okay, sweetheart," he whispered gently. Looking up at his familiar, scarred face, I saw nothing but beauty and love. From that day on, I never felt embarrassed by my hero again.
+                        </p>
+                    </div>
+
+                    <!-- Learning Advice -->
+                    <div>
+                        <h3 class="font-bold text-xl text-slate-800 mb-6 border-b border-stone-200 pb-2">🎯 核心提分锦囊</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="bg-white rounded-xl shadow-sm border border-rose-200 p-6 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-rose-500"></div>
+                                <h3 class="font-bold text-lg text-slate-800 mb-2 mt-2">1. 严格遵守格式</h3>
+                                <p class="text-sm text-slate-600">读后续写<strong>必须且只能是两段</strong>，每段开头必须一字不差地抄写给定的段首语。千万不能合并段落或擅自修改时态。</p>
+                            </div>
+                            
+                            <div class="bg-white rounded-xl shadow-sm border border-amber-200 p-6 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-amber-500"></div>
+                                <h3 class="font-bold text-lg text-slate-800 mb-2 mt-2">2. 预留时间查拼写</h3>
+                                <p class="text-sm text-slate-600">你的词汇量其实不错，但粗心导致了 withont, realied 等低级错误。写完后务必留出2分钟专门做“拼写排雷”。</p>
+                            </div>
+
+                            <div class="bg-white rounded-xl shadow-sm border border-emerald-200 p-6 relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-full h-1 bg-emerald-500"></div>
+                                <h3 class="font-bold text-lg text-slate-800 mb-2 mt-2">3. 拒绝套话结尾</h3>
+                                <p class="text-sm text-slate-600">类似 "profound influence" 过于空泛。结尾一定要<strong>扣回文章的核心矛盾</strong>（如：不再为父亲感到羞耻，他是我的英雄）。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-800 text-stone-400 py-6 text-center text-sm">
+        <p>Interactive Feedback App | Data Architect & UI Designer</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Initialize Chart.js Radar Chart
+        function initChart() {
+            const ctx = document.getElementById('skillsRadarChart').getContext('2d');
+            
+            // Define data based on the report's qualitative feedback
+            const data = {
+                labels: ['情感表达 (Emotion)', '词汇基础 (Vocabulary)', '语法准确 (Grammar)', '篇章结构 (Structure)', '拼写规范 (Spelling)'],
+                datasets: [{
+                    label: '你的表现指数',
+                    data: [85, 75, 55, 30, 45], // Mocked scores based on feedback "情感不错, 词汇不错, 语法漏词, 结构硬伤, 拼写低级错误"
+                    backgroundColor: 'rgba(16, 185, 129, 0.2)', // emerald-500 with opacity
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    pointBackgroundColor: 'rgba(5, 150, 105, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(5, 150, 105, 1)'
+                }]
+            };
+
+            const config = {
+                type: 'radar',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // CRITICAL for chart-container compliance
+                    scales: {
+                        r: {
+                            angleLines: { color: 'rgba(0, 0, 0, 0.1)' },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' },
+                            pointLabels: {
+                                font: { size: 12, family: "'Segoe UI', sans-serif" },
+                                color: '#475569'
+                            },
+                            ticks: {
+                                display: false, // hide numbers on the web
+                                min: 0,
+                                max: 100,
+                                stepSize: 20
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let score = context.raw;
+                                    let msg = "评分: " + score + "/100 - ";
+                                    if(score >= 80) msg += "表现优异";
+                                    else if(score >= 60) msg += "尚可，需注意细节";
+                                    else if(score >= 40) msg += "存在明显失误";
+                                    else msg += "致命错误，需高度重视";
+                                    return msg;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            new Chart(ctx, config);
+        }
+
+        // Scroll Spy (Highlight Navigation on Scroll)
+        function setupScrollSpy() {
+            const sections = document.querySelectorAll('section[id]');
+            const navLinks = document.querySelectorAll('.nav-btn');
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                const scrollY = window.pageYOffset;
+
+                sections.forEach(section => {
+                    const sectionHeight = section.offsetHeight;
+                    const sectionTop = section.offsetTop - 150; // Offset for sticky header
+                    if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                if (current) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active', 'text-emerald-700', 'bg-emerald-50', 'border-b-4', 'border-emerald-600');
+                        link.classList.add('text-slate-600');
+                        if (link.getAttribute('href') === '#' + current) {
+                            link.classList.remove('text-slate-600');
+                            link.classList.add('active', 'text-emerald-700', 'bg-emerald-50', 'border-b-4', 'border-emerald-600');
+                        }
+                    });
+                }
+            });
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            setupScrollSpy();
+        });
+    </script>
+</body>
+</html>
