@@ -170,10 +170,10 @@
                 </div>
 
                 <!-- 单栏结构：原稿在上，批注在下 -->
-                <div class="space-y-8 w-full">
+                <div class="space-y-6 w-full">
                     
                     <!-- Student Text -->
-                    <div class="bg-stone-50 p-6 md:p-8 rounded-xl border border-stone-200 text-lg leading-loose shadow-inner relative">
+                    <div class="bg-stone-50 p-6 rounded-xl border border-stone-200 text-lg leading-loose shadow-inner relative">
                         <div class="absolute top-0 right-0 bg-stone-200 text-stone-600 px-4 py-1 text-sm font-bold rounded-bl-lg rounded-tr-xl">你的原稿</div>
                         
                         <p class="font-serif mt-2">
@@ -196,89 +196,97 @@
                         </p>
                     </div>
 
-                    <!-- Feedback Panel -->
-                    <div class="pt-6 border-t border-stone-200">
-                        <h3 class="font-bold text-xl flex items-center text-slate-800 mb-6">
+                    <!-- Feedback Panel (紧凑版) -->
+                    <div class="pt-4 border-t border-stone-200">
+                        <h3 class="font-bold text-lg flex items-center text-slate-800 mb-4">
                             <span>💡</span> <span class="ml-2">全部批注与建议</span>
                         </h3>
                         
-                        <!-- List Content Area -->
-                        <div class="space-y-6">
+                        <!-- List Content Area (缩减了间距) -->
+                        <div class="space-y-3">
                             
-                            <div class="bg-rose-50 border-l-4 border-rose-500 p-5 rounded shadow-sm">
-                                <h4 class="font-bold text-rose-800 text-lg mb-3 flex items-center">
-                                    <span class="inline-flex items-center justify-center bg-rose-500 text-white text-xs font-bold w-6 h-6 rounded-full mr-2">构</span>
+                            <!-- 结构错误卡片 -->
+                            <div class="bg-rose-50 border-l-4 border-rose-500 p-3 rounded shadow-sm">
+                                <h4 class="font-bold text-rose-800 text-base mb-2 flex items-center">
+                                    <span class="inline-flex items-center justify-center bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full mr-2">构</span>
                                     致命结构与抄写错误
                                 </h4>
-                                <p class="text-sm text-slate-700 mb-2"><strong>问题说明：</strong></p>
-                                <ul class="list-disc pl-5 text-sm text-slate-700 space-y-1">
+                                <ul class="list-disc pl-5 text-sm text-slate-700 space-y-0.5">
                                     <li><strong>未分段：</strong> 读后续写必须严格分为两段。你把所有内容写成了一段。</li>
-                                    <li><strong>位置错误：</strong> <code>I knew I had to make it right.</code> 必须作为第二段的开头第一句话。</li>
-                                    <li><strong>抄写错误：</strong> 你把原题给的过去时 <code>knew</code> 抄成了现在的 <code>know</code>。段首语必须<strong>一字不差</strong>。</li>
+                                    <li><strong>位置错误：</strong> <code>I knew I had to make it right.</code> 必须作为第二段的首句。</li>
+                                    <li><strong>抄写错误：</strong> 将原题的过去时 <code>knew</code> 抄成了 <code>know</code>。</li>
                                 </ul>
                             </div>
 
-                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
-                                <div class="mb-4">
-                                    <span class="inline-flex items-center bg-rose-100 text-rose-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                            <!-- 批注 1 -->
+                            <div class="bg-white border border-stone-200 p-3 rounded shadow-sm">
+                                <div class="mb-2">
+                                    <span class="inline-flex items-center bg-rose-100 text-rose-800 text-xs px-2 py-0.5 rounded font-bold mb-1">
                                         <span class="bg-rose-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">1</span>
                                         语法错误：缺漏谓语动词
                                     </span>
                                     <p class="text-slate-600 text-sm line-through decoration-rose-500">A sense of guilt me when I thought of his kindness over the years.</p>
-                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
-                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1">A sense of guilt <strong class="text-emerald-700">overwhelmed / hit / struck</strong> me when I thought of his kindness over the years.</p>
+                                    <div class="flex flex-wrap sm:flex-nowrap items-baseline gap-2 mt-1.5">
+                                        <span class="text-emerald-700 font-medium text-sm whitespace-nowrap">✨ 推荐：</span>
+                                        <p class="text-slate-800 bg-emerald-50 px-2 py-1 rounded text-sm w-full">A sense of guilt <strong class="text-emerald-700">overwhelmed / hit / struck</strong> me when I thought of his kindness over the years.</p>
+                                    </div>
                                 </div>
-                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded">
-                                    <strong>解析：</strong> <code>guilt</code>（内疚感）是名词，不能直接作动词连接宾语 <code>me</code>。你需要加上一个动词，如 <code>overwhelmed</code>（淹没）或者 <code>hit/struck</code>（击中），表达“内疚感淹没了我”。
+                                <div class="text-sm text-slate-600 bg-slate-50 p-2 rounded">
+                                    <strong>解析：</strong> <code>guilt</code>（内疚感）是名词，不能直接作动词连接宾语 <code>me</code>。需加上动词如 <code>overwhelmed</code>（淹没）或者 <code>hit/struck</code>（击中），表达“内疚感淹没了我”。
                                 </div>
                             </div>
 
-                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
-                                <div class="mb-4">
-                                    <span class="inline-flex items-center bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                            <!-- 批注 2 -->
+                            <div class="bg-white border border-stone-200 p-3 rounded shadow-sm">
+                                <div class="mb-2">
+                                    <span class="inline-flex items-center bg-orange-100 text-orange-800 text-xs px-2 py-0.5 rounded font-bold mb-1">
                                         <span class="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">2</span>
                                         拼写与语法缺失
                                     </span>
                                     <p class="text-slate-600 text-sm line-through decoration-orange-500">It was then that I realied how ungrateful, taking his love for granted,</p>
-                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
-                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1">It was then that I <strong class="text-emerald-700">realized</strong> how ungrateful <strong class="text-emerald-700">I had been</strong>, taking his love for granted.</p>
+                                    <div class="flex flex-wrap sm:flex-nowrap items-baseline gap-2 mt-1.5">
+                                        <span class="text-emerald-700 font-medium text-sm whitespace-nowrap">✨ 推荐：</span>
+                                        <p class="text-slate-800 bg-emerald-50 px-2 py-1 rounded text-sm w-full">It was then that I <strong class="text-emerald-700">realized</strong> how ungrateful <strong class="text-emerald-700">I had been</strong>, taking his love for granted.</p>
+                                    </div>
                                 </div>
-                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded space-y-2">
-                                    <p><strong>1. 拼写错误：</strong> <code>realied</code> -> <code>realized</code>。</p>
-                                    <p><strong>2. 语法缺失：</strong> <code>how ungrateful</code> 是一个感叹结构，后面需要补充完整的主谓语才能构成宾语从句，改为 <code>how ungrateful I had been</code>。</p>
-                                    <p><strong>3. 标点：</strong> 这里的句号应该在 granted 之后结束该句。</p>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-2 rounded space-y-1">
+                                    <p><strong>解析：</strong> ① <code>realied</code> -> <code>realized</code>。② <code>how ungrateful</code> 后需补充主谓语构成宾语从句 <code>how ungrateful I had been</code>。③ 句末应为句号。</p>
                                 </div>
                             </div>
 
-                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
-                                <div class="mb-4">
-                                    <span class="inline-flex items-center bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                            <!-- 批注 3 -->
+                            <div class="bg-white border border-stone-200 p-3 rounded shadow-sm">
+                                <div class="mb-2">
+                                    <span class="inline-flex items-center bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-bold mb-1">
                                         <span class="bg-amber-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">3</span>
                                         拼写与逻辑漏洞
                                     </span>
                                     <p class="text-slate-600 text-sm line-through decoration-amber-500">withont delay, I walked to the kitchen,wrapped my arms around him from behind in his ear.</p>
-                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
-                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1"><strong class="text-emerald-700">Without</strong> delay, I walked to the kitchen, wrapped my arms around him from behind <strong class="text-emerald-700">and whispered</strong> in his ear.</p>
+                                    <div class="flex flex-wrap sm:flex-nowrap items-baseline gap-2 mt-1.5">
+                                        <span class="text-emerald-700 font-medium text-sm whitespace-nowrap">✨ 推荐：</span>
+                                        <p class="text-slate-800 bg-emerald-50 px-2 py-1 rounded text-sm w-full"><strong class="text-emerald-700">Without</strong> delay, I walked to the kitchen, wrapped my arms around him from behind <strong class="text-emerald-700">and whispered</strong> in his ear.</p>
+                                    </div>
                                 </div>
-                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded space-y-2">
-                                    <p><strong>1. 拼写错误：</strong> <code>withont</code> -> <code>without</code>。且句首字母 W 需要大写。</p>
-                                    <p><strong>2. 逻辑缺失：</strong> “从背后抱住他，然后在耳边......” 干什么？漏掉了动词。必须加上 <code>and whispered</code> (低语) 或描述你说了什么话，否则句子意思不完整。</p>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-2 rounded space-y-1">
+                                    <p><strong>解析：</strong> ① <code>withont</code> -> <code>without</code>，首字母需大写。② 逻辑缺失：漏掉了动词，必须加上 <code>and whispered</code> (低语) 或描述说了什么。</p>
                                 </div>
                             </div>
 
-                            <div class="bg-white border border-stone-200 p-5 rounded shadow-sm">
-                                <div class="mb-4">
-                                    <span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded font-bold mb-2">
+                            <!-- 批注 4 -->
+                            <div class="bg-white border border-stone-200 p-3 rounded shadow-sm">
+                                <div class="mb-2">
+                                    <span class="inline-flex items-center bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-bold mb-1">
                                         <span class="bg-blue-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center mr-1">4</span>
                                         拼写与套话改进
                                     </span>
                                     <p class="text-slate-600 text-sm line-through decoration-blue-500">Never before had I got such a unique exerprience, which was deeply engraved in my mind and had a Profound influnence on me.</p>
-                                    <p class="text-emerald-700 font-medium mt-3">✨ 推荐修改：</p>
-                                    <p class="text-slate-800 bg-emerald-50 p-3 rounded mt-1">Never before had I <strong class="text-emerald-700">had</strong> such a unique <strong class="text-emerald-700">experience</strong>, which was deeply engraved in my mind and had a <strong class="text-emerald-700">profound influence</strong> on me.</p>
+                                    <div class="flex flex-wrap sm:flex-nowrap items-baseline gap-2 mt-1.5">
+                                        <span class="text-emerald-700 font-medium text-sm whitespace-nowrap">✨ 推荐：</span>
+                                        <p class="text-slate-800 bg-emerald-50 px-2 py-1 rounded text-sm w-full">Never before had I <strong class="text-emerald-700">had</strong> such a unique <strong class="text-emerald-700">experience</strong>, which was deeply engraved in my mind and had a <strong class="text-emerald-700">profound influence</strong> on me.</p>
+                                    </div>
                                 </div>
-                                <div class="text-sm text-slate-600 bg-slate-50 p-3 rounded space-y-2">
-                                    <p><strong>1. 拼写及大小写：</strong> <code>exerprience</code> -> <code>experience</code>; <code>influnence</code> -> <code>influence</code>。Profound 中间的 P 不应大写。</p>
-                                    <p><strong>2. 表达习惯建议：</strong> 语法虽然改对了，但这句结尾过于“模板化”。高考结尾最好扣回核心矛盾（女儿嫌弃父亲的容貌）。建议把落脚点放回“不再为父亲感到羞耻，他永远是英雄”上，更能拿高分。</p>
+                                <div class="text-sm text-slate-600 bg-slate-50 p-2 rounded space-y-1">
+                                    <p><strong>解析：</strong> ① 拼写及大小写：<code>exerprience</code> -> <code>experience</code>; <code>influnence</code> -> <code>influence</code>; Profound 不应大写。② 结尾过于“模板化”，建议扣回“不再为父亲感到羞耻，他永远是英雄”的核心矛盾。</p>
                                 </div>
                             </div>
 
