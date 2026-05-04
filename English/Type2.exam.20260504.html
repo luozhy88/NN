@@ -1,0 +1,313 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作文批改报告</title>
+    <!-- 引入 Tailwind CSS 和 Typography 插件用于优雅的文本排版 -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <style>
+        /* 打印时隐藏不必要的元素 */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg print-shadow-none overflow-hidden relative">
+        
+        <!-- 头部区域与按钮 -->
+        <div class="bg-blue-600 text-white p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold">作文批改报告</h1>
+                <p class="text-blue-100 mt-2 text-sm md:text-base">反馈与修改建议完整版</p>
+            </div>
+            <div class="flex gap-3 no-print">
+                <button onclick="downloadTXT()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors text-white px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    下载 TXT
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 bg-white text-blue-600 hover:bg-blue-50 transition-colors px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    保存 PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- 报告正文容器 -->
+        <div id="report-content" class="p-6 md:p-8 space-y-10">
+
+            <!-- 一、 题目原文 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">01</span>
+                    题目原文 (The Prompt)
+                </h2>
+                <div class="bg-gray-50 rounded-xl p-5 text-gray-700 text-sm md:text-base leading-relaxed border border-gray-100">
+                    <p class="font-bold mb-3">阅读下面材料，根据其内容和所给段落开头语续写两段，使之构成一篇完整的短文。</p>
+                    <p class="mb-3">"Anybody have a bandage?" a voice echoed down the dorm hallway. It was our first week at college. The voice made us feel a bit helpless.</p>
+                    <p class="mb-3">Several months before, I sat at my high school graduation party admiring my gifts. The usual and beloved inspirational books were scattered around my feet. A small pile of personal checks lay nearby. Laundry items, desk supplies—all well-intentioned and well-received. They would demonstrate their givers' thoughtfulness during my college career. But one gift struck me as strange. I frowned when I opened it. A small packet of pills and medicine lay within the wrappings. Who would give that as a gift?</p>
+                    <p class="mb-3">"You'll need that gift from your friend once you're at school," Mom pointed out. "You won't have to go to the campus nurse for every cough."</p>
+                    <p class="mb-3">Not long after, in August, I packed my luggage into a borrowed truck and slipped the bag of medicine in. I barely thought about it once I reached campus, caught in the hurry of unpacking, book-buying, scheduling and meeting new friends.</p>
+                    <p class="mb-3">When "anybody have a bandage?" rang out in the dormitory hall that day, I remembered my little medicinal package. I swallowed self-consciously. "Actually," I gave a little wave, "I have one." As I dug out the kit and helped my new roommate, we began to chat.</p>
+                    <p class="mb-5">Soon, many of the girls in the other rooms of my floor heard of my little kit and paid me a visit. One had bug bites—anti-itch cream popped out of my supply. The girl with the headache nearly kissed my hands when I passed her simple painkillers. As cold season approached, many needed cough drops. Each girl stayed to chat for a few moments. The little gift I had questioned now led me toward new friendships, and earned me the nickname "the bandage girl". As it broke fevers, it also broke the ice, allowing me to meet and make friends with many girls living on the same storey. Gradually, the others purchased their own supplies and my magic kit rarely left the closet.</p>
+                    
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-bold text-gray-800 mb-2">注意: 1.续写词数应为150左右: 2.请按如下格式在答题卡的相应位置作答</p>
+                        <p><strong>Paragraph 1:</strong> Then one day, the school newspaper reporter came to my dormitory.</p>
+                        <p><strong>Paragraph 2:</strong> One day after my graduation, I received an invitation from a young friend admitted to college.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 二、 你的答案 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">02</span>
+                    你的答案 (Your Answer)
+                </h2>
+                <div class="space-y-4">
+                    <div class="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
+                        <p class="text-gray-500 font-bold mb-2 text-sm">Paragraph 1:</p>
+                        <p class="text-gray-800 leading-relaxed font-serif">Then one day, the school newspaper reporter came to my dormitory. Fixing her eyes on my medicine kit, she asked me to share my story. Without delay, I told her how the kit helped my roommates, how we started chatting,how it brought me make new friend's . It was then that I realized the small kit had brought me not noly friendship but also a chance to spread warmth.</p>
+                    </div>
+                    <div class="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
+                        <p class="text-gray-500 font-bold mb-2 text-sm">Paragraph 2:</p>
+                        <p class="text-gray-800 leading-relaxed font-serif">one day after my graduation, I received an invitation from a young friend admitted to colleage. I went to prepare a gift for her. After seemed like ages, I packed a small medicine kit full, just like I had received years ago. Delighted I wrote a note, tears rolling down my cheeks. Never before had I got such a unique experience, which was deeply engraved in my mind and had a profound influence on me. It was the kindness passed from person to person, without which I couldn't have enjoyed such a wonderful college life.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 三、 语法与拼写错误 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">03</span>
+                    语法与拼写错误 (Grammar & Spelling Errors)
+                </h2>
+                <p class="text-gray-600 mb-4">你在高级句型的使用上非常出色，但有一些基础的拼写和搭配失误：</p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-gray-700 bg-gray-100 inline-block px-3 py-1 rounded-md mb-3">第一段</h3>
+                        <ul class="space-y-3">
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Without delay, I told her how the kit helped my roommates, how we started chatting,how it brought me make new friend's .</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">how it brought me make new friend's</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">how it helped me make new friends</code> 或 <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">how it brought me new friends</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：“bring sb. do sth.” 是错误的搭配，且表示复数的 friends 不需要加撇号（'s 表示所有格）。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">It was then that I realized the small kit had brought me not noly friendship but also a chance to spread warmth.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">not noly</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">not only</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：拼写错误。</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-gray-700 bg-gray-100 inline-block px-3 py-1 rounded-md mb-3">第二段</h3>
+                        <ul class="space-y-3">
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">one day after my graduation, I received an invitation from a young friend admitted to colleage.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">one day after my graduation</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">One day after my graduation</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：段首字母必须大写。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">one day after my graduation, I received an invitation from a young friend admitted to colleage.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">colleage</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">college</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：拼写错误。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">After seemed like ages, I packed a small medicine kit full, just like I had received years ago.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">After seemed like ages</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">After what seemed like ages</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：固定搭配，表示“仿佛过了很久”。<code>After</code> 是介词，后面不能直接跟动词 <code>seemed</code>，需要加 <code>what</code> 引导宾语从句。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Delighted I wrote a note, tears rolling down my cheeks.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">Delighted I wrote a note</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Delighted, I wrote a note</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：非谓语动词/形容词作状语置于句首时，后面需要加逗号。</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 四、 得分范围 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">04</span>
+                    得分范围 (Score Range)
+                </h2>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-blue-600 text-white text-xl font-bold px-4 py-2 rounded-lg shadow-sm">
+                            20 - 22 分
+                        </div>
+                        <span class="text-gray-600 text-sm">/ 满分 25 分 (属于第四档上限或第五档下限)</span>
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-800 mb-2">评分依据：</h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-1">✦</span>
+                            <div>
+                                <strong>优点：</strong> 故事情节连贯，第一段写了分享故事与感悟，第二段写了自己毕业后将这份爱心（Medicine Kit）传承下去，非常契合“爱与分享”的积极主题。语言方面，你使用了非谓语动词（Fixing her eyes...）、宾语从句并列（how... how... how...）、倒装句（Never before had I...）和含有介词的非限制性定语从句（without which...），展现了极强的语言控制力。
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-400 mt-1">✦</span>
+                            <div>
+                                <strong>失分点：</strong> 主要是因为存在几处明显的拼写错误（noly, colleage）以及基础语法笔误（friend's, After seemed like）。在考场上，这些低级错误会稍稍拉低阅卷老师的第一印象，导致分数未能突破22分。
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 五、 修改建议与润色版本 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">05</span>
+                    修改建议 (Suggestions for Improvement)
+                </h2>
+                
+                <ol class="list-decimal list-inside space-y-3 text-gray-700 mb-8 ml-2">
+                    <li><strong>注意情感的合理性：</strong> 第二段中 <code>tears rolling down my cheeks</code>（眼泪流下脸颊）用在这里略微有些夸张。送给新生学妹一个医药箱是一件温馨、充满怀念的事情，用“会心一笑”或者“感慨万千”会更贴切。例如改为：<code>with a knowing smile playing on my lips</code>（嘴边带着会心的微笑）。</li>
+                    <li><strong>丰富第一段的细节：</strong> 记者来采访，可以稍微加一句报道刊登后的反响，这样更能凸显这个小药箱带来的积极影响。</li>
+                    <li><strong>考场检查习惯：</strong> 你的高阶语法掌握得很棒，考场上写完一定要留出2分钟时间通读全文，专门检查<strong>拼写、大小写、名词单复数</strong>。把这些小错误消灭，你的作文绝对是23分以上的水平。</li>
+                </ol>
+
+                <!-- 升级版展示 -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 md:p-8 border border-green-200 shadow-sm relative">
+                    <div class="absolute -top-4 -left-4 text-4xl">✨</div>
+                    <h3 class="text-lg font-bold text-green-800 mb-4 border-b border-green-200 pb-2">润色后的升级版 (Upgraded Version)</h3>
+                    <div class="space-y-4">
+                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
+                            <strong class="text-gray-900">Then one day, the school newspaper reporter came to my dormitory.</strong> Fixing her eyes on my medicine kit, she asked me to share my story. Without delay, I told her how the kit had helped my roommates, how we had started chatting, and how it had <strong class="text-green-700 bg-green-100 px-1 rounded">helped me make new friends</strong>. It was then that I realized the small kit had brought me <strong class="text-green-700 bg-green-100 px-1 rounded">not only</strong> friendship but also a chance to spread warmth. When the article was published, "the bandage girl" became a symbol of mutual care on campus.
+                        </p>
+                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
+                            <strong class="text-gray-900">One day after my graduation, I received an invitation from a young friend admitted to college.</strong> I went to prepare a gift for her. <strong class="text-green-700 bg-green-100 px-1 rounded">After what seemed like ages</strong>, I filled a small medicine kit, just like the one I had received years ago. <strong class="text-green-700 bg-green-100 px-1 rounded">Delighted,</strong> I wrote a note to go with it, <strong class="text-green-700 bg-green-100 px-1 rounded">with a knowing smile playing on my lips</strong>. Never before had I had such a unique experience, which was deeply engraved in my mind and had a profound influence on me. It was the kindness passed from person to person, <strong class="text-green-700 bg-green-100 px-1 rounded">without which</strong> I couldn't have enjoyed such a wonderful college life.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- JavaScript：处理下载 TXT 的逻辑 -->
+    <script>
+        function downloadTXT() {
+            // 获取要导出的核心文本（忽略按钮等）
+            const title = "作文批改报告\n========================\n\n";
+            let content = "";
+            
+            // 简单抓取页面里的文本内容进行结构化拼接
+            const sections = [
+                { header: "一、 题目原文 (The Prompt)", selector: "section:nth-of-type(1) > div" },
+                { header: "二、 你的答案 (Your Answer)", selector: "section:nth-of-type(2) > div" },
+                { header: "三、 语法与拼写错误 (Grammar & Spelling Errors)", selector: "section:nth-of-type(3) > div.space-y-6" },
+                { header: "四、 得分范围 (Score Range)", selector: "section:nth-of-type(4) > div" },
+                { header: "五、 修改建议 (Suggestions for Improvement)", selector: "section:nth-of-type(5) > ol" },
+                { header: "✨ 润色后的升级版 (Upgraded Version)", selector: "section:nth-of-type(5) > div > div.space-y-4" }
+            ];
+
+            sections.forEach(sec => {
+                const el = document.querySelector(sec.selector);
+                if(el) {
+                    content += "### " + sec.header + "\n\n";
+                    // 清理文本格式
+                    let text = el.innerText.replace(/\n\n+/g, '\n\n').trim();
+                    content += text + "\n\n------------------------\n\n";
+                }
+            });
+
+            const finalContent = title + content;
+
+            // 创建 Blob 并下载
+            const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '作文批改报告.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
