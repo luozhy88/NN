@@ -1,0 +1,528 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>作文批改报告</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Fira+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink: #1a1410;
+      --paper: #faf6ef;
+      --cream: #f2ead8;
+      --red: #c0392b;
+      --green: #1a6b3c;
+      --gold: #b8860b;
+      --blue: #1a4a7a;
+      --border: #d4c4a0;
+      --shadow: rgba(100,80,40,0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Noto Serif SC', serif;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+      background-image:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 31px,
+          rgba(180,160,110,0.18) 31px,
+          rgba(180,160,110,0.18) 32px
+        );
+    }
+
+    .page {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      margin-bottom: 48px;
+      padding-bottom: 24px;
+      border-bottom: 3px double var(--border);
+    }
+    .header h1 {
+      font-family: 'Noto Serif SC', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--ink);
+    }
+    .header .subtitle {
+      margin-top: 8px;
+      font-size: .85rem;
+      color: #888;
+      letter-spacing: .08em;
+    }
+    .stamp {
+      display: inline-block;
+      margin-top: 16px;
+      border: 3px solid var(--red);
+      color: var(--red);
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .2em;
+      padding: 4px 14px;
+      transform: rotate(-2deg);
+      opacity: .85;
+    }
+
+    /* ── Section card ── */
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      box-shadow: 4px 4px 0 var(--shadow);
+      position: relative;
+    }
+
+    .card-label {
+      position: absolute;
+      top: -13px;
+      left: 20px;
+      background: var(--paper);
+      padding: 0 10px;
+      font-size: .78rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+    .label-topic   { color: var(--blue); }
+    .label-student { color: var(--gold); }
+    .label-errors  { color: var(--red); }
+    .label-model   { color: var(--green); }
+    .label-tips    { color: #7a3b9e; }
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Topic section ── */
+    .topic-body {
+      font-size: .95rem;
+      line-height: 2;
+      color: #333;
+    }
+    .topic-body strong { color: var(--blue); }
+    .requirement-list {
+      margin: 12px 0 0 20px;
+      list-style: none;
+    }
+    .requirement-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: .9rem;
+    }
+    .req-num {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: #fff;
+      font-size: .7rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+
+    /* ── Student essay ── */
+    .essay-box {
+      font-family: 'Lora', serif;
+      font-size: .95rem;
+      line-height: 2;
+      background: var(--cream);
+      padding: 18px 20px;
+      border-left: 4px solid var(--gold);
+      border-radius: 2px;
+    }
+    .err {
+      color: var(--red);
+      text-decoration: underline wavy var(--red);
+      font-weight: 600;
+      cursor: help;
+      position: relative;
+    }
+
+    /* ── Error table ── */
+    .error-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .88rem;
+    }
+    .error-table th {
+      background: var(--red);
+      color: #fff;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: .06em;
+    }
+    .error-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #eee;
+      vertical-align: top;
+      line-height: 1.6;
+    }
+    .error-table tr:nth-child(even) td { background: #fdf5f4; }
+    .error-table .wrong {
+      color: var(--red);
+      font-family: 'Fira Mono', monospace;
+      font-size: .82rem;
+    }
+    .error-table .right {
+      color: var(--green);
+      font-family: 'Fira Mono', monospace;
+      font-size: .82rem;
+      font-weight: 700;
+    }
+    .error-tag {
+      display: inline-block;
+      font-size: .7rem;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+    .tag-spell  { background: #fde8e8; color: var(--red); }
+    .tag-gram   { background: #e8f0fe; color: var(--blue); }
+    .tag-format { background: #e8f5e9; color: var(--green); }
+    .tag-expr   { background: #fff3e0; color: #e65100; }
+    .tag-punc   { background: #f3e5f5; color: #7a3b9e; }
+    .tag-content{ background: #e0f7fa; color: #00696f; }
+
+    /* ── Model essay ── */
+    .model-box {
+      font-family: 'Lora', serif;
+      font-size: .97rem;
+      line-height: 2.1;
+      padding: 4px 0;
+    }
+    .model-box .salutation,
+    .model-box .sign {
+      font-style: italic;
+      color: var(--green);
+    }
+    .model-box p { margin-bottom: 10px; }
+
+    /* ── Score badge ── */
+    .score-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .score-badge {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 4px solid var(--red);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .score-badge .num { font-size: 1.7rem; font-weight: 700; color: var(--red); line-height: 1; }
+    .score-badge .denom { font-size: .72rem; color: #999; }
+    .score-desc { font-size: .9rem; line-height: 1.7; color: #444; }
+
+    /* ── Tips ── */
+    .tip-list { list-style: none; }
+    .tip-list li {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: .9rem;
+      line-height: 1.7;
+    }
+    .tip-list li:last-child { border-bottom: none; }
+    .tip-icon {
+      min-width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      background: #7a3b9e;
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: .78rem;
+      color: #aaa;
+      letter-spacing: .08em;
+      border-top: 1px solid var(--border);
+      padding-top: 20px;
+    }
+
+    @media print {
+      body { background: #fff; background-image: none; }
+      .card { box-shadow: none; border-color: #ccc; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>作文批改报告</h1>
+    <div class="subtitle">English Writing Correction Report · 高中英语书面表达</div>
+    <div class="stamp">已批改</div>
+  </div>
+
+  <!-- 1. 题目 -->
+  <div class="card">
+    <span class="card-label label-topic">📋 作文题目</span>
+    <h2 style="color:var(--blue)">Writing Prompt</h2>
+    <div class="topic-body">
+      假定你是学校篮球队队长<strong>李华</strong>，请写封邮件告诉你的队友 <strong>Sophia</strong>，球队将举行一场<strong>篮球友谊赛</strong>。内容包括：
+      <ul class="requirement-list">
+        <li><span class="req-num">1</span><span>比赛信息（时间、地点等）</span></li>
+        <li><span class="req-num">2</span><span>需携带的物品</span></li>
+        <li><span class="req-num">3</span><span>询问她是否能参加</span></li>
+      </ul>
+      <div style="margin-top:14px; font-size:.85rem; color:#888;">
+        注意：词数约 <strong>80</strong> 词；邮件格式（称呼 / 正文 / 署名）。
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 学生原文 -->
+  <div class="card">
+    <span class="card-label label-student">✏️ 学生原文</span>
+    <h2 style="color:var(--gold)">Student's Draft</h2>
+
+    <div style="margin-bottom:8px; font-size:.8rem; color:#999;">（波浪下划线标注有误之处）</div>
+    <div class="essay-box">
+      <span class="err" title="缺少邮件格式：称呼 Dear Sophia，">【缺少称呼】</span><br>
+      I'm delighted to tell you about
+      <span class="err" title="缺少冠词 a">basketball game</span>.
+      An important basketball game will be held in our school
+      <span class="err" title="普通名词无需大写：stadium">Stadium</span>.
+      <span class="err" title="句号误用，前后两句可用逗号或删去">so.</span>
+      I am writing to inform you of some relevant details about it.<br><br>
+
+      Firstly, the competition to be held will begin at
+      <span class="err" title="拼写错误：应为 2 p.m.">2 pam</span>.
+      So significant is the game
+      <span class="err" title="缺少 that：So…that… 固定句型">it is required</span>
+      that everyone should
+      <span class="err" title="表达不当：should show themselves → be present / attend">show themselves</span>.
+      <span class="err" title="表达混乱，建议改为 Players are required to wear…">They, players</span>
+      are <span class="err" title="拼写错误：requived → required">requived</span>
+      to wear
+      <span class="err" title="拼写错误：baketball shores → basketball shoes">baketball shores</span>,
+      <span class="err" title="表达：sport-shorts → sports shorts">sport-shorts</span>.
+      I <span class="err" title="拼写错误：worder → wonder">worder</span>
+      if you can attend on time.
+      I'm looking forward to your reply.<br><br>
+      <span class="err" title="缺少署名 Yours, / Li Hua">【缺少署名】</span>
+    </div>
+  </div>
+
+  <!-- 3. 错误分析 -->
+  <div class="card">
+    <span class="card-label label-errors">❌ 错误详析</span>
+    <h2 style="color:var(--red)">Error Analysis</h2>
+
+    <!-- Score -->
+    <div class="score-row">
+      <div class="score-badge">
+        <span class="num">52</span>
+        <span class="denom">/ 100</span>
+      </div>
+      <div class="score-desc">
+        共发现 <strong>11</strong> 处错误，包括拼写 5 处、语法 3 处、格式 2 处、表达 1 处。<br>
+        邮件格式不完整（缺称呼与署名），部分必要内容（日期、地点）未体现。
+      </div>
+    </div>
+
+    <table class="error-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>类型</th>
+          <th>原文</th>
+          <th>正确形式</th>
+          <th>说明</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><span class="error-tag tag-format">格式</span></td>
+          <td class="wrong">（无称呼）</td>
+          <td class="right">Dear Sophia,</td>
+          <td>英文邮件/信件必须以称呼开头</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><span class="error-tag tag-gram">语法</span></td>
+          <td class="wrong">about basketball game</td>
+          <td class="right">about a basketball game</td>
+          <td>可数名词单数前需加冠词 a</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><span class="error-tag tag-gram">语法</span></td>
+          <td class="wrong">school Stadium</td>
+          <td class="right">school stadium</td>
+          <td>stadium 为普通名词，不需大写</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><span class="error-tag tag-punc">标点</span></td>
+          <td class="wrong">…our school Stadium. so.</td>
+          <td class="right">…our school stadium,</td>
+          <td>此处 so 的标点混乱，句子衔接断裂</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><span class="error-tag tag-spell">拼写</span></td>
+          <td class="wrong">2 pam</td>
+          <td class="right">2 p.m.</td>
+          <td>下午两点缩写为 2 p.m.</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><span class="error-tag tag-gram">语法</span></td>
+          <td class="wrong">So significant is the game it is required</td>
+          <td class="right">So significant is the game that it is required</td>
+          <td>So…that… 固定句型，缺少连词 that</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><span class="error-tag tag-expr">表达</span></td>
+          <td class="wrong">everyone should show themselves</td>
+          <td class="right">everyone should be present / attend</td>
+          <td>"show themselves"表达不地道，应用 be present 或 attend</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><span class="error-tag tag-spell">拼写</span></td>
+          <td class="wrong">requived</td>
+          <td class="right">required</td>
+          <td>拼写错误</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><span class="error-tag tag-spell">拼写</span></td>
+          <td class="wrong">baketball shores</td>
+          <td class="right">basketball shoes</td>
+          <td>basketball 漏字母，shores→shoes</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><span class="error-tag tag-spell">拼写</span></td>
+          <td class="wrong">worder</td>
+          <td class="right">wonder</td>
+          <td>拼写错误</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><span class="error-tag tag-format">格式</span></td>
+          <td class="wrong">（无署名）</td>
+          <td class="right">Yours, Li Hua</td>
+          <td>英文书信结尾须有礼貌用语与署名</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><span class="error-tag tag-content">内容</span></td>
+          <td class="wrong">（缺日期/地点/比赛名称）</td>
+          <td class="right">补充具体比赛信息</td>
+          <td>题目要求"比赛信息"，应写明日期、地点等</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 4. 范文 -->
+  <div class="card">
+    <span class="card-label label-model">✅ 满分范文</span>
+    <h2 style="color:var(--green)">Model Essay</h2>
+    <div class="model-box">
+      <p class="salutation">Dear Sophia,</p>
+      <p>
+        I'm delighted to tell you about a basketball friendly match our team will hold.
+        The game is scheduled to take place in our school stadium on <u>Saturday, October 15th</u>, starting at <u>2 p.m.</u>
+        So significant is the game that everyone is required to be present.
+      </p>
+      <p>
+        Please remember to bring your <u>basketball shoes</u>, <u>sports shorts</u>, and a <u>water bottle</u>.
+        Make sure you are well-prepared before the match.
+      </p>
+      <p>
+        I wonder if you can attend on time. We are counting on you! Please let me know as soon as possible.
+      </p>
+      <p>I'm looking forward to your reply.</p>
+      <p class="sign">Yours,<br>Li Hua</p>
+    </div>
+    <div style="margin-top:14px; font-size:.82rem; color:#888; border-top:1px dashed var(--border); padding-top:10px;">
+      词数约 <strong>88</strong> 词 · 格式完整 · 三点内容全覆盖
+    </div>
+  </div>
+
+  <!-- 5. 学习建议 -->
+  <div class="card">
+    <span class="card-label label-tips">💡 学习建议</span>
+    <h2 style="color:#7a3b9e">Suggestions for Improvement</h2>
+    <ul class="tip-list">
+      <li>
+        <span class="tip-icon">01</span>
+        <span><strong>牢记邮件/书信格式：</strong>称呼（Dear …,）→ 正文 → 结尾礼貌语（Yours, / Best regards,）→ 署名，缺一不可，每项都有分值。</span>
+      </li>
+      <li>
+        <span class="tip-icon">02</span>
+        <span><strong>审清题目要点：</strong>本题明确要求三点内容，写作时可列提纲逐一对应，避免遗漏。比赛信息需写明时间、地点，越具体越好。</span>
+      </li>
+      <li>
+        <span class="tip-icon">03</span>
+        <span><strong>拼写是基本分：</strong>本次有 5 处拼写错误（shoes, required, wonder, p.m., basketball），建议平时注重单词拼写积累，写完后务必通读检查。</span>
+      </li>
+      <li>
+        <span class="tip-icon">04</span>
+        <span><strong>掌握倒装句型：</strong><em>So + adj. + be + 主语 + that…</em> 是高频句式，<code>that</code> 不可省略。用好此类高级句式可提升得分。</span>
+      </li>
+      <li>
+        <span class="tip-icon">05</span>
+        <span><strong>地道表达积累：</strong>用 <em>be present / attend</em> 替代 <em>show themselves</em>；用 <em>sports shorts</em> 而非 <em>sport-shorts</em>。多读英文范文，培养语感。</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="footer">
+    English Writing Correction · 作文批改报告 · Generated by Claude
+  </div>
+
+</div>
+</body>
+</html>
