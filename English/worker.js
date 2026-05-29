@@ -227,6 +227,9 @@ var HTML_CONTENT = `<!DOCTYPE html>
                     <button onclick="window.switchTab('report6')" id="tab-report6" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
                         读后续写报告2
                     </button>
+                    <button onclick="window.switchTab('report7')" id="tab-report7" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
+                        Rosa伦敦之旅(2026.05.29)
+                    </button>
                     <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
                         <i class="fa-solid fa-clipboard-check mr-2"></i> 错题复习挑战
                     </button>
@@ -855,6 +858,208 @@ Li Hua</div>
                     <p>Keep up the good work! 期待你写出更优秀的文章。</p>
                 </footer>
             </div>
+            <div id="view-report7" class="hidden fade-in space-y-6 pb-20">
+                <!-- Header -->
+                <header class="relative bg-white rounded-2xl shadow-sm p-8 text-center border-t-4 border-indigo-500">
+                    <button id="downloadBtn" onclick="downloadPDF()" class="no-print absolute top-6 right-6 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-medium py-2 px-4 rounded-lg border border-indigo-100 transition-colors flex items-center text-sm">
+                        <i class="fas fa-download mr-2"></i>下载 PDF
+                    </button>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2 mt-4 sm:mt-0">高中英语读后续写批改报告</h1>
+                    <p class="text-gray-500"><i class="fas fa-file-signature mr-2"></i>友谊、融入与成长</p>
+                </header>
+
+                <!-- 一、 题目说明 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8">
+                    <h2 class="text-xl font-bold text-indigo-600 mb-4 flex items-center">
+                        <i class="fas fa-book-open mr-3"></i> 一、 题目说明
+                    </h2>
+                    <div class="bg-indigo-50 rounded-xl p-5 space-y-3 text-sm leading-relaxed">
+                        <p><strong>故事背景：</strong> 小女孩 Rosa 从德黑兰来到伦敦，因戴着头巾、说着带口音的英语而感到格格不入。新学校里有同学嘲笑她，直到一个名叫 Emily 的女孩主动与她交朋友。</p>
+                        <p><strong>冲突事件：</strong> Rosa 初到伦敦感到陌生和失望，在学校被同学指指点点，感到无比孤独，甚至想逃回德黑兰。</p>
+                        <div class="mt-4 p-4 bg-white rounded-lg border border-indigo-100">
+                            <p class="font-semibold text-gray-700">续写任务：</p>
+                            <ul class="list-disc pl-5 mt-2 space-y-2 text-gray-600">
+                                <li><strong>第一段开头：</strong> <code>As the days went by, Rosa and Emily became good friends.</code>（重点描写 Rosa 如何融入集体、重建自信）。</li>
+                                <li><strong>第二段开头：</strong> <code>One day, Emily invited Rosa to a picnic in the park.</code>（重点描写野餐细节、Rosa 对伦敦情感的转变）。</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 二、 你的原文展现 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <i class="fas fa-pen-nib mr-3 text-gray-500"></i> 二、 你的原文展现
+                    </h2>
+                    <div class="bg-gray-50 rounded-xl p-6 font-serif text-gray-700 leading-relaxed border border-gray-200">
+                        <p class="mb-4"><strong>Paragraph 1:</strong><br>
+                        As the days went by, Rosa and Emily became good friends. They spent their lunch break together. Wearing a smile on Emily's face, she introducted Rosa to her friends.Rse Rosa breaked into a jourful smile, she wanted to make new friends. Time passing by, things began to turn around. Rosa even started to take part in activities. Inspired and highly motivated,she collected herself and struggled to address the challenge, her eyes shining with mounting deternation and confidence.</p>
+
+                        <p><strong>Paragraph 2:</strong><br>
+                        One day, Emily invited Rose to a picnic in the park.Rose keeped her's head down, hiding her's features. Fixing Emily's eyes on Rose's face, she encouraged Rose to relax herself. They spread out a blanket under a big tree.anc shared food. Only then did Rose, realized Lodon is a kindful place. Never before had Rose gut such a unique experience,which was engraved in Rose's mind and had a pround influnence on Rose in the rest of her life.She had found a new family among her friends.</p>
+                    </div>
+                </section>
+
+                <!-- 三、 详细批改 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8">
+                    <h2 class="text-xl font-bold text-red-500 mb-6 flex items-center">
+                        <i class="fas fa-check-double mr-3"></i> 三、 对你答案的详细批改
+                    </h2>
+                    <p class="text-gray-600 mb-6 bg-red-50 p-4 rounded-lg">你的续写在<strong>情节走向</strong>上基本合理，尝试运用了非谓语动词和倒装句等高级结构。但存在大量<strong>基础拼写、不规则动词、分词逻辑主语和人名一致性</strong>问题，需要高度重视。</p>
+
+                    <div class="space-y-6">
+                        <!-- 批改项 1 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第一段 - 句 1-2</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> Wearing a smile on Emily's face, she <span class="highlight-error">introducted</span> Rosa to her friends.<span class="highlight-error">Rse</span> Rosa <span class="highlight-error">breaked</span> into a <span class="highlight-error">jourful</span> smile...</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> <span class="highlight-correct">With a smile on her face</span>, Emily <span class="highlight-correct">introduced</span> Rosa to her friends. <span class="highlight-correct">As</span> Rosa <span class="highlight-correct">broke</span> into a <span class="highlight-correct">joyful</span> smile...</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> ① <code>introducted</code> -> <code>introduced</code>。② <code>Rse</code> 应为 <code>As</code>。③ <code>breaked</code> 是不规则动词错误，break 的过去式为 <code>broke</code>。④ <code>jourful</code> -> <code>joyful</code>。另外，"Wearing a smile on Emily's face" 表达生硬，建议改为 <code>With a smile on her face</code>。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 2 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第一段 - 句 3</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> <span class="highlight-error">Time passing by</span>, things began to turn around.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> <span class="highlight-correct">As time went by</span>, things began to turn around.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> "Time passing by" 作为独立主格结构虽然语法上可能成立，但在此处显得生硬，与后文衔接不畅。使用 As 引导时间状语从句更自然流畅。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 3 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第一段 - 句 4</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> ...her eyes shining with mounting <span class="highlight-error">deternation</span> and confidence.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> ...mounting <span class="highlight-correct">determination</span> and confidence.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> <code>deternation</code> 拼写错误，应为 <code>determination</code>（决心）。这是高中核心词汇。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 4 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第二段 - 句 1</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> <span class="highlight-error">Rose keeped her's</span> head down, <span class="highlight-error">hiding her's features</span>.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> <span class="highlight-correct">Rosa kept her</span> head down, <span class="highlight-correct">feeling a bit shy</span>.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> ① 主人公名为 <code>Rosa</code>，非 <code>Rose</code>，全文需统一。② <code>keep</code> 的过去式是 <code>kept</code>，不是 <code>keeped</code>。③ <code>her</code> 已是形容词性物主代词，不需要加 <code>'s</code>。④ <code>hiding her features</code> 与原文设定不符——Rosa 是因戴头巾而显得与众不同，并非面部有缺陷，不宜臆测添加原文没有的设定。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 5 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第二段 - 句 2</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> <span class="highlight-error">Fixing Emily's eyes</span> on Rose's face, she encouraged Rose to <span class="highlight-error">relax herself</span>.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> <span class="highlight-correct">Fixing her eyes</span> on Rosa's face, Emily encouraged her to <span class="highlight-correct">relax</span>.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> ① 分词短语置于句首时，其逻辑主语必须与主句主语一致。"Fixing her eyes..." 的动作发出者是 Emily，所以主句主语应为 Emily。原句 "Fixing Emily's eyes" 变成 Emily 把自己的眼睛固定在对方脸上，逻辑怪异。② <code>relax herself</code> 属于中式英语，<code>relax</code> 作不及物动词即可，或说 <code>calm down</code>。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 6 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第二段 - 句 3-4</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> ...under a big tree.<span class="highlight-error">anc</span> shared food. Only then did Rose, <span class="highlight-error">realized</span> <span class="highlight-error">Lodon</span> is a <span class="highlight-error">kindful</span> place.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> ...under a big tree <span class="highlight-correct">and</span> shared food. Only then did Rosa <span class="highlight-correct">realize London was such a wonderful</span> place.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> ① <code>anc</code> 应为 <code>and</code>。② <code>Only then</code> 置于句首需部分倒装：助动词 <code>did</code> + 主语 + <strong>动词原形</strong>。原句用了 <code>realized</code>（过去式）且多了逗号，双重错误。③ <code>Lodon</code> -> <code>London</code>。④ <code>kindful</code> 不是正确的英文单词，应改为 <code>wonderful</code> 或 <code>lovely</code>。</p>
+                            </div>
+                        </div>
+
+                        <!-- 批改项 7 -->
+                        <div class="border border-gray-200 rounded-xl overflow-hidden">
+                            <div class="bg-gray-50 px-5 py-3 border-b border-gray-200">
+                                <span class="text-sm font-bold text-gray-500">第二段 - 句 5</span>
+                            </div>
+                            <div class="p-5 space-y-3">
+                                <p class="text-gray-600"><strong><i class="fas fa-times-circle text-red-400 mr-1"></i> 原文：</strong> Never before had Rose <span class="highlight-error">gut</span> such a unique experience,which had a <span class="highlight-error">pround influnence</span> on Rose <span class="highlight-error">in</span> the rest of her life.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-check-circle text-green-500 mr-1"></i> 修改：</strong> Never before had she <span class="highlight-correct">had</span> such a unique experience, which had a <span class="highlight-correct">profound influence</span> on her <span class="highlight-correct">for</span> the rest of her life.</p>
+                                <p class="text-gray-600"><strong><i class="fas fa-comment-dots text-blue-400 mr-1"></i> 点评：</strong> ① <code>gut</code> -> <code>got/had</code>。② <code>pround</code> -> <code>profound</code>。③ <code>influnence</code> -> <code>influence</code>。④ <code>in the rest of her life</code> 介词搭配错误，应为 <code>for the rest of her life</code>。另外，连续使用 <code>Rose</code> 显得重复，可用代词 <code>she/her</code> 替换。</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 四、 优质范文 -->
+                <section class="bg-blue-50 rounded-2xl shadow-sm border border-blue-100 overflow-hidden">
+                    <div class="bg-blue-600 text-white p-5">
+                        <h2 class="text-xl font-bold flex items-center">
+                            <i class="fas fa-star mr-3 text-yellow-300"></i> 四、 优质范文 (Model Essay)
+                        </h2>
+                    </div>
+                    <div class="p-8 font-serif text-gray-800 leading-loose space-y-6 text-lg">
+                        <p>
+                            <strong>As the days went by, Rosa and Emily became good friends.</strong> They spent their lunch breaks together. With a warm smile on her face, Emily introduced Rosa to her friends. Seeing their friendly faces, Rosa broke into a joyful smile and was eager to make more friends. As time went by, things began to turn around. Rosa even started to take part in after-school activities. Inspired and highly motivated, she collected herself and faced the challenge bravely, her eyes shining with mounting determination and confidence.
+                        </p>
+                        <p>
+                            <strong>One day, Emily invited Rosa to a picnic in the park.</strong> At first, Rosa kept her head down, still feeling a little nervous in the open space. Fixing her eyes on Rosa's face, Emily gently encouraged her to relax. They spread out a blanket under a big tree and shared delicious food. Warmed by the sunshine and laughter, Rosa gradually felt at ease. Only then did she realize London could be such a welcoming place. Never before had she had such a unique experience, which was deeply engraved in her mind and would have a profound influence on her for the rest of her life. She had found a new family among her friends.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- 五、 学习建议 -->
+                <section class="bg-white rounded-2xl shadow-sm p-8 border-l-8 border-green-500">
+                    <h2 class="text-xl font-bold text-green-600 mb-5 flex items-center">
+                        <i class="fas fa-lightbulb mr-3"></i> 五、 给你的学习建议
+                    </h2>
+                    <ul class="space-y-4 text-gray-700">
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">夯实基础词汇与不规则动词</h4>
+                                <p class="text-sm mt-1"><code>break-broke-broken</code>, <code>keep-kept-kept</code> 等不规则动词必须熟记；常见词汇如 <code>introduce, joyful, determination, profound, influence</code> 的拼写要反复强化，考场上建议留2分钟专门"排雷"。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">严守分词逻辑主语一致原则</h4>
+                                <p class="text-sm mt-1">每次使用 "Doing..., sb. did..." 结构时，务必确认分词的动作发出者就是主句的主语。如 "Fixing her eyes on Rosa's face, Emily encouraged..." 中，Fixing 的动作发出者是 Emily，主句主语也必须是 Emily。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">掌握倒装句的准确结构</h4>
+                                <p class="text-sm mt-1"><code>Only then did + 主语 + 动词原形</code>；<code>Never before had + 主语 + 过去分词</code>。助动词 did/had 已经体现了过去时态，后面的实义动词必须用原形/过去分词，不能再用过去式。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="fas fa-check-circle text-green-500"></i>
+                            </div>
+                            <div class="ml-3">
+                                <h4 class="font-bold text-gray-900">忠于原文设定，减少模板套话</h4>
+                                <p class="text-sm mt-1">结尾 "engraved in my mind and had a profound influence" 套话痕迹较重。可以加入更多感官细节（阳光、食物的香味、笑声）来自然烘托情感，让升华水到渠成。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+                <footer class="text-center text-gray-400 text-sm pb-8">
+                    <p>Keep up the good work! 期待你写出更优秀的文章。</p>
+                </footer>
+            </div>
             <!-- Review Mode: Quiz -->
             <div id="view-review" class="hidden fade-in h-full flex flex-col items-center justify-center pt-2 sm:pt-8">
                 
@@ -1140,7 +1345,16 @@ Li Hua</div>
             { id: 47, tag: "专有名词大小写 (Proper Noun)", context: "I called peter to share the good news.", incorrect: "peter", correct: "Peter", explanation: "人名是专有名词，首字母必须大写。Peter 而非 peter。", distractors: ["peter", "PETRE"] },
             { id: 48, tag: "句法结构 (Sentence Structure)", context: "I The kindness of others can turn it into a youd memory.", incorrect: "I The", correct: "The", explanation: "句中不能有两个孤立的主语。应删除 I 或改为 I realized that the kindness...。", distractors: ["I the", "Me The"] },
             { id: 49, tag: "拼写 (Spelling)", context: "...turn it into a youd memory.", incorrect: "youd", correct: "good", explanation: "根据语境，这里应表达“美好的回忆”，正确拼写为 good，而非 youd。", distractors: ["yold", "youded"] },
-            { id: 50, tag: "时态一致性 (Tense Consistency)", context: "...the kindness of others can turn it into a good memory.", incorrect: "can turn", correct: "could turn", explanation: "在回忆/叙述中，主句用了过去时 (realized)，宾语从句也应使用相应的过去时态 could 而非 can。", distractors: ["will turn", "turned"] }
+            { id: 50, tag: "时态一致性 (Tense Consistency)", context: "...the kindness of others can turn it into a good memory.", incorrect: "can turn", correct: "could turn", explanation: "在回忆/叙述中，主句用了过去时 (realized)，宾语从句也应使用相应的过去时态 could 而非 can。", distractors: ["will turn", "turned"] },
+            
+            // ===== 新增：Type2.exam.20260529 Rosa伦敦之旅 读后续写错误知识点 =====
+            { id: 51, tag: "拼写与不规则动词 (Spelling & Irregular Verb)", context: "Wearing a smile on Emily's face, she introducted Rosa to her friends. As Rosa breaked into a jourful smile...", incorrect: "introducted / breaked / jourful", correct: "introduced / broke / joyful", explanation: "① introduced 不要写成 introducted。② break 的过去式是不规则变化 broke，不是 breaked。③ joyful 拼写为 j-o-y-f-u-l。", distractors: ["introduced / breaked / joyful", "introducted / broke / jourful"] },
+            { id: 52, tag: "句子结构 (Sentence Structure)", context: "Time passing by, things began to turn around.", incorrect: "Time passing by", correct: "As time went by", explanation: "独立主格 Time passing by 在此处显得生硬。用 As 引导时间状语从句更自然流畅。", distractors: ["Time passed by", "With time passed by"] },
+            { id: 53, tag: "拼写 (Spelling)", context: "...her eyes shining with mounting deternation and confidence.", incorrect: "deternation", correct: "determination", explanation: "determination 意为决心，是高中核心词汇，注意中间是 ter 而非 tern。", distractors: ["determinition", "determanation"] },
+            { id: 54, tag: "词汇逻辑与语法 (Logic & Grammar)", context: "Rose keeped her's head down, hiding her's features.", incorrect: "Rose / keeped / her's / hiding her's features", correct: "Rosa kept her head down, feeling a bit shy", explanation: "① 主人公名为 Rosa。② keep 过去式为 kept。③ her 本身已是物主代词，无需加 's。④ hiding her features 与原文（戴头巾）不符，不能臆测添加原文没有的设定。", distractors: ["Rose kept her head down", "Rosa keeped her head down"] },
+            { id: 55, tag: "分词逻辑主语 (Dangling Participle)", context: "Fixing Emily's eyes on Rose's face, she encouraged Rose to relax herself.", incorrect: "Fixing Emily's eyes / relax herself", correct: "Fixing her eyes on Rosa's face, Emily encouraged her to relax", explanation: "① 分词短语的逻辑主语必须与主句主语一致。Fixing 的动作发出者是 Emily，主句主语也应是 Emily。② relax 本身可作不及物动词，无需加 herself。", distractors: ["Fixing her eyes on Rose's face, she encouraged...", "Fixing Emily's eyes on Rosa's face, Emily encouraged..."] },
+            { id: 56, tag: "倒装句与拼写 (Inversion & Spelling)", context: "...anc shared food. Only then did Rose, realized Lodon is a kindful place.", incorrect: "anc / did Rose, realized / Lodon / kindful", correct: "and / did Rosa realize / London / wonderful", explanation: "① anc 应为 and。② Only then 置于句首需部分倒装：did + 主语 + 动词原形。③ Lodon -> London。④ kindful 不是英文单词。", distractors: ["and / did Rose realize / London / kind", "anc / did Rosa realized / Lodon / wonderful"] },
+            { id: 57, tag: "拼写与介词搭配 (Spelling & Preposition)", context: "Never before had Rose gut such a unique experience... had a pround influnence on Rose in the rest of her life.", incorrect: "gut / pround / influnence / in the rest of her life", correct: "got (或 had) / profound / influence / for the rest of her life", explanation: "① gut 应为 got。② pround -> profound。③ influnence -> influence。④ for the rest of her life 为固定搭配。", distractors: ["got / profound / influence / in the rest of her life", "gut / pround / influnence / for the rest of her life"] }
         ];
 
         document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
@@ -1223,10 +1437,10 @@ Li Hua</div>
         };
 
         window.switchTab = function(tabName) {
-            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-report6', 'view-review'].forEach(id => {
+            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-report6', 'view-report7', 'view-review'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-report6', 'tab-review'].forEach(id => {
+            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-report6', 'tab-report7', 'tab-review'].forEach(id => {
                 document.getElementById(id).className = "tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
             });
             document.getElementById('view-' + tabName).classList.remove('hidden');

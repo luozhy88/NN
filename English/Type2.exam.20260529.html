@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作文批改报告</title>
+    <!-- 引入 Tailwind CSS 和 Typography 插件用于优雅的文本排版 -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <style>
+        /* 打印时隐藏不必要的元素 */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg print-shadow-none overflow-hidden relative">
+        
+        <!-- 头部区域与按钮 -->
+        <div class="bg-blue-600 text-white p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold">作文批改报告</h1>
+                <p class="text-blue-100 mt-2 text-sm md:text-base">反馈与修改建议完整版 · 2025-06-29</p>
+            </div>
+            <div class="flex gap-3 no-print">
+                <button onclick="downloadTXT()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors text-white px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    下载 TXT
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 bg-white text-blue-600 hover:bg-blue-50 transition-colors px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    保存 PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- 报告正文容器 -->
+        <div id="report-content" class="p-6 md:p-8 space-y-10">
+
+            <!-- 一、 题目原文 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">01</span>
+                    题目原文 (The Prompt)
+                </h2>
+                <div class="bg-gray-50 rounded-xl p-5 text-gray-700 text-sm md:text-base leading-relaxed border border-gray-100">
+                    <p class="font-bold mb-3">阅读下面材料，根据其内容和所给段落开头语续写两段，使之构成一篇完整的短文。</p>
+                    <p class="mb-3">When Rosa was still a young girl, her parents decided to send her from their home in Tehran to live with her aunt in London, England. The journey was long, and as she flew to England, Rosa spent much of the time imagining what her new life would be like. She was determined to do well at school and make her parents proud. However, when she arrived at the airport in London, it was not quite as she had imagined at all. Worst of all was the fact that everybody was looking at her with strange eyes. Rosa noticed with surprise that she was the only one wearing a scarf. London proved to be a very strange and unfamiliar place. It rained constantly every day during the first week, and Rosa was unimpressed with what she thought was British summertime. Despite being told that her English was good, she struggled to understand people's accents and slang. The young girl felt disappointed with her new surroundings and she missed her family and friends dearly.</p>
+                    <p class="mb-3">When the day came for Rosa to go to her new school, she was extremely nervous. Her aunt tried to comfort her, saying "I'm sure you'll make lots of friends today. You just wait and see." But things didn't go as smoothly as her aunt had hoped, at least initially. Some girls in her class pointed and laughed at her, showing no interest in befriending the new girl. Feeling so different from everyone else, Rosa wished she could be back home with her family. During a lunch break, as Rosa sat alone in the corner of the playground, thinking how to escape back to Tehran, a young girl named Emily approached her. She introduced herself, shared her milkshake with Rosa, and said, "I think your scarf looks cool." In return for her kindness, Rosa took out four biscuits from her pocket and shared them with Emily. Soon the two were playing games, running about in the corner of the playground. They exchanged stories — Rosa told Emily all about life in Tehran. Emily told Rosa about all of the cool things she could do in London.</p>
+                    
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-bold text-gray-800 mb-2">注意: 1. 续写词数应为150个左右；2. 请按如下格式在答题卡的相应位置作答</p>
+                        <p><strong>Paragraph 1:</strong> As the days went by, Rosa and Emily became good friends.</p>
+                        <p><strong>Paragraph 2:</strong> One day, Emily invited Rosa to a picnic in the park.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 二、 你的答案 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">02</span>
+                    你的答案 (Your Answer)
+                </h2>
+                <div class="space-y-4">
+                    <div class="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
+                        <p class="text-gray-500 font-bold mb-2 text-sm">Paragraph 1:</p>
+                        <p class="text-gray-800 leading-relaxed font-serif">As the days went by, Rosa and Emily became good friends. They spent their lunch break together. Wearing a smile on Emily's face, she introducted Rosa to her friends.Rse Rosa breaked into a jourful smile, she wanted to make new friends. Time passing by, things began to turn around. Rosa even started to take part in activities. Inspired and highly motivated,she collected herself and struggled to address the challenge, her eyes shining with mounting deternation and confidence.</p>
+                    </div>
+                    <div class="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
+                        <p class="text-gray-500 font-bold mb-2 text-sm">Paragraph 2:</p>
+                        <p class="text-gray-800 leading-relaxed font-serif">One day, Emily invited Rose to a picnic in the park.Rose keeped her's head down, hiding her's features. Fixing Emily's eyes on Rose's face, she encouraged Rose to relax herself. They spread out a blanket under a big tree.anc shared food. Only then did Rose, realized Lodon is a kindful place. Never before had Rose gut such a unique experience,which was engraved in Rose's mind and had a pround influnence on Rose in the rest of her life.She had found a new family among her friends.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 三、 语法与拼写错误 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">03</span>
+                    语法与拼写错误 (Grammar & Spelling Errors)
+                </h2>
+                <p class="text-gray-600 mb-4">你的作文尝试运用了非谓语动词和倒装句等高级结构，但存在较多基础拼写、不规则动词和语法一致性问题，需重点巩固：</p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-gray-700 bg-gray-100 inline-block px-3 py-1 rounded-md mb-3">第一段</h3>
+                        <ul class="space-y-3">
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Wearing a smile on Emily's face, she introducted Rosa to her friends.Rse Rosa breaked into a jourful smile...</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">introducted / Rse / breaked / jourful</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">introduced / As / broke / joyful</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>introducted</code> 拼写错误，应为 <code>introduced</code>。② <code>Rse</code> 应为 <code>As</code>。③ <code>breaked</code> 是不规则动词错误，break 的过去式为 <code>broke</code>。④ <code>jourful</code> 拼写错误，应为 <code>joyful</code>。另外，"Wearing a smile on Emily's face" 表达生硬，建议改为 <code>With a smile on her face</code>。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Time passing by, things began to turn around.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">Time passing by</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">As time went by</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：独立主格 "Time passing by" 虽然语法上可能成立，但在此处显得生硬，与后文衔接不畅。用 <code>As time went by</code> 引导时间状语从句更加自然流畅。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">her eyes shining with mounting deternation and confidence.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">deternation</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">determination</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：拼写错误。<code>determination</code> 意为"决心"，是高中核心词汇。</p>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-gray-700 bg-gray-100 inline-block px-3 py-1 rounded-md mb-3">第二段</h3>
+                        <ul class="space-y-3">
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Rose keeped her's head down, hiding her's features.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">Rose / keeped / her's / hiding her's features</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Rosa kept her head down, feeling a bit shy.</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① 主人公名为 <code>Rosa</code>，非 <code>Rose</code>，全文需统一。② <code>keep</code> 的过去式是 <code>kept</code>，不是 <code>keeped</code>。③ <code>her</code> 已是形容词性物主代词，不需要加 <code>'s</code>。④ <code>hiding her features</code> 与原文设定不符——Rosa 是因戴头巾而显得与众不同，并非面部有缺陷，不宜臆测添加原文没有的设定。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Fixing Emily's eyes on Rose's face, she encouraged Rose to relax herself.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">Fixing Emily's eyes ... she encouraged Rose to relax herself</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Fixing her eyes on Rosa's face, Emily encouraged her to relax.</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① 分词短语置于句首时，其逻辑主语必须与主句主语一致。"Fixing her eyes..." 的动作发出者是 Emily，所以主句主语应为 Emily。原句 "Fixing Emily's eyes" 变成 Emily 把自己的眼睛固定在对方脸上，逻辑怪异。② <code>relax herself</code> 属于中式英语，<code>relax</code> 作不及物动词即可，或说 <code>calm down</code>。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">They spread out a blanket under a big tree.anc shared food. Only then did Rose, realized Lodon is a kindful place.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">anc / Only then did Rose, realized / Lodon / kindful</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">and shared food. Only then did Rosa realize London was such a wonderful place.</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>anc</code> 应为 <code>and</code>。② <code>Only then</code> 置于句首需部分倒装：助动词 <code>did</code> + 主语 + <strong>动词原形</strong>。原句用了 <code>realized</code>（过去式）且多了逗号，属双重错误。③ <code>Lodon</code> 应为 <code>London</code>。④ <code>kindful</code> 不是正确的英文单词，应改为 <code>kind</code>, <code>wonderful</code> 或 <code>lovely</code>。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Never before had Rose gut such a unique experience,which was engraved in Rose's mind and had a pround influnence on Rose in the rest of her life.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">gut / pround / influnence / in the rest of her life</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">got / profound / influence / for the rest of her life</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>gut</code> 应为 <code>got</code>（拼写错误）。② <code>pround</code> 应为 <code>profound</code>。③ <code>influnence</code> 应为 <code>influence</code>。④ <code>in the rest of her life</code> 介词搭配错误，应为 <code>for the rest of her life</code>。另外，连续使用 <code>Rose</code> 显得重复，可用代词 <code>she/her</code> 替换。</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 四、 得分范围 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">04</span>
+                    得分范围 (Score Range)
+                </h2>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-blue-600 text-white text-xl font-bold px-4 py-2 rounded-lg shadow-sm">
+                            16 - 18 分
+                        </div>
+                        <span class="text-gray-600 text-sm">/ 满分 25 分 (属于第三档作文)</span>
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-800 mb-2">评分依据：</h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-1">✦</span>
+                            <div>
+                                <strong>优点：</strong> 故事情节基本完整，涵盖了友谊建立、融入新环境、公园野餐等核心要点。语言方面，你尝试使用了非谓语动词（her eyes shining...）、独立主格、倒装句（Only then did... / Never before had...）等高级结构，展现了一定的语言运用意识。
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-400 mt-1">✦</span>
+                            <div>
+                                <strong>失分点：</strong> 存在大量基础拼写错误（introducted, breaked, jourful, keeped, kindful, gut, pround, influnence 等）和基础语法错误（不规则动词、物主代词 her's、倒装句结构错误），严重影响阅读体验和阅卷印象。情节上 "hiding her features" 与原文设定（戴头巾）不符，属于对原文的误读。此外，两段之间的情感过渡略显突兀，从"信心满满"直接跳到"低头藏脸"，缺乏合理的衔接。
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 五、 修改建议与润色版本 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">05</span>
+                    修改建议 (Suggestions for Improvement)
+                </h2>
+                
+                <ol class="list-decimal list-inside space-y-3 text-gray-700 mb-8 ml-2">
+                    <li><strong>夯实基础词汇与不规则动词：</strong> 这是目前最急需解决的问题。<code>break-broke-broken</code>, <code>keep-kept-kept</code> 等不规则动词必须熟记；常见词汇如 <code>introduce, joyful, determination, profound, influence</code> 的拼写要反复强化，考场上建议留2分钟专门"排雷"。</li>
+                    <li><strong>严守分词逻辑主语一致原则：</strong> 每次使用 "Doing..., sb. did..." 结构时，务必确认分词的动作发出者就是主句的主语。如 "Fixing her eyes on Rosa's face, Emily encouraged..." 中，Fixing 的动作发出者是 Emily，主句主语也必须是 Emily。</li>
+                    <li><strong>掌握倒装句的准确结构：</strong> <code>Only then did + 主语 + 动词原形</code>；<code>Never before had + 主语 + 过去分词</code>。助动词 did/had 已经体现了过去时态，后面的实义动词必须用原形/过去分词，不能再用过去式。</li>
+                    <li><strong>忠于原文设定，合理推演情节：</strong> 原文中 Rosa 的"不同"在于她戴了头巾（scarf），并非面部有缺陷。续写不能脱离原文随意添加设定。第二段中 Rosa 在野餐时可以是略带害羞，但不应该是 "hiding her features"。</li>
+                    <li><strong>减少模板化套话，增加真实细节：</strong> 结尾 "engraved in my mind and had a profound influence" 套话痕迹较重。可以加入更多感官细节（阳光、食物的香味、笑声）来自然烘托情感，让升华水到渠成。</li>
+                </ol>
+
+                <!-- 升级版展示 -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 md:p-8 border border-green-200 shadow-sm relative">
+                    <div class="absolute -top-4 -left-4 text-4xl">✨</div>
+                    <h3 class="text-lg font-bold text-green-800 mb-4 border-b border-green-200 pb-2">润色后的升级版 (Upgraded Version)</h3>
+                    <div class="space-y-4">
+                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
+                            <strong class="text-gray-900">As the days went by, Rosa and Emily became good friends.</strong> They spent their lunch breaks together. <strong class="text-green-700 bg-green-100 px-1 rounded">With a warm smile on her face</strong>, Emily <strong class="text-green-700 bg-green-100 px-1 rounded">introduced</strong> Rosa to her friends. Seeing their friendly faces, Rosa <strong class="text-green-700 bg-green-100 px-1 rounded">broke</strong> into a <strong class="text-green-700 bg-green-100 px-1 rounded">joyful</strong> smile and was eager to make more friends. <strong class="text-green-700 bg-green-100 px-1 rounded">As time went by</strong>, things began to turn around. Rosa even started to take part in after-school activities. Inspired and highly motivated, she collected herself and <strong class="text-green-700 bg-green-100 px-1 rounded">faced the challenge bravely</strong>, her eyes shining with mounting <strong class="text-green-700 bg-green-100 px-1 rounded">determination</strong> and confidence.
+                        </p>
+                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
+                            <strong class="text-gray-900">One day, Emily invited Rosa to a picnic in the park.</strong> At first, <strong class="text-green-700 bg-green-100 px-1 rounded">Rosa kept</strong> her head down, still feeling a little nervous in the open space. <strong class="text-green-700 bg-green-100 px-1 rounded">Fixing her eyes on Rosa's face</strong>, Emily gently encouraged her to <strong class="text-green-700 bg-green-100 px-1 rounded">relax</strong>. They spread out a blanket under a big tree <strong class="text-green-700 bg-green-100 px-1 rounded">and</strong> shared delicious food. Warmed by the sunshine and laughter, Rosa gradually felt at ease. <strong class="text-green-700 bg-green-100 px-1 rounded">Only then did she realize London was such a wonderful place.</strong> <strong class="text-green-700 bg-green-100 px-1 rounded">Never before had she had</strong> such a unique experience, which was deeply engraved in her mind and would have a <strong class="text-green-700 bg-green-100 px-1 rounded">profound influence</strong> on her <strong class="text-green-700 bg-green-100 px-1 rounded">for</strong> the rest of her life. She had found a new family among her friends.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- JavaScript：处理下载 TXT 的逻辑 -->
+    <script>
+        function downloadTXT() {
+            // 获取要导出的核心文本（忽略按钮等）
+            const title = "作文批改报告\n========================\n\n";
+            let content = "";
+            
+            // 简单抓取页面里的文本内容进行结构化拼接
+            const sections = [
+                { header: "一、 题目原文 (The Prompt)", selector: "section:nth-of-type(1) > div" },
+                { header: "二、 你的答案 (Your Answer)", selector: "section:nth-of-type(2) > div" },
+                { header: "三、 语法与拼写错误 (Grammar & Spelling Errors)", selector: "section:nth-of-type(3) > div.space-y-6" },
+                { header: "四、 得分范围 (Score Range)", selector: "section:nth-of-type(4) > div" },
+                { header: "五、 修改建议 (Suggestions for Improvement)", selector: "section:nth-of-type(5) > ol" },
+                { header: "✨ 润色后的升级版 (Upgraded Version)", selector: "section:nth-of-type(5) > div > div.space-y-4" }
+            ];
+
+            sections.forEach(sec => {
+                const el = document.querySelector(sec.selector);
+                if(el) {
+                    content += "### " + sec.header + "\n\n";
+                    // 清理文本格式
+                    let text = el.innerText.replace(/\n\n+/g, '\n\n').trim();
+                    content += text + "\n\n------------------------\n\n";
+                }
+            });
+
+            const finalContent = title + content;
+
+            // 创建 Blob 并下载
+            const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '作文批改报告.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
