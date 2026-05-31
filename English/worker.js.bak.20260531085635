@@ -230,9 +230,6 @@ var HTML_CONTENT = `<!DOCTYPE html>
                     <button onclick="window.switchTab('report7')" id="tab-report7" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
                         Rosa伦敦之旅(2026.05.29)
                     </button>
-                    <button onclick="window.switchTab('report8')" id="tab-report8" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors">
-                        AI in Our Study (2026.05.31)
-                    </button>
                     <button onclick="window.switchTab('review')" id="tab-review" class="tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center">
                         <i class="fa-solid fa-clipboard-check mr-2"></i> 错题复习挑战
                     </button>
@@ -1063,188 +1060,6 @@ Li Hua</div>
                     <p>Keep up the good work! 期待你写出更优秀的文章。</p>
                 </footer>
             </div>
-            <!-- Report 8: AI in Our Study and Daily Life (2026.05.31) -->
-            <div id="view-report8" class="hidden fade-in space-y-6 pb-20">
-
-            <!-- 一、 题目原文 -->
-            <section>
-                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">01</span>
-                    题目原文 (The Prompt)
-                </h2>
-                <div class="bg-gray-50 rounded-xl p-5 text-gray-700 text-sm md:text-base leading-relaxed border border-gray-100">
-                    <p class="font-bold mb-3">(2025·郑州市二模) 你校英语报正在举办以 "AI in Our Study and Daily Life" 为主题的征文活动，请用英语写一篇短文投稿，介绍AI对学习和生活的帮助。</p>
-                    <p class="mb-3">要点如下：</p>
-                    <ul class="list-decimal list-inside mb-3 ml-2 space-y-1">
-                        <li>学习方面；</li>
-                        <li>生活方面；</li>
-                        <li>对AI的期待。</li>
-                    </ul>
-                    <div class="bg-white p-4 rounded-lg border border-gray-200">
-                        <p class="font-bold text-gray-800 mb-2">注意：</p>
-                        <ul class="list-decimal list-inside space-y-1">
-                            <li>写作词数应为80个左右；</li>
-                            <li>请按如下格式在答题卡的相应位置作答。</li>
-                        </ul>
-                        <p class="mt-2 font-bold text-gray-800">AI in Our Study and Daily Life</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 二、 你的答案 -->
-            <section>
-                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">02</span>
-                    你的答案 (Your Answer)
-                </h2>
-                <div class="space-y-4">
-                    <div class="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
-                        <p class="text-gray-800 leading-relaxed font-serif">With the development of science and technology, AI has been developing our study and daily life. Fistly, AI is an tutor, Which can provide answers to questions, making us more understand. On the other hand, it can help to solve grammar mistakes and enhance our spoken Engltsh.</p>
-                        <p class="text-gray-800 leading-relaxed font-serif mt-2">In my opinion, I hope AI will become more user and bring more useful skills to make us better.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 三、 语法与拼写错误 -->
-            <section>
-                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">03</span>
-                    语法与拼写错误 (Grammar & Spelling Errors)
-                </h2>
-                <p class="text-gray-600 mb-4">你的作文基本表达了AI在学习上的帮助，但存在多处搭配不当和语法问题，且遗漏了"生活方面"这一核心要点：</p>
-                
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="font-bold text-gray-700 bg-gray-100 inline-block px-3 py-1 rounded-md mb-3">第一段</h3>
-                        <ul class="space-y-3">
-                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
-                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
-                                    <span class="text-gray-700 italic">With the development of science and technology, AI has been developing our study and daily life.</span>
-                                </div>
-                                <div class="flex items-start gap-2 mb-1">
-                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
-                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">developing our study and daily life</code>
-                                </div>
-                                <div class="flex items-start gap-2 mb-2">
-                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
-                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">has been developing rapidly, changing our study and daily life</code>
-                                </div>
-                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：<code>developing our study and daily life</code> 属于动宾搭配不当。develop 作及物动词直接接"我们的生活"不自然。如果想保留 developing，可改为 <code>AI has been developing rapidly, changing our study and daily life</code>，此时 developing 作不及物动词（AI自身在发展），再用分词短语引出对生活的影响。</p>
-                            </li>
-                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
-                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
-                                    <span class="text-gray-700 italic">Fistly, AI is an tutor, Which can provide answers to questions, making us more understand.</span>
-                                </div>
-                                <div class="flex items-start gap-2 mb-1">
-                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
-                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">Fistly / an tutor / Which / more understand</code>
-                                </div>
-                                <div class="flex items-start gap-2 mb-2">
-                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
-                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Firstly / a tutor / which / understand better</code>
-                                </div>
-                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>Fistly</code> 拼写错误，应为 <code>Firstly</code>。② <code>tutor</code> 以辅音音素开头，前面用 <code>a</code> 而非 <code>an</code>。③ <code>Which</code> 位于句中不应大写。④ <code>understand</code> 是动词，不能用 <code>more</code> 修饰，应说 <code>understand better</code> 或 <code>have a better understanding</code>。</p>
-                            </li>
-                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
-                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
-                                    <span class="text-gray-700 italic">On the other hand, it can help to solve grammar mistakes and enhance our spoken Engltsh.</span>
-                                </div>
-                                <div class="flex items-start gap-2 mb-1">
-                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
-                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">On the other hand / solve grammar mistakes / enhance / Engltsh</code>
-                                </div>
-                                <div class="flex items-start gap-2 mb-2">
-                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
-                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Besides / correct grammar mistakes / improve / English</code>
-                                </div>
-                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>On the other hand</code> 表示"另一方面（转折）"，此处与上文是递进关系，应改为 <code>Besides</code> 或 <code>In addition</code>。② <code>solve mistakes</code> 搭配不当，应为 <code>correct/fix mistakes</code>。③ <code>enhance</code> 偏重"增强、提高（质量、价值）"，修饰口语能力用 <code>improve</code> 更地道。④ <code>Engltsh</code> 拼写错误，应为 <code>English</code>。</p>
-                            </li>
-                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
-                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
-                                    <span class="text-gray-700 italic">In my opinion, I hope AI will become more user and bring more useful skills to make us better.</span>
-                                </div>
-                                <div class="flex items-start gap-2 mb-1">
-                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
-                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">user</code>
-                                </div>
-                                <div class="flex items-start gap-2 mb-2">
-                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
-                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">user-friendly</code>
-                                </div>
-                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：<code>user</code> 是名词，此处缺形容词，应改为 <code>user-friendly</code>（用户友好的）。</p>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 四、 得分范围 -->
-            <section>
-                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">04</span>
-                    得分范围 (Score Range)
-                </h2>
-                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="bg-blue-600 text-white text-xl font-bold px-4 py-2 rounded-lg shadow-sm">
-                            7 - 9 分
-                        </div>
-                        <span class="text-gray-600 text-sm">/ 满分 15 分 (属于第三档作文)</span>
-                    </div>
-                    
-                    <h3 class="font-bold text-gray-800 mb-2">评分依据：</h3>
-                    <ul class="space-y-3 text-gray-700">
-                        <li class="flex items-start gap-2">
-                            <span class="text-green-500 mt-1">✦</span>
-                            <div>
-                                <strong>优点：</strong> 基本完成了写作任务，提及了AI在学习中的帮助（解答问题、纠正语法、提升口语），并表达了对AI的期待，词数基本符合要求。结构上有开头、主体和结尾的意识。
-                            </div>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="text-red-400 mt-1">✦</span>
-                            <div>
-                                <strong>失分点：</strong> ① <strong>内容缺失：</strong> 遗漏了题目要求的核心要点"生活方面"，属于要点不全，直接降档。② <strong>基础错误较多：</strong> 拼写错误（Fistly, Engltsh）、冠词错误（an tutor）、动词修饰错误（more understand）、词性错误（user）等较为密集，影响理解。③ <strong>搭配不当：</strong> develop our life, solve mistakes, enhance spoken English, bring skills 等中式英语表达影响语言准确性。
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </section>
-
-            <!-- 五、 修改建议与润色版本 -->
-            <section>
-                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">05</span>
-                    修改建议 (Suggestions for Improvement)
-                </h2>
-                
-                <ol class="list-decimal list-inside space-y-3 text-gray-700 mb-8 ml-2">
-                    <li><strong>审题要全，覆盖所有要点：</strong> 应用文评分首要标准是"内容完整性"。本题明确要求写"学习方面"、"生活方面"和"期待"三个要点，缺一不可。建议动笔前列提纲，每点用一句话概括，确保不遗漏。</li>
-                    <li><strong>夯实基础拼写：</strong> 常见词如 <code>firstly, English</code> 的拼写错误非常影响阅卷印象。写完后务必留1分钟通读检查，重点排查视觉易错词。</li>
-                    <li><strong>注意词性与搭配：</strong> <code>user-friendly</code>（复合形容词）比单用 <code>user</code> 准确；<code>correct mistakes</code>、<code>improve English</code>、<code>make our life better</code> 是更地道的搭配，建议积累常见动宾组合。</li>
-                    <li><strong>避免语义重复：</strong> <code>In my opinion, I hope...</code> 中两者都表达个人观点，保留一个即可。应用文词数有限（80词左右），每句话都应简洁高效。</li>
-                    <li><strong>积累应用文常用衔接词：</strong> 表示递进用 <code>Besides, In addition, What's more</code>；表示转折才用 <code>On the other hand, However</code>。分清逻辑关系，衔接才能准确。</li>
-                </ol>
-
-                <!-- 升级版展示 -->
-                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 md:p-8 border border-green-200 shadow-sm relative">
-                    <div class="absolute -top-4 -left-4 text-4xl">✨</div>
-                    <h3 class="text-lg font-bold text-green-800 mb-4 border-b border-green-200 pb-2">润色后的升级版 (Upgraded Version)</h3>
-                    <div class="space-y-4">
-                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
-                            <strong class="text-gray-900">AI in Our Study and Daily Life</strong>
-                        </p>
-                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
-                            With the development of science and technology, AI <strong class="text-green-700 bg-green-100 px-1 rounded">has been developing rapidly, changing</strong> our study and daily life. <strong class="text-green-700 bg-green-100 px-1 rounded">Firstly</strong>, AI acts as <strong class="text-green-700 bg-green-100 px-1 rounded">a</strong> tutor, <strong class="text-green-700 bg-green-100 px-1 rounded">which</strong> can provide answers to our questions, helping us <strong class="text-green-700 bg-green-100 px-1 rounded">understand better</strong>. <strong class="text-green-700 bg-green-100 px-1 rounded">Besides</strong>, it can help us <strong class="text-green-700 bg-green-100 px-1 rounded">correct</strong> grammar mistakes and <strong class="text-green-700 bg-green-100 px-1 rounded">improve</strong> our spoken <strong class="text-green-700 bg-green-100 px-1 rounded">English</strong>. <strong class="text-green-700 bg-green-100 px-1 rounded">In daily life, AI assistants can manage our schedules and even control smart home devices, making life more convenient.</strong> I hope AI will become more <strong class="text-green-700 bg-green-100 px-1 rounded">user-friendly</strong> and bring more useful <strong class="text-green-700 bg-green-100 px-1 rounded">features</strong> to <strong class="text-green-700 bg-green-100 px-1 rounded">make our life better</strong>.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            </div>
             <!-- Review Mode: Quiz -->
             <div id="view-review" class="hidden fade-in h-full flex flex-col items-center justify-center pt-2 sm:pt-8">
                 
@@ -1539,29 +1354,7 @@ Li Hua</div>
             { id: 54, tag: "词汇逻辑与语法 (Logic & Grammar)", context: "Rose keeped her's head down, hiding her's features.", incorrect: "Rose / keeped / her's / hiding her's features", correct: "Rosa kept her head down, feeling a bit shy", explanation: "① 主人公名为 Rosa。② keep 过去式为 kept。③ her 本身已是物主代词，无需加 's。④ hiding her features 与原文（戴头巾）不符，不能臆测添加原文没有的设定。", distractors: ["Rose kept her head down", "Rosa keeped her head down"] },
             { id: 55, tag: "分词逻辑主语 (Dangling Participle)", context: "Fixing Emily's eyes on Rose's face, she encouraged Rose to relax herself.", incorrect: "Fixing Emily's eyes / relax herself", correct: "Fixing her eyes on Rosa's face, Emily encouraged her to relax", explanation: "① 分词短语的逻辑主语必须与主句主语一致。Fixing 的动作发出者是 Emily，主句主语也应是 Emily。② relax 本身可作不及物动词，无需加 herself。", distractors: ["Fixing her eyes on Rose's face, she encouraged...", "Fixing Emily's eyes on Rosa's face, Emily encouraged..."] },
             { id: 56, tag: "倒装句与拼写 (Inversion & Spelling)", context: "...anc shared food. Only then did Rose, realized Lodon is a kindful place.", incorrect: "anc / did Rose, realized / Lodon / kindful", correct: "and / did Rosa realize / London / wonderful", explanation: "① anc 应为 and。② Only then 置于句首需部分倒装：did + 主语 + 动词原形。③ Lodon -> London。④ kindful 不是英文单词。", distractors: ["and / did Rose realize / London / kind", "anc / did Rosa realized / Lodon / wonderful"] },
-            { id: 57, tag: "拼写与介词搭配 (Spelling & Preposition)", context: "Never before had Rose gut such a unique experience... had a pround influnence on Rose in the rest of her life.", incorrect: "gut / pround / influnence / in the rest of her life", correct: "got (或 had) / profound / influence / for the rest of her life", explanation: "① gut 应为 got。② pround -> profound。③ influnence -> influence。④ for the rest of her life 为固定搭配。", distractors: ["got / profound / influence / in the rest of her life", "gut / pround / influnence / for the rest of her life"] },
-{ id: 58, tag: "从句不能独立 (Clause Fragment)", context: "Then I asked the owner about desserts. Because I wanted to choose...", incorrect: "desserts. Because I", correct: "desserts, because I", explanation: "Because 引导的原因状语从句不能单独成句，应与主句用逗号相连。", distractors: ["desserts. So I", "desserts. Therefore I"] },
-{ id: 59, tag: "拼写混淆 (Spelling)", context: "...choose a suitable deserts for Mateo...", incorrect: "deserts", correct: "dessert", explanation: "Desert 意为“沙漠”，甜点应为 dessert（多一个 s）。此处 a suitable 后接单数 dessert。", distractors: ["desserts", "deserted"] },
-{ id: 60, tag: "拼写 (Spelling)", context: "The owner began to introduce a virous of desseres for me.", incorrect: "virous of desseres", correct: "variety of desserts", explanation: "Variety 正确拼写为 v-a-r-i-e-t-y；desserts 是复数甜点。", distractors: ["various of desserts", "virous of desserts"] },
-{ id: 61, tag: "冠词 (Article)", context: "...and explain problem.", incorrect: "explain problem", correct: "explain the problem", explanation: "Problem 是可数名词单数，前面需要加定冠词 the，即 explain the problem。", distractors: ["explain a problem", "explain problems"] },
-{ id: 62, tag: "固定表达 (Fixed Expression)", context: "Next day, I brought my gift and prepared to explain chinese indirectness.", incorrect: "Next day", correct: "The next day", explanation: "表示“第二天”在叙述过去事件时，应用 the next day，而不是 next day。", distractors: ["Nextday", "The tomorrow"] },
-{ id: 63, tag: "专有名词大小写 (Proper Noun)", context: "...prepared to explain chinese indirectness.", incorrect: "chinese", correct: "Chinese", explanation: "Chinese 作为语言或民族名称是专有名词，首字母必须大写。", distractors: ["chineses", "china's"] },
-{ id: 64, tag: "从句不能独立 (Clause Fragment)", context: "After I told Mateo about chinese indirectness. He accpected my gift...", incorrect: "chinese indirectness. He", correct: "Chinese indirectness, he", explanation: "After 引导的时间状语从句不能单独成句，要与主句用逗号连接。", distractors: ["Chinese indirectness. So he", "Chinese indirectness. Therefore he"] },
-{ id: 65, tag: "拼写 (Spelling)", context: "...He accpected my gift and successed to understand...", incorrect: "accpected", correct: "accepted", explanation: "Accept 的过去式是 accepted，注意双写 c 再加 ed，不是 accpect。", distractors: ["excepted", "acceped"] },
-{ id: 66, tag: "动词搭配 (Verb Collocation)", context: "...successed to understand the conservation.", incorrect: "successed to understand", correct: "succeeded in understanding", explanation: "Succeed 的用法是 succeed in doing sth.，不是 successed to do。Success 是名词。", distractors: ["success to understand", "successful to understand"] },
-{ id: 67, tag: "缺漏谓语动词 (Missing Predicate)", context: "A sense of guilt me when I thought of his kindness over the years.", incorrect: "A sense of guilt me", correct: "A sense of guilt overwhelmed me", explanation: "Guilt 是名词，不能直接连接宾语 me，需要加上动词如 overwhelmed/hit/struck。", distractors: ["A sense of guilt hit I", "A guilt sense overwhelmed me"] },
-{ id: 68, tag: "拼写 (Spelling)", context: "It was then that I realied how ungrateful, taking his love for granted...", incorrect: "realied", correct: "realized", explanation: "Realize 的正确拼写是 r-e-a-l-i-z-e-d，注意是 -ize- 不是 -ie-。", distractors: ["reallized", "realiseed"] },
-{ id: 69, tag: "宾语从句 (Object Clause)", context: "...I realied how ungrateful, taking his love for granted...", incorrect: "how ungrateful, taking", correct: "how ungrateful I had been, taking", explanation: "How ungrateful 后需补充主谓语构成宾语从句，即 how ungrateful I had been。", distractors: ["how ungrateful was I, taking", "how ungrateful, I had been taking"] },
-{ id: 70, tag: "抄写与时态 (Tense)", context: "I know I had to make it right.", incorrect: "I know", correct: "I knew", explanation: "读后续写给定的段首句是过去时 I knew，抄写时必须保持原时态，不能改为 know。", distractors: ["I knows", "I am knowing"] },
-{ id: 71, tag: "拼写 (Spelling)", context: "withont delay, I walked to the kitchen...", incorrect: "withont", correct: "Without", explanation: "Without 正确拼写为 w-i-t-h-o-u-t，注意是 thout 不是 thont。", distractors: ["Withont", "withount"] },
-{ id: 72, tag: "逻辑缺失 (Logic Gap)", context: "...wrapped my arms around him from behind in his ear.", incorrect: "from behind in his ear", correct: "from behind and whispered in his ear", explanation: "Wrapped my arms around him 和 in his ear 之间缺少动作动词，应加上 and whispered。", distractors: ["from behind to his ear", "from behind at his ear"] },
-{ id: 73, tag: "拼写 (Spelling)", context: "...such a unique exerprience...", incorrect: "exerprience", correct: "experience", explanation: "Experience 正确拼写为 e-x-p-e-r-i-e-n-c-e，注意是 -eri- 不是 -erpri-。", distractors: ["exprience", "experiance"] },
-{ id: 74, tag: "动词搭配 (Verb Collocation)", context: "...how it brought me make new friend's.", incorrect: "brought me make new friend's", correct: "helped me make new friends", explanation: "Bring sb. do sth. 是错误的搭配，应用 help sb. do sth.；friends 是复数，不需要所有格撇号。", distractors: ["brought me making new friends", "brought me to make new friends'"] },
-{ id: 75, tag: "拼写 (Spelling)", context: "...not noly friendship but also a chance...", incorrect: "not noly", correct: "not only", explanation: "Not only 正确拼写为 n-o-t  o-n-l-y，注意是 only 不是 noly。", distractors: ["not onlyly", "not onely"] },
-{ id: 76, tag: "句首大小写 (Capitalization)", context: "one day after my graduation, I received an invitation...", incorrect: "one day", correct: "One day", explanation: "英语段落开头首字母必须大写，One day 而非 one day。", distractors: ["one Day", "Oneday"] },
-{ id: 77, tag: "拼写 (Spelling)", context: "...a young friend admitted to colleage.", incorrect: "colleage", correct: "college", explanation: "College 正确拼写为 c-o-l-l-e-g-e，注意是 -ge 结尾不是 -age。", distractors: ["collage", "colledge"] },
-{ id: 78, tag: "固定搭配 (Fixed Expression)", context: "After seemed like ages, I packed a small medicine kit full...", incorrect: "After seemed like ages", correct: "After what seemed like ages", explanation: "After 是介词，后面不能直接跟动词 seemed，需加 what 引导宾语从句，即 After what seemed like ages。", distractors: ["After seem like ages", "After it seemed like ages"] },
-{ id: 79, tag: "非谓语/形容词作状语 (Adverbial)", context: "Delighted I wrote a note, tears rolling down my cheeks.", incorrect: "Delighted I wrote", correct: "Delighted, I wrote", explanation: "非谓语动词或形容词作状语置于句首时，后面需要加逗号与主句隔开。", distractors: ["Delighted that I wrote", "Delightedly I wrote"] },
+            { id: 57, tag: "拼写与介词搭配 (Spelling & Preposition)", context: "Never before had Rose gut such a unique experience... had a pround influnence on Rose in the rest of her life.", incorrect: "gut / pround / influnence / in the rest of her life", correct: "got (或 had) / profound / influence / for the rest of her life", explanation: "① gut 应为 got。② pround -> profound。③ influnence -> influence。④ for the rest of her life 为固定搭配。", distractors: ["got / profound / influence / in the rest of her life", "gut / pround / influnence / for the rest of her life"] }
         ];
 
         document.getElementById('total-questions-count').innerText = mistakeDatabase.length;
@@ -1644,10 +1437,10 @@ Li Hua</div>
         };
 
         window.switchTab = function(tabName) {
-            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-report6', 'view-report7', 'view-report8', 'view-review'].forEach(id => {
+            ['view-report1', 'view-report2', 'view-report3', 'view-report4', 'view-report5', 'view-report6', 'view-report7', 'view-review'].forEach(id => {
                 document.getElementById(id).classList.add('hidden');
             });
-            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-report6', 'tab-report7', 'tab-report8', 'tab-review'].forEach(id => {
+            ['tab-report1', 'tab-report2', 'tab-report3', 'tab-report4', 'tab-report5', 'tab-report6', 'tab-report7', 'tab-review'].forEach(id => {
                 document.getElementById(id).className = "tab-inactive whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors flex items-center cursor-pointer";
             });
             document.getElementById('view-' + tabName).classList.remove('hidden');

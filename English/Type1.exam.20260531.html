@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>作文批改报告</title>
+    <!-- 引入 Tailwind CSS 和 Typography 插件用于优雅的文本排版 -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <style>
+        /* 打印时隐藏不必要的元素 */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background-color: white !important;
+            }
+            .print-shadow-none {
+                box-shadow: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg print-shadow-none overflow-hidden relative">
+        
+        <!-- 头部区域与按钮 -->
+        <div class="bg-blue-600 text-white p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold">作文批改报告</h1>
+                <p class="text-blue-100 mt-2 text-sm md:text-base">反馈与修改建议完整版 · 2025-05-31</p>
+            </div>
+            <div class="flex gap-3 no-print">
+                <button onclick="downloadTXT()" class="flex items-center gap-2 bg-white/20 hover:bg-white/30 transition-colors text-white px-4 py-2 rounded-lg text-sm font-medium backdrop-blur-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    下载 TXT
+                </button>
+                <button onclick="window.print()" class="flex items-center gap-2 bg-white text-blue-600 hover:bg-blue-50 transition-colors px-4 py-2 rounded-lg text-sm font-medium shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
+                    保存 PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- 报告正文容器 -->
+        <div id="report-content" class="p-6 md:p-8 space-y-10">
+
+            <!-- 一、 题目原文 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">01</span>
+                    题目原文 (The Prompt)
+                </h2>
+                <div class="bg-gray-50 rounded-xl p-5 text-gray-700 text-sm md:text-base leading-relaxed border border-gray-100">
+                    <p class="font-bold mb-3">(2025·郑州市二模) 你校英语报正在举办以 "AI in Our Study and Daily Life" 为主题的征文活动，请用英语写一篇短文投稿，介绍AI对学习和生活的帮助。</p>
+                    <p class="mb-3">要点如下：</p>
+                    <ul class="list-decimal list-inside mb-3 ml-2 space-y-1">
+                        <li>学习方面；</li>
+                        <li>生活方面；</li>
+                        <li>对AI的期待。</li>
+                    </ul>
+                    <div class="bg-white p-4 rounded-lg border border-gray-200">
+                        <p class="font-bold text-gray-800 mb-2">注意：</p>
+                        <ul class="list-decimal list-inside space-y-1">
+                            <li>写作词数应为80个左右；</li>
+                            <li>请按如下格式在答题卡的相应位置作答。</li>
+                        </ul>
+                        <p class="mt-2 font-bold text-gray-800">AI in Our Study and Daily Life</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 二、 你的答案 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">02</span>
+                    你的答案 (Your Answer)
+                </h2>
+                <div class="space-y-4">
+                    <div class="bg-yellow-50/50 rounded-xl p-5 border border-yellow-100">
+                        <p class="text-gray-800 leading-relaxed font-serif">With the development of science and technology, AI has been developing our study and daily life. Fistly, AI is an tutor, Which can provide answers to questions, making us more understand. On the other hand, it can help to solve grammar mistakes and enhance our spoken Engltsh.</p>
+                        <p class="text-gray-800 leading-relaxed font-serif mt-2">In my opinion, I hope AI will become more user and bring more useful skills to make us better.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 三、 语法与拼写错误 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">03</span>
+                    语法与拼写错误 (Grammar & Spelling Errors)
+                </h2>
+                <p class="text-gray-600 mb-4">你的作文基本表达了AI在学习上的帮助，但存在多处搭配不当和语法问题，且遗漏了"生活方面"这一核心要点：</p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-gray-700 bg-gray-100 inline-block px-3 py-1 rounded-md mb-3">第一段</h3>
+                        <ul class="space-y-3">
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">With the development of science and technology, AI has been developing our study and daily life.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">developing our study and daily life</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">has been developing rapidly, changing our study and daily life</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：<code>developing our study and daily life</code> 属于动宾搭配不当。develop 作及物动词直接接"我们的生活"不自然。如果想保留 developing，可改为 <code>AI has been developing rapidly, changing our study and daily life</code>，此时 developing 作不及物动词（AI自身在发展），再用分词短语引出对生活的影响。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">Fistly, AI is an tutor, Which can provide answers to questions, making us more understand.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">Fistly / an tutor / Which / more understand</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Firstly / a tutor / which / understand better</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>Fistly</code> 拼写错误，应为 <code>Firstly</code>。② <code>tutor</code> 以辅音音素开头，前面用 <code>a</code> 而非 <code>an</code>。③ <code>Which</code> 位于句中不应大写。④ <code>understand</code> 是动词，不能用 <code>more</code> 修饰，应说 <code>understand better</code> 或 <code>have a better understanding</code>。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">On the other hand, it can help to solve grammar mistakes and enhance our spoken Engltsh.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">On the other hand / solve grammar mistakes / enhance / Engltsh</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">Besides / correct grammar mistakes / improve / English</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：① <code>On the other hand</code> 表示"另一方面（转折）"，此处与上文是递进关系，应改为 <code>Besides</code> 或 <code>In addition</code>。② <code>solve mistakes</code> 搭配不当，应为 <code>correct/fix mistakes</code>。③ <code>enhance</code> 偏重"增强、提高（质量、价值）"，修饰口语能力用 <code>improve</code> 更地道。④ <code>Engltsh</code> 拼写错误，应为 <code>English</code>。</p>
+                            </li>
+                            <li class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div class="flex items-start gap-2 mb-2 bg-gray-50 p-2 rounded">
+                                    <span class="text-gray-600 font-bold whitespace-nowrap">📄 原句：</span>
+                                    <span class="text-gray-700 italic">In my opinion, I hope AI will become more user and bring more useful skills to make us better.</span>
+                                </div>
+                                <div class="flex items-start gap-2 mb-1">
+                                    <span class="text-red-500 font-bold whitespace-nowrap">❌ 错误：</span>
+                                    <code class="bg-red-50 text-red-700 px-1 py-0.5 rounded">user</code>
+                                </div>
+                                <div class="flex items-start gap-2 mb-2">
+                                    <span class="text-green-500 font-bold whitespace-nowrap">✔️ 改正：</span>
+                                    <code class="bg-green-50 text-green-700 px-1 py-0.5 rounded">user-friendly</code>
+                                </div>
+                                <p class="text-sm text-gray-500 pl-6 border-l-2 border-gray-200 ml-2">📝 解析：<code>user</code> 是名词，此处缺形容词，应改为 <code>user-friendly</code>（用户友好的）。</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 四、 得分范围 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">04</span>
+                    得分范围 (Score Range)
+                </h2>
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="bg-blue-600 text-white text-xl font-bold px-4 py-2 rounded-lg shadow-sm">
+                            7 - 9 分
+                        </div>
+                        <span class="text-gray-600 text-sm">/ 满分 15 分 (属于第三档作文)</span>
+                    </div>
+                    
+                    <h3 class="font-bold text-gray-800 mb-2">评分依据：</h3>
+                    <ul class="space-y-3 text-gray-700">
+                        <li class="flex items-start gap-2">
+                            <span class="text-green-500 mt-1">✦</span>
+                            <div>
+                                <strong>优点：</strong> 基本完成了写作任务，提及了AI在学习中的帮助（解答问题、纠正语法、提升口语），并表达了对AI的期待，词数基本符合要求。结构上有开头、主体和结尾的意识。
+                            </div>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-400 mt-1">✦</span>
+                            <div>
+                                <strong>失分点：</strong> ① <strong>内容缺失：</strong> 遗漏了题目要求的核心要点"生活方面"，属于要点不全，直接降档。② <strong>基础错误较多：</strong> 拼写错误（Fistly, Engltsh）、冠词错误（an tutor）、动词修饰错误（more understand）、词性错误（user）等较为密集，影响理解。③ <strong>搭配不当：</strong> develop our life, solve mistakes, enhance spoken English, bring skills 等中式英语表达影响语言准确性。
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- 五、 修改建议与润色版本 -->
+            <section>
+                <h2 class="text-xl font-bold text-gray-800 border-b-2 border-blue-100 pb-2 mb-4 flex items-center gap-2">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded text-sm">05</span>
+                    修改建议 (Suggestions for Improvement)
+                </h2>
+                
+                <ol class="list-decimal list-inside space-y-3 text-gray-700 mb-8 ml-2">
+                    <li><strong>审题要全，覆盖所有要点：</strong> 应用文评分首要标准是"内容完整性"。本题明确要求写"学习方面"、"生活方面"和"期待"三个要点，缺一不可。建议动笔前列提纲，每点用一句话概括，确保不遗漏。</li>
+                    <li><strong>夯实基础拼写：</strong> 常见词如 <code>firstly, English</code> 的拼写错误非常影响阅卷印象。写完后务必留1分钟通读检查，重点排查视觉易错词。</li>
+                    <li><strong>注意词性与搭配：</strong> <code>user-friendly</code>（复合形容词）比单用 <code>user</code> 准确；<code>correct mistakes</code>、<code>improve English</code>、<code>make our life better</code> 是更地道的搭配，建议积累常见动宾组合。</li>
+                    <li><strong>避免语义重复：</strong> <code>In my opinion, I hope...</code> 中两者都表达个人观点，保留一个即可。应用文词数有限（80词左右），每句话都应简洁高效。</li>
+                    <li><strong>积累应用文常用衔接词：</strong> 表示递进用 <code>Besides, In addition, What's more</code>；表示转折才用 <code>On the other hand, However</code>。分清逻辑关系，衔接才能准确。</li>
+                </ol>
+
+                <!-- 升级版展示 -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 md:p-8 border border-green-200 shadow-sm relative">
+                    <div class="absolute -top-4 -left-4 text-4xl">✨</div>
+                    <h3 class="text-lg font-bold text-green-800 mb-4 border-b border-green-200 pb-2">润色后的升级版 (Upgraded Version)</h3>
+                    <div class="space-y-4">
+                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
+                            <strong class="text-gray-900">AI in Our Study and Daily Life</strong>
+                        </p>
+                        <p class="text-gray-800 leading-relaxed font-serif text-lg">
+                            With the development of science and technology, AI <strong class="text-green-700 bg-green-100 px-1 rounded">has been developing rapidly, changing</strong> our study and daily life. <strong class="text-green-700 bg-green-100 px-1 rounded">Firstly</strong>, AI acts as <strong class="text-green-700 bg-green-100 px-1 rounded">a</strong> tutor, <strong class="text-green-700 bg-green-100 px-1 rounded">which</strong> can provide answers to our questions, helping us <strong class="text-green-700 bg-green-100 px-1 rounded">understand better</strong>. <strong class="text-green-700 bg-green-100 px-1 rounded">Besides</strong>, it can help us <strong class="text-green-700 bg-green-100 px-1 rounded">correct</strong> grammar mistakes and <strong class="text-green-700 bg-green-100 px-1 rounded">improve</strong> our spoken <strong class="text-green-700 bg-green-100 px-1 rounded">English</strong>. <strong class="text-green-700 bg-green-100 px-1 rounded">In daily life, AI assistants can manage our schedules and even control smart home devices, making life more convenient.</strong> I hope AI will become more <strong class="text-green-700 bg-green-100 px-1 rounded">user-friendly</strong> and bring more useful <strong class="text-green-700 bg-green-100 px-1 rounded">features</strong> to <strong class="text-green-700 bg-green-100 px-1 rounded">make our life better</strong>.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- JavaScript：处理下载 TXT 的逻辑 -->
+    <script>
+        function downloadTXT() {
+            // 获取要导出的核心文本（忽略按钮等）
+            const title = "作文批改报告\n========================\n\n";
+            let content = "";
+            
+            // 简单抓取页面里的文本内容进行结构化拼接
+            const sections = [
+                { header: "一、 题目原文 (The Prompt)", selector: "section:nth-of-type(1) > div" },
+                { header: "二、 你的答案 (Your Answer)", selector: "section:nth-of-type(2) > div" },
+                { header: "三、 语法与拼写错误 (Grammar & Spelling Errors)", selector: "section:nth-of-type(3) > div.space-y-6" },
+                { header: "四、 得分范围 (Score Range)", selector: "section:nth-of-type(4) > div" },
+                { header: "五、 修改建议 (Suggestions for Improvement)", selector: "section:nth-of-type(5) > ol" },
+                { header: "✨ 润色后的升级版 (Upgraded Version)", selector: "section:nth-of-type(5) > div > div.space-y-4" }
+            ];
+
+            sections.forEach(sec => {
+                const el = document.querySelector(sec.selector);
+                if(el) {
+                    content += "### " + sec.header + "\n\n";
+                    // 清理文本格式
+                    let text = el.innerText.replace(/\n\n+/g, '\n\n').trim();
+                    content += text + "\n\n------------------------\n\n";
+                }
+            });
+
+            const finalContent = title + content;
+
+            // 创建 Blob 并下载
+            const blob = new Blob([finalContent], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '作文批改报告.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
